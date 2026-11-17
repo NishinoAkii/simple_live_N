@@ -63,6 +63,8 @@ on:
       - ".github/**"
       - "**/*.md"
       - "windows7/**"
+      # README images
+      - "assets/**"
 
 env:
   JAVA_VERSION: "21"
@@ -535,6 +537,8 @@ jobs:
               echo "::warning::CHANGELOG.en.md has no section for ${APP}"
             fi
           fi
+          # links to repository files (e.g. "](doc/…)") point at this version on GitHub
+          sed -i -E "s#\]\((doc/[^)]+)\)#](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/v${APP}/\1)#g" notes.md
           {
             echo
             echo "Build: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"

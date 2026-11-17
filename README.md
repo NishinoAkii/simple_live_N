@@ -26,6 +26,8 @@ simple_live_N 是 [Simple Live](https://github.com/xiaoyaocz/dart_simple_live)�
 
 另有 Twitch、Kick、YouTube 等新平台，完整内容见 [Releases](https://github.com/NishinoAkii/simple_live_N/releases)。
 
+![首页](/assets/screenshot_n_home.jpg)
+
 ## 支持直播平台：
 
 - 虎牙直播

@@ -26,6 +26,8 @@ simple_live_N is a modified version of [Simple Live](https://github.com/xiaoyaoc
 
 Twitch, Kick, YouTube and more are new too; see [Releases](https://github.com/NishinoAkii/simple_live_N/releases) for everything.
 
+![Home](/assets/screenshot_n_home.jpg)
+
 ## Supported live platforms
 
 - Huya
