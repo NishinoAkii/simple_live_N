@@ -11,11 +11,20 @@
 简简单单的看直播
 </p>
 
-simple_live_N 是 [Simple Live](https://github.com/xiaoyaocz/dart_simple_live)（作者 xiaoyaocz）的修改版，以上游 1.11.7 版本为基础，依照 GPL-3.0 协议发布。在上游功能的基础上，我们实现了更多功能，见后文的[主要功能](#主要功能)。
+simple_live_N 是 [Simple Live](https://github.com/xiaoyaocz/dart_simple_live)（作者 xiaoyaocz）的修改版，以上游 1.11.7 版本为基础，依照 GPL-3.0 协议发布。在上游功能的基础上，我们实现了更多功能。
 
 ![浅色模式](/assets/screenshot_light.jpg)
 
 ![深色模式](/assets/screenshot_dark.jpg)
+
+## 主要功能
+
+- [直播源订阅](https://github.com/NishinoAkii/simple_live_N-sources)：一个脚本接入一个平台，脚本更新后无需重装 App。
+- 追帧加速：画面落后时略微加速，追回到接近实时。
+- 多设备同步：关注、观看记录、设置和直播源订阅通过 WebDAV 或局域网同步。
+- 多语言界面：内置简体中文、繁体中文和英文，日语、西班牙语等[翻译](https://github.com/NishinoAkii/simple_live_N-sources)可在 App 内下载。
+
+另有 Twitch、Kick、YouTube 等新平台，完整内容见 [Releases](https://github.com/NishinoAkii/simple_live_N/releases)。
 
 ## 支持直播平台：
 
@@ -107,15 +116,6 @@ Flutter: `3.50.0`
 ## 数据兼容
 
 本版本兼容 Simple Live 的观看数据。
-
-## 主要功能
-
-- [直播源订阅](https://github.com/NishinoAkii/simple_live_N-sources)：一个脚本接入一个平台，脚本更新后无需重装 App。
-- 追帧加速：画面落后时略微加速，追回到接近实时。
-- 多设备同步：关注、观看记录、设置和直播源订阅通过 WebDAV 或局域网同步。
-- 多语言界面：内置简体中文、繁体中文和英文，日语、西班牙语等[翻译](https://github.com/NishinoAkii/simple_live_N-sources)可在 App 内下载。
-
-另有 Twitch、Kick、YouTube 等新平台，完整内容见 [Releases](https://github.com/NishinoAkii/simple_live_N/releases)。
 
 ## Star History
 

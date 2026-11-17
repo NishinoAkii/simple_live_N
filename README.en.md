@@ -11,11 +11,20 @@
 Simply watch live streams
 </p>
 
-simple_live_N is a modified version of [Simple Live](https://github.com/xiaoyaocz/dart_simple_live) by xiaoyaocz. It is based on upstream version 1.11.7 and released under the GPL-3.0 license. On top of the upstream features, we have added many more; the main ones are described under [Main features](#main-features).
+simple_live_N is a modified version of [Simple Live](https://github.com/xiaoyaocz/dart_simple_live) by xiaoyaocz. It is based on upstream version 1.11.7 and released under the GPL-3.0 license. On top of the upstream features, we have added many more.
 
 ![Light mode](/assets/screenshot_light.jpg)
 
 ![Dark mode](/assets/screenshot_dark.jpg)
+
+## Main features
+
+- [Live source subscriptions](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md): one script per platform, updated without reinstalling the app.
+- Speed up to catch up: when the picture falls behind, playback speeds up slightly to get close to live again.
+- Sync between devices: follows, watch history, settings and live source subscriptions sync over WebDAV or the LAN.
+- Interface languages: Simplified Chinese, Traditional Chinese and English built in; [translations](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md) such as Japanese and Spanish can be downloaded in the app.
+
+Twitch, Kick, YouTube and more are new too; see [Releases](https://github.com/NishinoAkii/simple_live_N/releases) for everything.
 
 ## Supported live platforms
 
@@ -107,15 +116,6 @@ This project is released under GPL-3.0, see [`LICENSE`](LICENSE). The third-part
 ## Data compatibility
 
 This version is compatible with Simple Live's viewing data.
-
-## Main features
-
-- [Live source subscriptions](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md): one script per platform, updated without reinstalling the app.
-- Speed up to catch up: when the picture falls behind, playback speeds up slightly to get close to live again.
-- Sync between devices: follows, watch history, settings and live source subscriptions sync over WebDAV or the LAN.
-- Interface languages: Simplified Chinese, Traditional Chinese and English built in; [translations](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md) such as Japanese and Spanish can be downloaded in the app.
-
-Twitch, Kick, YouTube and more are new too; see [Releases](https://github.com/NishinoAkii/simple_live_N/releases) for everything.
 
 ## Star History
 
