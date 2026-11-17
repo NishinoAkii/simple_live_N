@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: "使用问题与讨论 / Questions and discussion"
+    url: https://github.com/NishinoAkii/simple_live_N/discussions
+    about: "使用方法、设置等问题请在 Discussions 提问 / Ask how-to questions in Discussions"
+  - name: "直播源与翻译 / Live sources and translations"
+    url: https://github.com/NishinoAkii/simple_live_N-sources/issues
+    about: "直播源脚本的问题、新直播源和翻译修正 / Live source scripts, new sources and translation fixes"

@@ -1,111 +1,96 @@
-name: BUG报告
-title: "[BUG] 请填写简短易读的标题"
-description: "使用过程中遇到了BUG"
-assignees: xiaoyaocz
+name: "Bug 报告 / Bug report"
+description: "App 出错、闪退或功能不正常 / Something does not work"
+title: "[Bug] "
 labels:
   - "bug"
 body:
-  - type: checkboxes
-    id: terms
+  - type: markdown
     attributes:
-      label: 非重复的Issue
-      description: 先去Issues列表中查找下是否存在相似的Issue，如果有了就不要重复发了
-      options:
-        - label: 已确认没有相似的Issue
-          required: true
+      value: |
+        提交前请先搜索已有的 Issue，并确认用的是[最新版本](https://github.com/NishinoAkii/simple_live_N/releases)。直播源（`.live.js`）的问题请到 [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues) 提交，使用方法的问题请到 [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions) 提问。
 
-  - type: textarea
-    id: description
-    validations:
-      required: true
-    attributes:
-      label: BUG内容
-      description: 请详细描述你遇到的问题
+        Please search existing issues first and make sure you are on the [latest release](https://github.com/NishinoAkii/simple_live_N/releases). Problems with a live source (`.live.js`) belong in [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues); how-to questions belong in [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions).
 
-  - type: textarea
-    id: steps
-    validations:
-      required: true
-    attributes:
-      label: 重现步骤
-      render: plain text
-      description: 请详细描述重现步骤
-      placeholder: |
-        1. xxxx
-        2. xxxx
-        3. xxxx
-
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: 截图或视频
-      description: 请上传BUG截图、或视频
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: 日志
-      description: 请上传日志文件
-      placeholder: |
-        可以在[其他设置]-[开启日志记录]后获取日志文件
- 
   - type: input
     id: version
     attributes:
-      label: 版本号
-      description: 请填写你使用的APP版本号
-      placeholder: ex. 1.0.1
+      label: "版本 / Version"
+      description: "在“我的”页点顶部的 Simple Live N 查看 / Tap Simple Live N at the top of Me"
+      placeholder: "1.24.0（12400） b12-2f512f0"
     validations:
       required: true
- 
-  - type: dropdown
-    id: release-type
-    validations:
-      required: true
-    attributes:
-      label: 使用版本
-      description: 使用的是什么版本，从哪里下载的
-      options:
-        - 正式版(Releases)
-        - 开发版(Actions)
-      default: 0
 
   - type: dropdown
-    id: platform
-    validations:
-      required: true
+    id: system
     attributes:
-      label: 运行平台
-      description: 选择你当前运行应用的平台
-      multiple: false
+      label: "系统 / System"
+      multiple: true
       options:
-        - Windows
+        - Android
+        - Android TV
+        - iOS
+        - Windows 10/11
+        - Windows 7
         - macOS
         - Linux
-        - Android
-        - iOS
-        - Android TV
-
-  - type: input
-    id: os-version
-    attributes:
-      label: 操作系统信息
-      description: 请填写你的操作系统信息版本
-      placeholder: ex. Windows 10 21H1 / MIUI 15 Android 12
     validations:
       required: true
 
   - type: input
     id: device
     attributes:
-      label: 设备信息
-      description: 请填写你的设备信息
-      placeholder: ex. PC / iPhone 12 Pro Max
+      label: "系统版本和设备 / OS version and device"
+      placeholder: "Android 14, Pixel 7 / Windows 11 24H2"
+
+  - type: input
+    id: room
+    attributes:
+      label: "直播平台和直播间 / Platform and room"
+      description: "出问题的平台，以及房间号或链接（如有） / The platform, and the room ID or link if any"
+      placeholder: "虎牙 333003 / twitch.tv/name"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "问题描述 / What happened"
     validations:
       required: true
 
   - type: textarea
-    id: remark
+    id: steps
     attributes:
-      label: 备注
-      description: 其他信息
+      label: "重现步骤 / Steps to reproduce"
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "期望结果 / Expected behavior"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "日志 / Logs"
+      description: "在“我的 → 其他设置”中开启“调试模式”，重现问题后点“导出日志”，把文件拖到这里。导出的日志会隐藏账号和 Cookie，上传前仍请检查一遍 / Turn on Debug mode under Me → Other settings, reproduce the problem, then use Export logs and drop the file here. Accounts and cookies are masked, but please check before uploading."
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "截图或录屏 / Screenshots or recording"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: "确认 / Checklist"
+      options:
+        - label: "已搜索过已有的 Issue，没有重复 / I searched the existing issues"
+          required: true
+        - label: "用的是最新版本 / I am on the latest release"
+          required: true
+        - label: "内容里没有账号、Cookie、密码等个人信息 / No accounts, cookies or passwords are included"
+          required: true
