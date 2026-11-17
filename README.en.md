@@ -21,7 +21,9 @@ simple_live_N is a modified version of [Simple Live](https://github.com/xiaoyaoc
 
 - [Live source subscriptions](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md): one script per platform, updated without reinstalling the app.
 - Speed up to catch up: when the picture falls behind, playback speeds up slightly to get close to live again.
-- Sync between devices: follows, watch history, settings and live source subscriptions sync over WebDAV or the LAN.
+- Sync between devices: follows, watch history, settings and live source subscriptions sync over WebDAV or the LAN, with times converted between time zones.
+- Danmaku in picture-in-picture: the floating window on Android and iOS can show danmaku, with its own style settings.
+- Windows multi-window: up to 4 live rooms at once, with video rendered directly through Direct3D 11 for lower CPU use.
 - Interface languages: Simplified Chinese, Traditional Chinese and English built in; [translations](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md) such as Japanese and Spanish can be downloaded in the app.
 
 Twitch, Kick, YouTube and more are new too; see [Releases](https://github.com/NishinoAkii/simple_live_N/releases) for everything.

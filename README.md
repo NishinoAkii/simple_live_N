@@ -21,7 +21,9 @@ simple_live_N 是 [Simple Live](https://github.com/xiaoyaocz/dart_simple_live)�
 
 - [直播源订阅](https://github.com/NishinoAkii/simple_live_N-sources)：一个脚本接入一个平台，脚本更新后无需重装 App。
 - 追帧加速：画面落后时略微加速，追回到接近实时。
-- 多设备同步：关注、观看记录、设置和直播源订阅通过 WebDAV 或局域网同步。
+- 多设备同步：关注、观看记录、设置和直播源订阅通过 WebDAV 或局域网同步，不同时区的设备之间按本机时区换算时间。
+- 小窗播放显示弹幕：Android 和 iOS 的画中画小窗中也能显示弹幕，弹幕样式可以单独设置。
+- Windows 多窗口：最多同时打开 4 个直播间，视频由 Direct3D 11 直接渲染，CPU 占用更低。
 - 多语言界面：内置简体中文、繁体中文和英文，日语、西班牙语等[翻译](https://github.com/NishinoAkii/simple_live_N-sources)可在 App 内下载。
 
 另有 Twitch、Kick、YouTube 等新平台，完整内容见 [Releases](https://github.com/NishinoAkii/simple_live_N/releases)。
