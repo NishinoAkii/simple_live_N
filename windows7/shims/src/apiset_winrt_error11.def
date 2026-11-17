@@ -1,0 +1,14 @@
+EXPORTS
+    RoOriginateError
+    RoOriginateErrorW
+    RoOriginateLanguageException
+    RoTransformError
+    RoTransformErrorW
+    RoCaptureErrorContext
+    RoFailFastWithErrorContext
+    RoClearError
+    RoReportUnhandledError
+    GetRestrictedErrorInfo
+    SetRestrictedErrorInfo
+    RoGetMatchingRestrictedErrorInfo
+    IsErrorPropagationEnabled

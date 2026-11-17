@@ -96,7 +96,7 @@ def main(folder):
                     tag = "delay" if delay else "LOAD"
                     hits = sorted(fn for fn in fns if fn in WIN8_FUNCS)
                     if dll in WIN8_DLLS and dll not in local:
-                        print(f"[{tag}] {f}: needs {dll} ({len(fns)} functions)")
+                        print(f"[{tag}] {f}: needs {dll} ({len(fns)} functions: {', '.join(sorted(fns))})")
                         bad += not delay
                     # functions taken from DLLs in the app folder (our shims) are covered
                     if hits and dll not in local:

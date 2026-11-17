@@ -1,7 +1,9 @@
 /* WinRT API sets for Windows 7 (share_plus_plugin.dll imports them).
  * Windows 7 has no WinRT: activation reports "class not registered", so
  * sharing fails with an error instead of the whole app failing to load.
- * One source, built three times with -DSHIM_CORE / -DSHIM_STRING / -DSHIM_ERROR.
+ * One source, built four times with -DSHIM_CORE / -DSHIM_STRING / -DSHIM_ERROR / -DSHIM_ERROR11.
+ * SHIM_ERROR11 is api-ms-win-core-winrt-error-l1-1-1: newer Windows SDKs (C++/WinRT) make the
+ * notification plugin import from it; every function only reports "no error information".
  * No C runtime. */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -50,9 +52,68 @@ HRESULT WINAPI WindowsCreateStringReference(const WCHAR *src, UINT32 length, voi
 }
 #endif
 
-#ifdef SHIM_ERROR
+#if defined(SHIM_ERROR) || defined(SHIM_ERROR11)
 BOOL WINAPI RoOriginateError(HRESULT error, HSTRING_ message) {
     (void)error; (void)message;
+    return FALSE;
+}
+#endif
+
+#ifdef SHIM_ERROR11
+BOOL WINAPI RoOriginateErrorW(HRESULT error, UINT length, const WCHAR *message) {
+    (void)error; (void)length; (void)message;
+    return FALSE;
+}
+
+BOOL WINAPI RoOriginateLanguageException(HRESULT error, HSTRING_ message, void *exception) {
+    (void)error; (void)message; (void)exception;
+    return FALSE;
+}
+
+BOOL WINAPI RoTransformError(HRESULT old_error, HRESULT new_error, HSTRING_ message) {
+    (void)old_error; (void)new_error; (void)message;
+    return FALSE;
+}
+
+BOOL WINAPI RoTransformErrorW(HRESULT old_error, HRESULT new_error, UINT length, const WCHAR *message) {
+    (void)old_error; (void)new_error; (void)length; (void)message;
+    return FALSE;
+}
+
+HRESULT WINAPI RoCaptureErrorContext(HRESULT error) {
+    (void)error;
+    return S_OK;
+}
+
+void WINAPI RoFailFastWithErrorContext(HRESULT error) {
+    TerminateProcess(GetCurrentProcess(), (UINT)error);
+}
+
+void WINAPI RoClearError(void) {
+}
+
+HRESULT WINAPI RoReportUnhandledError(void *info) {
+    (void)info;
+    return S_OK;
+}
+
+HRESULT WINAPI GetRestrictedErrorInfo(void **info) {
+    if (info) *info = NULL;
+    return S_FALSE;
+}
+
+HRESULT WINAPI SetRestrictedErrorInfo(void *info) {
+    (void)info;
+    return S_OK;
+}
+
+HRESULT WINAPI RoGetMatchingRestrictedErrorInfo(HRESULT error, void **info) {
+    (void)error;
+    if (info) *info = NULL;
+    return S_FALSE;
+}
+
+BOOL WINAPI IsErrorPropagationEnabled(void) {
     return FALSE;
 }
 #endif

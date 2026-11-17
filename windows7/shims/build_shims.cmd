@@ -33,5 +33,7 @@ cl %CFLAGS% /DSHIM_STRING /Fo"%HERE%obj\winrt_string.obj" "%HERE%src\apiset_winr
 link %LFLAGS% /NOENTRY /DEF:"%HERE%src\apiset_winrt_string.def" /OUT:"%HERE%out\api-ms-win-core-winrt-string-l1-1-0.dll" "%HERE%obj\winrt_string.obj" kernel32.lib || exit /b 1
 cl %CFLAGS% /DSHIM_ERROR /Fo"%HERE%obj\winrt_error.obj" "%HERE%src\apiset_winrt.c" || exit /b 1
 link %LFLAGS% /NOENTRY /DEF:"%HERE%src\apiset_winrt_error.def" /OUT:"%HERE%out\api-ms-win-core-winrt-error-l1-1-0.dll" "%HERE%obj\winrt_error.obj" kernel32.lib || exit /b 1
+cl %CFLAGS% /DSHIM_ERROR11 /Fo"%HERE%obj\winrt_error11.obj" "%HERE%src\apiset_winrt.c" || exit /b 1
+link %LFLAGS% /NOENTRY /DEF:"%HERE%src\apiset_winrt_error11.def" /OUT:"%HERE%out\api-ms-win-core-winrt-error-l1-1-1.dll" "%HERE%obj\winrt_error11.obj" kernel32.lib || exit /b 1
 
 echo shims built
