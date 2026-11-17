@@ -113,6 +113,7 @@ Flutter: `3.50.0`
 - [直播源订阅](https://github.com/NishinoAkii/simple_live_N-sources)：一个脚本接入一个平台，脚本更新后无需重装 App。
 - 追帧加速：画面落后时略微加速，追回到接近实时。
 - 多设备同步：关注、观看记录、设置和直播源订阅通过 WebDAV 或局域网同步。
+- 多语言界面：内置简体中文、繁体中文和英文，日语、西班牙语等[翻译](https://github.com/NishinoAkii/simple_live_N-sources)可在 App 内下载。
 
 另有 Twitch、Kick、YouTube 等新平台，完整内容见 [Releases](https://github.com/NishinoAkii/simple_live_N/releases)。
 

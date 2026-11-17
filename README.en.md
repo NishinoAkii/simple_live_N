@@ -113,6 +113,7 @@ This version is compatible with Simple Live's viewing data.
 - [Live source subscriptions](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md): one script per platform, updated without reinstalling the app.
 - Speed up to catch up: when the picture falls behind, playback speeds up slightly to get close to live again.
 - Sync between devices: follows, watch history, settings and live source subscriptions sync over WebDAV or the LAN.
+- Interface languages: Simplified Chinese, Traditional Chinese and English built in; [translations](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md) such as Japanese and Spanish can be downloaded in the app.
 
 Twitch, Kick, YouTube and more are new too; see [Releases](https://github.com/NishinoAkii/simple_live_N/releases) for everything.
 
