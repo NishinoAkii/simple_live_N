@@ -1,0 +1,48 @@
+{
+ "id": "555943515393e61c772ee968",
+ "bots": [
+  "snusbot"
+ ],
+ "channelEmotes": [
+  {
+   "id": "5f3eb452b2efd65d77e867ed",
+   "code": "forsenBlunder",
+   "imageType": "png",
+   "animated": false,
+   "userId": "555943515393e61c772ee968"
+  },
+  {
+   "id": "6027ea208fbb823604bde323",
+   "code": "YESIDOTHINKSOr",
+   "imageType": "gif",
+   "animated": true,
+   "userId": "555943515393e61c772ee968"
+  }
+ ],
+ "sharedEmotes": [
+  {
+   "id": "55a24e1294dd94001ee86b39",
+   "code": "RareParrot",
+   "imageType": "gif",
+   "animated": true,
+   "user": {
+    "id": "556a12b17f47f2681ba61eca",
+    "name": "bolleknots",
+    "displayName": "Bolleknots",
+    "providerId": "61937071"
+   }
+  },
+  {
+   "id": "54fa92ee01e468494b85b553",
+   "code": "RebeccaBlack",
+   "imageType": "png",
+   "animated": false,
+   "user": {
+    "id": "5561169bd6b9d206222a8c19",
+    "name": "nightdev",
+    "displayName": "NightDev",
+    "providerId": "29045896"
+   }
+  }
+ ]
+}

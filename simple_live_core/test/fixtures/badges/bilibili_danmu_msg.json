@@ -1,0 +1,523 @@
+{
+ "note": "按 fixtures/gifts/bilibili_gifts.json 里实抓的 DANMU_MSG（匿名连接，2026-11-13）改的：info[2] 房管、info[3] 粉丝牌、info[4] UL、info[5] 头衔、info[7] 大航海、info[16] 荣耀等级按 blivedm 的 DanmakuMessage 下标改成要测的值，用户名、uid 是编的",
+ "messages": [
+  {
+   "cmd": "DANMU_MSG",
+   "dm_v2": "",
+   "info": [
+    [
+     0,
+     1,
+     25,
+     16777215,
+     1794503511110,
+     -517739374,
+     0,
+     "0",
+     0,
+     0,
+     0,
+     "",
+     0,
+     "{}",
+     "{}",
+     {
+      "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"晚上好\",\"user_hash\":\"0\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":0,\"dm_score\":0,\"chronos_force_display\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"0\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false,\"card\":{\"card_type\":0,\"oid_str\":\"\",\"oid_str_1\":\"\",\"origin_oid_str\":\"\",\"share_id\":\"\",\"share_origin\":\"\",\"from\":\"\",\"card_content\":null},\"voice\":null,\"background_type\":0}",
+      "mode": 0,
+      "show_player_type": 0,
+      "user": {
+       "anon": null,
+       "base": {
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "is_mystery": false,
+        "name": "用户A",
+        "name_color": 0,
+        "name_color_str": "",
+        "official_info": {
+         "desc": "",
+         "role": 0,
+         "title": "",
+         "type": -1
+        },
+        "origin_info": {
+         "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+         "name": "用户A"
+        },
+        "risk_ctrl_info": null
+       },
+       "bubble_box": null,
+       "dm_config": {
+        "color": 16777215,
+        "length": 80,
+        "mode": 1
+       },
+       "guard": null,
+       "guard_leader": null,
+       "medal": {
+        "color": 1725515,
+        "color_border": 1725515,
+        "color_end": 5414290,
+        "color_start": 1725515,
+        "guard_icon": "",
+        "guard_level": 3,
+        "honor_icon": "",
+        "id": 116443,
+        "is_light": 1,
+        "level": 21,
+        "name": "粉丝牌",
+        "ruid": 20000001,
+        "score": 2563,
+        "typ": 0,
+        "user_receive_count": 0,
+        "v2_medal_color_border": "#3FB4F699",
+        "v2_medal_color_end": "#3FB4F699",
+        "v2_medal_color_level": "#3FB4F6E6",
+        "v2_medal_color_start": "#3FB4F699",
+        "v2_medal_color_text": "#FFFFFF"
+       },
+       "name_color": null,
+       "title": {
+        "old_title_css_id": "title-111-1",
+        "title_css_id": "title-111-1"
+       },
+       "uhead_frame": null,
+       "uid": 10000011,
+       "wealth": null
+      }
+     },
+     {
+      "activity_identity": "",
+      "activity_source": 0,
+      "not_show": 0
+     },
+     0
+    ],
+    "晚上好",
+    [
+     10000011,
+     "用户A",
+     1,
+     0,
+     0,
+     10000,
+     1,
+     ""
+    ],
+    [
+     21,
+     "粉丝牌",
+     "主播A",
+     30000001,
+     1725515,
+     "",
+     0,
+     1725515,
+     1725515,
+     5414290,
+     3,
+     1,
+     20000001
+    ],
+    [
+     12,
+     0,
+     9868950,
+     ">50000",
+     0
+    ],
+    [
+     "title-111-1",
+     "title-111-1"
+    ],
+    0,
+    3,
+    null,
+    {
+     "ct": "0",
+     "ts": 1794503511
+    },
+    0,
+    0,
+    null,
+    null,
+    0,
+    130,
+    [
+     16
+    ],
+    null
+   ]
+  },
+  {
+   "cmd": "DANMU_MSG",
+   "dm_v2": "",
+   "info": [
+    [
+     0,
+     1,
+     25,
+     16777215,
+     1794503511110,
+     -517739374,
+     0,
+     "0",
+     0,
+     0,
+     0,
+     "",
+     0,
+     "{}",
+     "{}",
+     {
+      "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"来了\",\"user_hash\":\"0\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":0,\"dm_score\":0,\"chronos_force_display\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"0\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false,\"card\":{\"card_type\":0,\"oid_str\":\"\",\"oid_str_1\":\"\",\"origin_oid_str\":\"\",\"share_id\":\"\",\"share_origin\":\"\",\"from\":\"\",\"card_content\":null},\"voice\":null,\"background_type\":0}",
+      "mode": 0,
+      "show_player_type": 0,
+      "user": {
+       "anon": null,
+       "base": {
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "is_mystery": false,
+        "name": "用户B",
+        "name_color": 0,
+        "name_color_str": "",
+        "official_info": {
+         "desc": "",
+         "role": 0,
+         "title": "",
+         "type": -1
+        },
+        "origin_info": {
+         "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+         "name": "用户B"
+        },
+        "risk_ctrl_info": null
+       },
+       "bubble_box": null,
+       "dm_config": {
+        "color": 16777215,
+        "length": 80,
+        "mode": 1
+       },
+       "guard": null,
+       "guard_leader": null,
+       "medal": null,
+       "name_color": null,
+       "title": {
+        "old_title_css_id": "",
+        "title_css_id": ""
+       },
+       "uhead_frame": null,
+       "uid": 10000012,
+       "wealth": null
+      }
+     },
+     {
+      "activity_identity": "",
+      "activity_source": 0,
+      "not_show": 0
+     },
+     0
+    ],
+    "来了",
+    [
+     10000012,
+     "用户B",
+     0,
+     0,
+     0,
+     10000,
+     1,
+     ""
+    ],
+    [],
+    [
+     0,
+     0,
+     9868950,
+     ">50000",
+     0
+    ],
+    [
+     "",
+     ""
+    ],
+    0,
+    0,
+    null,
+    {
+     "ct": "0",
+     "ts": 1794503511
+    },
+    0,
+    0,
+    null,
+    null,
+    0,
+    130,
+    [
+     7
+    ],
+    null
+   ]
+  },
+  {
+   "cmd": "DANMU_MSG",
+   "dm_v2": "",
+   "info": [
+    [
+     0,
+     1,
+     25,
+     16777215,
+     1794503511110,
+     -517739374,
+     0,
+     "0",
+     0,
+     0,
+     0,
+     "",
+     0,
+     "{}",
+     "{}",
+     {
+      "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"第一次来\",\"user_hash\":\"0\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":0,\"dm_score\":0,\"chronos_force_display\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"0\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false,\"card\":{\"card_type\":0,\"oid_str\":\"\",\"oid_str_1\":\"\",\"origin_oid_str\":\"\",\"share_id\":\"\",\"share_origin\":\"\",\"from\":\"\",\"card_content\":null},\"voice\":null,\"background_type\":0}",
+      "mode": 0,
+      "show_player_type": 0,
+      "user": {
+       "anon": null,
+       "base": {
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "is_mystery": false,
+        "name": "用户C",
+        "name_color": 0,
+        "name_color_str": "",
+        "official_info": {
+         "desc": "",
+         "role": 0,
+         "title": "",
+         "type": -1
+        },
+        "origin_info": {
+         "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+         "name": "用户C"
+        },
+        "risk_ctrl_info": null
+       },
+       "bubble_box": null,
+       "dm_config": {
+        "color": 16777215,
+        "length": 80,
+        "mode": 1
+       },
+       "guard": null,
+       "guard_leader": null,
+       "medal": null,
+       "name_color": null,
+       "title": {
+        "old_title_css_id": "",
+        "title_css_id": ""
+       },
+       "uhead_frame": null,
+       "uid": 10000013,
+       "wealth": null
+      }
+     },
+     {
+      "activity_identity": "",
+      "activity_source": 0,
+      "not_show": 0
+     },
+     0
+    ],
+    "第一次来",
+    [
+     10000013,
+     "用户C",
+     0,
+     0,
+     0,
+     10000,
+     1,
+     ""
+    ],
+    [],
+    [
+     0,
+     0,
+     9868950,
+     ">50000",
+     0
+    ],
+    [
+     "",
+     ""
+    ],
+    0,
+    0,
+    null,
+    {
+     "ct": "0",
+     "ts": 1794503511
+    },
+    0,
+    0,
+    null,
+    null,
+    0,
+    130,
+    [
+     0
+    ],
+    null
+   ]
+  },
+  {
+   "cmd": "DANMU_MSG",
+   "dm_v2": "",
+   "info": [
+    [
+     0,
+     1,
+     25,
+     16777215,
+     1794503511110,
+     -517739374,
+     0,
+     "0",
+     0,
+     0,
+     0,
+     "",
+     0,
+     "{}",
+     "{}",
+     {
+      "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"老板大气\",\"user_hash\":\"0\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":0,\"dm_score\":0,\"chronos_force_display\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"0\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false,\"card\":{\"card_type\":0,\"oid_str\":\"\",\"oid_str_1\":\"\",\"origin_oid_str\":\"\",\"share_id\":\"\",\"share_origin\":\"\",\"from\":\"\",\"card_content\":null},\"voice\":null,\"background_type\":0}",
+      "mode": 0,
+      "show_player_type": 0,
+      "user": {
+       "anon": null,
+       "base": {
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "is_mystery": false,
+        "name": "用户D",
+        "name_color": 0,
+        "name_color_str": "",
+        "official_info": {
+         "desc": "",
+         "role": 0,
+         "title": "",
+         "type": -1
+        },
+        "origin_info": {
+         "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+         "name": "用户D"
+        },
+        "risk_ctrl_info": null
+       },
+       "bubble_box": null,
+       "dm_config": {
+        "color": 16777215,
+        "length": 80,
+        "mode": 1
+       },
+       "guard": null,
+       "guard_leader": null,
+       "medal": {
+        "color": "6067854",
+        "color_border": 1725515,
+        "color_end": 5414290,
+        "color_start": 1725515,
+        "guard_icon": "",
+        "guard_level": "1",
+        "honor_icon": "",
+        "id": 116443,
+        "is_light": 1,
+        "level": "15",
+        "name": "粉丝牌",
+        "ruid": 20000001,
+        "score": 2563,
+        "typ": 0,
+        "user_receive_count": 0,
+        "v2_medal_color_border": "#3FB4F699",
+        "v2_medal_color_end": "#3FB4F699",
+        "v2_medal_color_level": "#3FB4F6E6",
+        "v2_medal_color_start": "#3FB4F699",
+        "v2_medal_color_text": "#FFFFFF"
+       },
+       "name_color": null,
+       "title": {
+        "old_title_css_id": "",
+        "title_css_id": ""
+       },
+       "uhead_frame": null,
+       "uid": 10000014,
+       "wealth": null
+      }
+     },
+     {
+      "activity_identity": "",
+      "activity_source": 0,
+      "not_show": 0
+     },
+     0
+    ],
+    "老板大气",
+    [
+     10000014,
+     "用户D",
+     0,
+     0,
+     0,
+     10000,
+     1,
+     ""
+    ],
+    [
+     "15",
+     "粉丝牌",
+     "主播A",
+     "30000001",
+     "6067854",
+     "",
+     0,
+     6067854,
+     6067854,
+     6067854,
+     "1",
+     1,
+     20000001
+    ],
+    [
+     0,
+     0,
+     9868950,
+     ">50000",
+     0
+    ],
+    [
+     "",
+     ""
+    ],
+    0,
+    "1",
+    null,
+    {
+     "ct": "0",
+     "ts": 1794503511
+    },
+    0,
+    0,
+    null,
+    null,
+    0,
+    130,
+    [
+     "9"
+    ],
+    null
+   ]
+  }
+ ]
+}

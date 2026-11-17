@@ -1,0 +1,45 @@
+{
+ "data": [
+  {
+   "follower_count": 1392660,
+   "following": false,
+   "id": 668,
+   "is_live": true,
+   "is_verified": true,
+   "profile_picture": "https://files.kick.com/images/user/676/profile_image/conversion/931b4e8f-5445-427c-bd82-b473530390cc-medium.webp",
+   "slug": "xqc",
+   "username": "xQc"
+  },
+  {
+   "follower_count": 657,
+   "following": false,
+   "id": 66401232,
+   "is_live": true,
+   "is_verified": false,
+   "profile_picture": "https://files.kick.com/images/user/67553903/profile_image/conversion/752135e0-8198-4d61-aab5-0e8c7629b3f6-medium.webp",
+   "slug": "xqcow-waiting-room-x",
+   "username": "xQcOW_waiting_room_X"
+  },
+  {
+   "follower_count": 15,
+   "following": false,
+   "id": 30505,
+   "is_live": false,
+   "is_verified": false,
+   "profile_picture": "",
+   "slug": "xqcl",
+   "username": "xqcl"
+  },
+  {
+   "follower_count": 16,
+   "following": false,
+   "id": 1409128,
+   "is_live": false,
+   "is_verified": false,
+   "profile_picture": "",
+   "slug": "xqcu",
+   "username": "xqcu"
+  }
+ ],
+ "message": "success"
+}

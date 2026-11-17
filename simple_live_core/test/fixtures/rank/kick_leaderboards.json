@@ -1,0 +1,76 @@
+{
+  "gifts": [
+    {
+      "user_id": 501,
+      "username": "kick_viewer_1",
+      "quantity": 5434
+    },
+    {
+      "user_id": 502,
+      "username": "kick_viewer_2",
+      "quantity": 3552
+    },
+    {
+      "user_id": 503,
+      "username": "kick_viewer_3",
+      "quantity": 2300
+    },
+    {
+      "user_id": 504,
+      "username": "kick_viewer_4",
+      "quantity": 1850
+    },
+    {
+      "user_id": 505,
+      "username": "kick_viewer_5",
+      "quantity": 500
+    }
+  ],
+  "gifts_enabled": true,
+  "gifts_week": [
+    {
+      "user_id": 506,
+      "username": "kick_viewer_6",
+      "quantity": 50
+    },
+    {
+      "user_id": 507,
+      "username": "kick_viewer_7",
+      "quantity": 1
+    },
+    {
+      "user_id": 508,
+      "username": "kick_viewer_8",
+      "quantity": 1
+    },
+    {
+      "user_id": 509,
+      "username": "kick_viewer_9",
+      "quantity": 1
+    }
+  ],
+  "gifts_week_enabled": true,
+  "gifts_month": [
+    {
+      "user_id": 510,
+      "username": "kick_viewer_10",
+      "quantity": 50
+    },
+    {
+      "user_id": 511,
+      "username": "kick_viewer_11",
+      "quantity": 1
+    },
+    {
+      "user_id": 512,
+      "username": "kick_viewer_12",
+      "quantity": 1
+    },
+    {
+      "user_id": 513,
+      "username": "kick_viewer_13",
+      "quantity": 1
+    }
+  ],
+  "gifts_month_enabled": true
+}

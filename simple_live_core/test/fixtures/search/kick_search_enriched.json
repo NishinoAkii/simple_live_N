@@ -1,0 +1,98 @@
+{
+ "data": {
+  "categories": [],
+  "channels": [
+   {
+    "follower_count": 1392660,
+    "following": false,
+    "id": 668,
+    "is_live": true,
+    "is_verified": true,
+    "profile_picture": "https://files.kick.com/images/user/676/profile_image/conversion/931b4e8f-5445-427c-bd82-b473530390cc-medium.webp",
+    "slug": "xqc",
+    "username": "xQc"
+   },
+   {
+    "follower_count": 657,
+    "following": false,
+    "id": 66401232,
+    "is_live": true,
+    "is_verified": false,
+    "profile_picture": "https://files.kick.com/images/user/67553903/profile_image/conversion/752135e0-8198-4d61-aab5-0e8c7629b3f6-medium.webp",
+    "slug": "xqcow-waiting-room-x",
+    "username": "xQcOW_waiting_room_X"
+   },
+   {
+    "follower_count": 16,
+    "following": false,
+    "id": 1409128,
+    "is_live": false,
+    "is_verified": false,
+    "profile_picture": "",
+    "slug": "xqcu",
+    "username": "xqcu"
+   },
+   {
+    "follower_count": 15,
+    "following": false,
+    "id": 30505,
+    "is_live": false,
+    "is_verified": false,
+    "profile_picture": "",
+    "slug": "xqcl",
+    "username": "xqcl"
+   }
+  ],
+  "livestreams": [
+   {
+    "category": {
+     "id": 8,
+     "name": "Grand Theft Auto V (GTA)",
+     "slug": "grand-theft-auto-v"
+    },
+    "channel": {
+     "id": 668,
+     "profile_picture": "https://files.kick.com/images/user/676/profile_image/conversion/931b4e8f-5445-427c-bd82-b473530390cc-medium.webp",
+     "slug": "xqc",
+     "username": "xQc"
+    },
+    "id": "01a17f2c-4490-7e69-94b4-0b263fa2764e",
+    "is_mature": true,
+    "language": "en",
+    "show_view_count": true,
+    "start_time": "2026-10-27T21:02:50Z",
+    "tags": [],
+    "thumbnail": {
+     "src": "https://images.kick.com/video_thumbnails/DsuAwCgUc9Bh/CgeO0YChrhxg/720.webp"
+    },
+    "title": "🌎LIVE🌎CLICK🌎GTA V🌎NOPIXEL V🌎LOCKED IN🌎MEGA ULTRA DAY🌎UPGRADE UNLOCK TODAY🌎PALETO PROGRESS COPE?🌎COME FIND OUT🌎9393938399🌎",
+    "viewer_count": 9758
+   },
+   {
+    "category": {
+     "id": 5968,
+     "name": "Road to Top G",
+     "slug": "road-to-top-g"
+    },
+    "channel": {
+     "id": 135711125,
+     "profile_picture": "https://kick.com/img/default-profile-pictures/default-avatar-4.webp",
+     "slug": "berrutrc",
+     "username": "berrutrc"
+    },
+    "id": "01a17e02-9588-7054-b983-30d38cadfd26",
+    "is_mature": false,
+    "language": "en",
+    "show_view_count": false,
+    "start_time": "2026-10-27T15:37:41Z",
+    "tags": [],
+    "thumbnail": {
+     "src": "https://images.kick.com/video_thumbnails/3xRAhEQKGqE0/YKmpCJb8fSeC/720.webp"
+    },
+    "title": "davooxeneize LACOBRAAA xQc Absi 3mr SXB szymool Kingteka Cuffem  kasino n3on cheesur adinross كازينو カジノ 賭場 Kumarhane  betting gta5 gta6",
+    "viewer_count": 1
+   }
+  ]
+ },
+ "message": "success"
+}

@@ -1,0 +1,4 @@
+EXPORTS
+    PathAllocCanonicalize
+    PathCchCombineEx
+    PathCchRemoveFileSpec

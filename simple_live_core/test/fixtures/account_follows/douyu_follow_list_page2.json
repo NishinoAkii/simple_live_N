@@ -1,0 +1,19 @@
+{
+  "_fixture": "built from documented shape: DouyuEx FollowList.js（最后一页；内容为虚构）",
+  "error": 0,
+  "msg": "",
+  "data": {
+    "total": 3,
+    "pageCount": 2,
+    "list": [
+      {
+        "room_id": "74751",
+        "room_name": "未开播",
+        "nickname": "主播丙",
+        "avatar_small": "",
+        "show_status": "2",
+        "videoLoop": "0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{"contents": {"twoColumnSearchResultsRenderer": {"primaryContents": {"sectionListRenderer": {"contents": [
+  {"itemSectionRenderer": {"contents": [
+    {"channelRenderer": {"channelId": "UCaaaaaaaaaaaaaaaaaaaaaa", "title": {"simpleText": "Test Channel"},
+      "thumbnail": {"thumbnails": [{"url": "//yt3.ggpht.com/test=s88-c-k-c0x00ffffff-no-rj", "width": 88, "height": 88}, {"url": "//yt3.ggpht.com/test=s176-c-k-c0x00ffffff-no-rj", "width": 176, "height": 176}]},
+      "subscriberCountText": {"simpleText": "@test"}}},
+    {"channelRenderer": {"channelId": "not-a-channel", "title": {"simpleText": "Broken"}}}
+  ]}},
+  {"continuationItemRenderer": {"continuationEndpoint": {"continuationCommand": {"token": "CHANNEL_PAGE_2"}}}}
+]}}}}}

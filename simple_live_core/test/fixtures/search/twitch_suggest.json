@@ -1,0 +1,77 @@
+{
+ "data": {
+  "searchSuggestions": {
+   "edges": [
+    {
+     "node": {
+      "id": "1c2c50bf-ee45-4940-9321-398e8fca67f2",
+      "text": "shrood",
+      "content": {
+       "__typename": "SearchSuggestionChannel",
+       "id": "1064197963",
+       "login": "shrood",
+       "isLive": true,
+       "isVerified": true,
+       "profileImageURL": "https://static-cdn.jtvnw.net/jtv_user_pictures/bd650950-f78b-46b1-9f22-de5a32a3ab82-profile_image-50x50.png",
+       "user": {
+        "id": "1064197963",
+        "login": "shrood",
+        "displayName": "shrood",
+        "stream": {
+         "id": "319708340439"
+        }
+       }
+      }
+     }
+    },
+    {
+     "node": {
+      "id": "3513097c-0205-44c3-a623-6be3fb8708d3",
+      "text": "shroud",
+      "content": null
+     }
+    },
+    {
+     "node": {
+      "id": "02ad68b3-95a2-4035-ba06-6957ea0cda62",
+      "text": "shroud",
+      "content": {
+       "__typename": "SearchSuggestionChannel",
+       "id": "37402112",
+       "login": "shroud",
+       "isLive": false,
+       "isVerified": true,
+       "profileImageURL": "https://static-cdn.jtvnw.net/jtv_user_pictures/c754eebf-745b-4e0a-814a-10bcaecaabbc-profile_image-50x50.png",
+       "user": {
+        "id": "37402112",
+        "login": "shroud",
+        "displayName": "shroud",
+        "stream": null
+       }
+      }
+     }
+    },
+    {
+     "node": {
+      "id": "72ddeea8-e92f-4e59-bb9a-2eeda72601d1",
+      "text": "shroudyrowdy",
+      "content": {
+       "__typename": "SearchSuggestionChannel",
+       "id": "217003761",
+       "login": "shroudyrowdy",
+       "isLive": false,
+       "isVerified": true,
+       "profileImageURL": "https://static-cdn.jtvnw.net/jtv_user_pictures/841105a3-3470-4aee-8fd6-eda089a1dbd6-profile_image-50x50.jpg",
+       "user": {
+        "id": "217003761",
+        "login": "shroudyrowdy",
+        "displayName": "shroudyrowdy",
+        "stream": null
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,23 @@
+{
+  "_fixture": "built from documented shape: StreamFusion follow-endpoints.ts parseKickWebFollowPage、StreamNook kick_account.rs（channels[].channel_slug/user_username/profile_picture/is_live、nextCursor）；内容为虚构",
+  "channels": [
+    {
+      "channel_slug": "XQC",
+      "user_username": "xQc",
+      "profile_picture": "https://files.kick.com/images/user/676/profile_image/conversion/xqc.webp",
+      "is_live": true,
+      "viewer_count": 41000,
+      "session_title": "LIVE"
+    },
+    {
+      "channel_slug": "adinross",
+      "user_username": "",
+      "profile_picture": null,
+      "is_live": false
+    },
+    {
+      "user_username": "没有 slug 的行会被跳过"
+    }
+  ],
+  "nextCursor": 25
+}

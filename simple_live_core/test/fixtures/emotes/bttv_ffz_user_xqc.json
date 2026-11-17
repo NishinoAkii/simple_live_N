@@ -1,0 +1,19 @@
+[
+ {
+  "id": 246878,
+  "user": {
+   "id": 54361,
+   "name": "fabulouspotato69",
+   "displayName": "FabulousPotato69"
+  },
+  "code": "WideHard",
+  "images": {
+   "1x": "https://cdn.betterttv.net/frankerfacez_emote/246878/1",
+   "2x": "https://cdn.betterttv.net/frankerfacez_emote/246878/2",
+   "4x": "https://cdn.betterttv.net/frankerfacez_emote/246878/4"
+  },
+  "imageType": "png",
+  "animated": false,
+  "modifier": false
+ }
+]

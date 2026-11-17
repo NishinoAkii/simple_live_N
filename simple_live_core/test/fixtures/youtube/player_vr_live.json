@@ -1,0 +1,23 @@
+{
+  "playabilityStatus": {"status": "OK", "playableInEmbed": true},
+  "streamingData": {
+    "expiresInSeconds": "21540",
+    "hlsManifestUrl": "https://manifest.googlevideo.com/api/manifest/hls_variant/expire/1700021540/id/test/source/yt_live_broadcast/file/index.m3u8",
+    "serverAbrStreamingUrl": "https://rr1---sn-test.googlevideo.com/videoplayback?test=1"
+  },
+  "videoDetails": {
+    "videoId": "AbCdEfGhIjK",
+    "title": "Test live stream",
+    "lengthSeconds": "0",
+    "isLive": true,
+    "channelId": "UCaaaaaaaaaaaaaaaaaaaaaa",
+    "shortDescription": "Stream description",
+    "thumbnail": {"thumbnails": [
+      {"url": "https://i.ytimg.com/vi/AbCdEfGhIjK/default_live.jpg", "width": 120, "height": 90},
+      {"url": "https://i.ytimg.com/vi/AbCdEfGhIjK/sddefault_live.jpg", "width": 640, "height": 480}
+    ]},
+    "viewCount": "119169",
+    "author": "Test Channel",
+    "isLiveContent": true
+  }
+}

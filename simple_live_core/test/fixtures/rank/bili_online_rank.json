@@ -1,0 +1,203 @@
+{
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "onlineNum": 45,
+    "OnlineRankItem": [
+      {
+        "userRank": 1,
+        "uid": 11,
+        "name": "B站观众一",
+        "face": "https://i0.hdslb.com/bfs/face/fixture1.jpg",
+        "score": 3768,
+        "medalInfo": {
+          "guardLevel": 3,
+          "medalColorStart": 398668,
+          "medalName": "测试牌",
+          "level": 29,
+          "targetId": 3000000001,
+          "isLight": 1
+        },
+        "guard_level": 3,
+        "wealth_level": 41,
+        "is_mystery": false,
+        "uinfo": {
+          "uid": 11,
+          "base": {
+            "name": "B站观众一",
+            "face": "https://i0.hdslb.com/bfs/face/fixture1.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "B站观众一",
+              "face": "https://i0.hdslb.com/bfs/face/fixture1.jpg"
+            }
+          },
+          "medal": {
+            "name": "测试牌",
+            "level": 29,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000001,
+            "guard_level": 3,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": {
+            "level": 41,
+            "dm_icon_key": ""
+          },
+          "title": null,
+          "guard": {
+            "level": 3,
+            "expired_str": "2026-12-31 23:59:59"
+          },
+          "uhead_frame": null,
+          "guard_leader": null
+        }
+      },
+      {
+        "userRank": 2,
+        "uid": 12,
+        "name": "B站观众二",
+        "face": "http://i1.hdslb.com/bfs/face/fixture2.gif",
+        "score": 1546,
+        "medalInfo": null,
+        "guard_level": 0,
+        "wealth_level": 22,
+        "is_mystery": false,
+        "uinfo": {
+          "uid": 12,
+          "base": {
+            "name": "B站观众二",
+            "face": "http://i1.hdslb.com/bfs/face/fixture2.gif",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "B站观众二",
+              "face": "http://i1.hdslb.com/bfs/face/fixture2.gif"
+            }
+          },
+          "medal": null,
+          "wealth": {
+            "level": 22,
+            "dm_icon_key": ""
+          },
+          "title": null,
+          "guard": null,
+          "uhead_frame": null,
+          "guard_leader": null
+        }
+      },
+      {
+        "userRank": 3,
+        "uid": 0,
+        "name": "神秘人",
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "score": 120,
+        "medalInfo": null,
+        "guard_level": 0,
+        "wealth_level": 0,
+        "is_mystery": true,
+        "uinfo": {
+          "uid": 0,
+          "base": {
+            "name": "神秘人",
+            "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+            "name_color": 0,
+            "is_mystery": true,
+            "origin_info": {
+              "name": "神秘人",
+              "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg"
+            }
+          },
+          "medal": null,
+          "wealth": null,
+          "title": null,
+          "guard": null,
+          "uhead_frame": null,
+          "guard_leader": null
+        }
+      },
+      {
+        "userRank": 4,
+        "uid": 14,
+        "name": "B站观众四",
+        "face": "https://i0.hdslb.com/bfs/face/fixture4.jpg",
+        "score": 35,
+        "medalInfo": {
+          "guardLevel": 0,
+          "medalColorStart": 6126494,
+          "medalName": "别家牌",
+          "level": 6,
+          "targetId": 3000000099,
+          "isLight": 1
+        },
+        "guard_level": 0,
+        "wealth_level": 35,
+        "is_mystery": false,
+        "uinfo": {
+          "uid": 14,
+          "base": {
+            "name": "B站观众四",
+            "face": "https://i0.hdslb.com/bfs/face/fixture4.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "B站观众四",
+              "face": "https://i0.hdslb.com/bfs/face/fixture4.jpg"
+            }
+          },
+          "medal": {
+            "name": "别家牌",
+            "level": 6,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000099,
+            "guard_level": 0,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": {
+            "level": 35,
+            "dm_icon_key": ""
+          },
+          "title": null,
+          "guard": null,
+          "uhead_frame": null,
+          "guard_leader": null
+        }
+      }
+    ],
+    "ownInfo": {
+      "uid": 0,
+      "name": "",
+      "face": "",
+      "rank": -1,
+      "needScore": 0,
+      "score": 0,
+      "guard_level": 0,
+      "wealth_level": 0,
+      "is_mystery": false,
+      "uinfo": null
+    },
+    "tips_text": "投喂、点赞、发弹幕、持续观看均可上榜",
+    "value_text": "贡献值",
+    "onlineNumText": "45"
+  }
+}

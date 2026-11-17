@@ -1,0 +1,53 @@
+{
+ "contents": {
+  "twoColumnSearchResultsRenderer": {
+   "primaryContents": {
+    "sectionListRenderer": {
+     "contents": [
+      {
+       "itemSectionRenderer": {
+        "contents": [
+         {
+          "didYouMeanRenderer": {
+           "didYouMean": {
+            "runs": [
+             {
+              "text": "你是不是要找："
+             }
+            ]
+           },
+           "correctedQuery": {
+            "runs": [
+             {
+              "text": "hololive "
+             },
+             {
+              "text": "pekora",
+              "italics": true
+             }
+            ]
+           },
+           "correctedQueryEndpoint": {
+            "commandMetadata": {
+             "webCommandMetadata": {
+              "url": "/results?search_query=hololive+pekora",
+              "webPageType": "WEB_PAGE_TYPE_SEARCH",
+              "rootVe": 4724
+             }
+            },
+            "searchEndpoint": {
+             "query": "hololive pekora",
+             "searchPageAccessPoint": "SEARCH_PAGE_ACCESS_POINT_SEARCH_RESULTS_PAGE"
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  }
+ }
+}

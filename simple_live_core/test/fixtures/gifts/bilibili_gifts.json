@@ -1,0 +1,626 @@
+{
+ "note": "哔哩哔哩匿名连接抓到的原始消息（2026-11-13，房间号已去掉），用户名、uid、头像、粉丝牌名已换成占位符；SEND_GIFT_V2 的 pb 是改过字段后重新编码的",
+ "messages": [
+  {
+   "cmd": "DANMU_MSG",
+   "dm_v2": "",
+   "info": [
+    [
+     0,
+     1,
+     25,
+     16777215,
+     1794503511110,
+     -517739374,
+     0,
+     "0",
+     0,
+     0,
+     0,
+     "",
+     0,
+     "{}",
+     "{}",
+     {
+      "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"主播好\",\"user_hash\":\"0\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":0,\"dm_score\":0,\"chronos_force_display\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"0\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false,\"card\":{\"card_type\":0,\"oid_str\":\"\",\"oid_str_1\":\"\",\"origin_oid_str\":\"\",\"share_id\":\"\",\"share_origin\":\"\",\"from\":\"\",\"card_content\":null},\"voice\":null,\"background_type\":0}",
+      "mode": 0,
+      "show_player_type": 0,
+      "user": {
+       "anon": null,
+       "base": {
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "is_mystery": false,
+        "name": "用户A",
+        "name_color": 0,
+        "name_color_str": "",
+        "official_info": {
+         "desc": "",
+         "role": 0,
+         "title": "",
+         "type": -1
+        },
+        "origin_info": {
+         "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+         "name": "用户A"
+        },
+        "risk_ctrl_info": null
+       },
+       "bubble_box": null,
+       "dm_config": {
+        "color": 16777215,
+        "length": 80,
+        "mode": 1
+       },
+       "guard": null,
+       "guard_leader": null,
+       "medal": {
+        "color": 1725515,
+        "color_border": 1725515,
+        "color_end": 5414290,
+        "color_start": 1725515,
+        "guard_icon": "",
+        "guard_level": 0,
+        "honor_icon": "",
+        "id": 116443,
+        "is_light": 1,
+        "level": 21,
+        "name": "粉丝牌",
+        "ruid": 20000001,
+        "score": 2563,
+        "typ": 0,
+        "user_receive_count": 0,
+        "v2_medal_color_border": "#3FB4F699",
+        "v2_medal_color_end": "#3FB4F699",
+        "v2_medal_color_level": "#3FB4F6E6",
+        "v2_medal_color_start": "#3FB4F699",
+        "v2_medal_color_text": "#FFFFFF"
+       },
+       "name_color": null,
+       "title": {
+        "old_title_css_id": "",
+        "title_css_id": ""
+       },
+       "uhead_frame": null,
+       "uid": 10000001,
+       "wealth": null
+      }
+     },
+     {
+      "activity_identity": "",
+      "activity_source": 0,
+      "not_show": 0
+     },
+     0
+    ],
+    "主播好",
+    [
+     10000001,
+     "用户A",
+     0,
+     0,
+     0,
+     10000,
+     1,
+     ""
+    ],
+    [
+     21,
+     "粉丝牌",
+     "主播A",
+     30000001,
+     1725515,
+     "",
+     0,
+     1725515,
+     1725515,
+     5414290,
+     0,
+     1,
+     20000001
+    ],
+    [
+     0,
+     0,
+     9868950,
+     ">50000",
+     0
+    ],
+    [
+     "",
+     ""
+    ],
+    0,
+    0,
+    null,
+    {
+     "ct": "0",
+     "ts": 1794503511
+    },
+    0,
+    0,
+    null,
+    null,
+    0,
+    130,
+    [
+     7
+    ],
+    null
+   ]
+  },
+  {
+   "cmd": "DANMU_MSG",
+   "dm_v2": "",
+   "info": [
+    [
+     0,
+     1,
+     25,
+     16777215,
+     1794503512041,
+     1794500739,
+     0,
+     "0",
+     0,
+     0,
+     0,
+     "",
+     0,
+     "{}",
+     "{}",
+     {
+      "extra": "{\"send_from_me\":false,\"master_player_hidden\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"主播好\",\"user_hash\":\"0\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":7,\"dm_score\":0,\"chronos_force_display\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null,\"is_audited\":false,\"id_str\":\"0\",\"icon\":null,\"show_reply\":true,\"reply_mid\":0,\"reply_uname\":\"\",\"reply_uname_color\":\"\",\"reply_is_mystery\":false,\"reply_type_enum\":0,\"hit_combo\":0,\"esports_jump_url\":\"\",\"is_mirror\":false,\"is_collaboration_member\":false,\"card\":{\"card_type\":0,\"oid_str\":\"\",\"oid_str_1\":\"\",\"origin_oid_str\":\"\",\"share_id\":\"\",\"share_origin\":\"\",\"from\":\"\",\"card_content\":null},\"voice\":null,\"background_type\":0}",
+      "mode": 0,
+      "show_player_type": 0,
+      "user": {
+       "anon": null,
+       "base": {
+        "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "is_mystery": false,
+        "name": "用户B",
+        "name_color": 0,
+        "name_color_str": "",
+        "official_info": {
+         "desc": "",
+         "role": 0,
+         "title": "",
+         "type": -1
+        },
+        "origin_info": {
+         "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+         "name": "用户B"
+        },
+        "risk_ctrl_info": null
+       },
+       "bubble_box": null,
+       "dm_config": {
+        "color": 16777215,
+        "length": 80,
+        "mode": 1
+       },
+       "guard": null,
+       "guard_leader": null,
+       "medal": {
+        "color": 398668,
+        "color_border": 398668,
+        "color_end": 6850801,
+        "color_start": 398668,
+        "guard_icon": "",
+        "guard_level": 0,
+        "honor_icon": "",
+        "id": 116443,
+        "is_light": 1,
+        "level": 27,
+        "name": "粉丝牌",
+        "ruid": 20000001,
+        "score": 13942,
+        "typ": 0,
+        "user_receive_count": 0,
+        "v2_medal_color_border": "#3FB4F699",
+        "v2_medal_color_end": "#3FB4F699",
+        "v2_medal_color_level": "#3FB4F6E6",
+        "v2_medal_color_start": "#3FB4F699",
+        "v2_medal_color_text": "#FFFFFF"
+       },
+       "name_color": null,
+       "title": {
+        "old_title_css_id": "",
+        "title_css_id": ""
+       },
+       "uhead_frame": null,
+       "uid": 10000002,
+       "wealth": null
+      }
+     },
+     {
+      "activity_identity": "",
+      "activity_source": 0,
+      "not_show": 0
+     },
+     0
+    ],
+    "主播好",
+    [
+     10000002,
+     "用户B",
+     0,
+     0,
+     0,
+     10000,
+     1,
+     ""
+    ],
+    [
+     27,
+     "粉丝牌",
+     "主播A",
+     30000001,
+     398668,
+     "",
+     0,
+     398668,
+     398668,
+     6850801,
+     0,
+     1,
+     20000001
+    ],
+    [
+     5,
+     0,
+     9868950,
+     ">50000",
+     0
+    ],
+    [
+     "",
+     ""
+    ],
+    0,
+    0,
+    null,
+    {
+     "ct": "0",
+     "ts": 1794503512
+    },
+    0,
+    0,
+    null,
+    null,
+    0,
+    260,
+    [
+     16
+    ],
+    null
+   ]
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 140,
+    "pb": "CIOt4gQSB+eUqOaIt0MaL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnQiUIgdrECSgWMgnnsonkuJ3niYw4y6hpQMCBgwZIwIGDBlDAgYMGUtoECLzzARIP57KJ5Lid5Zui54Gv54mMGAEgAShkMGQ4ZEIEZ29sZEoTNDgzODM3NzU1MDkzMTY1MTU4NFDr5tfXBlgBYjtiYXRjaDpnaWZ0OmNvbWJvX2lkOjEwMDAwMDAzOjIwMDAwMDAxOjMxMTY0OjE3OTQ1MDM1MzEuODkxMWgKcGR4BYUBAACAP4gBAZIBBuaKleWWgsABu8qoA+oBDgoH5Li75pKtQRCB2sQJigKeAQiB2sQJEpYBCgfkuLvmkq1BEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI6CgfkuLvmkq1BEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzoeCAESGmJpbGliaWxpIOefpeWQjea4uOaIj1VQ5Li7kgIHCIzg1wIQAZoC5QEKSmh0dHBzOi8vczEuaGRzbGIuY29tL2Jmcy9saXZlL2UwNTFkZmQ0NTU3Njc4ZjhlZGNhYzQ5OTNlZDAwYTA5MzVjYmQ5Y2MucG5nEktodHRwczovL2kwLmhkc2xiLmNvbS9iZnMvbGl2ZS8zMmI3OTkxMjBlMTYxNGZhNjI3NWI2ZDE1ZGE3YTUyYjIxZGQwMTlkLndlYnAqSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlLzgxNmY4YjdhYTIxMzI4ODhmY2U5MjhjZGZiMTdiOWNmMjFjYzA4MjMuZ2lmqgIUCAESBwj1t/ACEAISBwiM4NcCEAFYAWoCCAZ67gEIg63iBBKDAQoH55So5oi3QxIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGcyOgoH55So5oi3QxIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGc6CyD///////////8BGmEKCeeyieS4neeJjBAWGMCBgwYgwIGDBijAgYMGMMuoaVCB2sQJYMoXegkjOTE5Mjk4Q0OCAQkjOTE5Mjk4Q0OKAQkjOTE5Mjk4Q0OSAQcjRkZGRkZGmgEJIzkxOTI5OEU2"
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 42,
+    "pb": "EgfnlKjmiLdEGi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZ0IAUtEECMSJAhIJ5Lq65rCU56WoGAEgAShkMGQ4ZEIEZ29sZEoTNDgzODM3Nzc2Mjg1NzI0OTc5MlCe59fXBlgBYlNiYXRjaDpnaWZ0OmNvbWJvX2lkOmE0ODI2YjRjM2Q0NTQyZjM5NTI2ZWI3ZjEzMDE2YTE5OjIwMDAwMDAxOjMzOTg4OjE3OTQ1MDM1ODIuNDE1MWgKcGR4BYUBAACAP4gBAZIBBuaKleWWgsABvcqoA+oBDgoH5Li75pKtQRCB2sQJigKeAQiB2sQJEpYBCgfkuLvmkq1BEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI6CgfkuLvmkq1BEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzoeCAESGmJpbGliaWxpIOefpeWQjea4uOaIj1VQ5Li7kgIAmgLlAQpKaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2xpdmUvYWZlYTI4ODdmNGIzNzgwOTMzNzdlODc3Y2NjYWJmNmRkOGM3YTYxNC5wbmcSS2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlLzU3YjI1ODk5YjY0MmViMWNlYWVjYWJmMmQyMmEwZjc0YTIwMGViMzMud2VicCpKaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2xpdmUvZmRiNjI4MzM2ZTc3YmE1NGI3NzcyYjBiZmE0ZDc2YjliZDgxYjdlNi5naWaqAgBYAWoAeoYBEoMBCgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI6CgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzoLIP///////////wE="
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 42,
+    "pb": "EgfnlKjmiLdEGi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZ0IAUs8ECMSJAhIJ5Lq65rCU56WoGAEgAShkMGQ4ZEIEZ29sZEoTNDgzODM3Nzc3MTI5NjI4MjYyNFCg59fXBlgCYlNiYXRjaDpnaWZ0OmNvbWJvX2lkOmE0ODI2YjRjM2Q0NTQyZjM5NTI2ZWI3ZjEzMDE2YTE5OjIwMDAwMDAxOjMzOTg4OjE3OTQ1MDM1ODIuNDE1MWgKcMgBeAWFAQAAgD+SAQbmipXlloLAAb7KqAPqAQ4KB+S4u+aSrUEQgdrECYoCngEIgdrECRKWAQoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGcyOgoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGc6HggBEhpiaWxpYmlsaSDnn6XlkI3muLjmiI9VUOS4u5ICAJoC5QEKSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2FmZWEyODg3ZjRiMzc4MDkzMzc3ZTg3N2NjY2FiZjZkZDhjN2E2MTQucG5nEktodHRwczovL2kwLmhkc2xiLmNvbS9iZnMvbGl2ZS81N2IyNTg5OWI2NDJlYjFjZWFlY2FiZjJkMjJhMGY3NGEyMDBlYjMzLndlYnAqSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2ZkYjYyODMzNmU3N2JhNTRiNzc3MmIwYmZhNGQ3NmI5YmQ4MWI3ZTYuZ2lmqgIAWAFqAggBeoYBEoMBCgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI6CgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzoLIP///////////wE="
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 42,
+    "pb": "EgfnlKjmiLdEGi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZ0IAUs8ECMSJAhIJ5Lq65rCU56WoGAEgAShkMGQ4ZEIEZ29sZEoTNDgzODM3Nzc3Mzg0NjM5MTgwOFCg59fXBlgDYlNiYXRjaDpnaWZ0OmNvbWJvX2lkOmE0ODI2YjRjM2Q0NTQyZjM5NTI2ZWI3ZjEzMDE2YTE5OjIwMDAwMDAxOjMzOTg4OjE3OTQ1MDM1ODIuNDE1MWgKcKwCeAWFAQAAgD+SAQbmipXlloLAAb/KqAPqAQ4KB+S4u+aSrUEQgdrECYoCngEIgdrECRKWAQoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGcyOgoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGc6HggBEhpiaWxpYmlsaSDnn6XlkI3muLjmiI9VUOS4u5ICAJoC5QEKSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2FmZWEyODg3ZjRiMzc4MDkzMzc3ZTg3N2NjY2FiZjZkZDhjN2E2MTQucG5nEktodHRwczovL2kwLmhkc2xiLmNvbS9iZnMvbGl2ZS81N2IyNTg5OWI2NDJlYjFjZWFlY2FiZjJkMjJhMGY3NGEyMDBlYjMzLndlYnAqSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2ZkYjYyODMzNmU3N2JhNTRiNzc3MmIwYmZhNGQ3NmI5YmQ4MWI3ZTYuZ2lmqgIAWAFqAggBeoYBEoMBCgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI6CgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzoLIP///////////wE="
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 42,
+    "pb": "EgfnlKjmiLdEGi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZ0IAUs8ECMSJAhIJ5Lq65rCU56WoGAEgAShkMGQ4ZEIEZ29sZEoTNDgzODM3ODEwNDkzMjIxMjczNlDv59fXBlgfYlNiYXRjaDpnaWZ0OmNvbWJvX2lkOmE0ODI2YjRjM2Q0NTQyZjM5NTI2ZWI3ZjEzMDE2YTE5OjIwMDAwMDAxOjMzOTg4OjE3OTQ1MDM1ODIuNDE1MWgKcJwYeAWFAc3MjD+SAQbmipXlloLAAfDKqAPqAQ4KB+S4u+aSrUEQgdrECYoCngEIgdrECRKWAQoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGcyOgoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGc6HggBEhpiaWxpYmlsaSDnn6XlkI3muLjmiI9VUOS4u5ICAJoC5QEKSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2FmZWEyODg3ZjRiMzc4MDkzMzc3ZTg3N2NjY2FiZjZkZDhjN2E2MTQucG5nEktodHRwczovL2kwLmhkc2xiLmNvbS9iZnMvbGl2ZS81N2IyNTg5OWI2NDJlYjFjZWFlY2FiZjJkMjJhMGY3NGEyMDBlYjMzLndlYnAqSmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2ZkYjYyODMzNmU3N2JhNTRiNzc3MmIwYmZhNGQ3NmI5YmQ4MWI3ZTYuZ2lmqgIAWAFqAggDeoYBEoMBCgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI6CgfnlKjmiLdEEi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzoLIP///////////wE="
+   }
+  },
+  {
+   "cmd": "COMBO_SEND",
+   "data": {
+    "action": "投喂",
+    "batch_combo_id": "batch:gift:combo_id:a4826b4c3d4542f39526eb7f13016a19:20000001:33988:1794503582.4151",
+    "batch_combo_num": 31,
+    "coin_type": "gold",
+    "combo_id": "gift:combo_id:a4826b4c3d4542f39526eb7f13016a19:20000001:33988:1794503582.4142",
+    "combo_num": 31,
+    "combo_total_coin": 3100,
+    "dmscore": 56,
+    "gift_id": 33988,
+    "gift_info": {
+     "img_basic": "https://i0.hdslb.com/bfs/live/afea2887f4b378093377e877cccabf6dd8c7a614.png",
+     "webp": "https://i0.hdslb.com/bfs/live/57b25899b642eb1ceaecabf2d22a0f74a200eb33.webp"
+    },
+    "gift_name": "人气票",
+    "gift_num": 0,
+    "group_medal": null,
+    "is_join_receiver": false,
+    "is_naming": false,
+    "is_show": 1,
+    "medal_info": {
+     "anchor_roomid": 0,
+     "anchor_uname": "",
+     "guard_level": 0,
+     "icon_id": 0,
+     "is_lighted": 0,
+     "medal_color": 0,
+     "medal_color_border": 0,
+     "medal_color_end": 0,
+     "medal_color_start": 0,
+     "medal_level": 0,
+     "medal_name": "",
+     "special": "",
+     "target_id": 0
+    },
+    "name_color": "",
+    "r_uname": "主播A",
+    "receive_user_info": {
+     "uid": 20000001,
+     "uname": "主播A"
+    },
+    "receiver_uinfo": {
+     "anon": null,
+     "base": {
+      "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+      "is_mystery": false,
+      "name": "主播A",
+      "name_color": 0,
+      "name_color_str": "",
+      "official_info": {
+       "desc": "",
+       "role": 1,
+       "title": "bilibili 知名游戏UP主",
+       "type": 0
+      },
+      "origin_info": {
+       "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+       "name": "主播A"
+      },
+      "risk_ctrl_info": null
+     },
+     "bubble_box": null,
+     "dm_config": null,
+     "guard": null,
+     "guard_leader": null,
+     "medal": null,
+     "name_color": null,
+     "title": null,
+     "uhead_frame": null,
+     "uid": 20000001,
+     "wealth": null
+    },
+    "ruid": 20000001,
+    "send_master": null,
+    "sender_uinfo": {
+     "anon": null,
+     "base": {
+      "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+      "is_mystery": false,
+      "name": "用户D",
+      "name_color": 0,
+      "name_color_str": "",
+      "official_info": {
+       "desc": "",
+       "role": 0,
+       "title": "",
+       "type": -1
+      },
+      "origin_info": {
+       "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+       "name": "用户D"
+      },
+      "risk_ctrl_info": null
+     },
+     "bubble_box": null,
+     "dm_config": null,
+     "guard": null,
+     "guard_leader": null,
+     "medal": null,
+     "name_color": null,
+     "title": null,
+     "uhead_frame": null,
+     "uid": 0,
+     "wealth": null
+    },
+    "total_num": 31,
+    "uid": 0,
+    "uname": "用户D",
+    "wealth_level": 3
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 112,
+    "pb": "EgfnlKjmiLdFGi5odHRwOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnQiYIgtrECSgLMgnnsonkuJ3niYw4pvm1BEDAgYMGSMCBgwZQwIGDBlLyBAi88wESD+eyieS4neWboueBr+eJjBgBIAEoZDBkOGRCBGdvbGRKEzQ4MzgzNzgxODE4MzQ3NDc5MDRQgujX1wZYAWJTYmF0Y2g6Z2lmdDpjb21ib19pZDo3NDA1ZDU0ZTU3ZDA4NzgzM2E1ZGVhMDJmODhhMTVhZToyMDAwMDAwMTozMTE2NDoxNzk0NTAzNjgyLjMwNTJoCnBkeAWFAQAAgD+IAQGSAQbmipXlloLAAfHKqAPqAQ4KB+S4u+aSrUEQgdrECYoCngEIgdrECRKWAQoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGcyOgoH5Li75pKtQRIvaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGc6HggBEhpiaWxpYmlsaSDnn6XlkI3muLjmiI9VUOS4u5ICBwiM4NcCEAGaAuUBCkpodHRwczovL3MxLmhkc2xiLmNvbS9iZnMvbGl2ZS9lMDUxZGZkNDU1NzY3OGY4ZWRjYWM0OTkzZWQwMGEwOTM1Y2JkOWNjLnBuZxJLaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2xpdmUvMzJiNzk5MTIwZTE2MTRmYTYyNzViNmQxNWRhN2E1MmIyMWRkMDE5ZC53ZWJwKkpodHRwczovL2kwLmhkc2xiLmNvbS9iZnMvbGl2ZS84MTZmOGI3YWEyMTMyODg4ZmNlOTI4Y2RmYjE3YjljZjIxY2MwODIzLmdpZqoCFAgBEgcI9bfwAhACEgcIjODXAhABWAFqAggJeugBEoEBCgfnlKjmiLdFEi5odHRwOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnMjkKB+eUqOaIt0USLmh0dHA6Ly9pMC5oZHNsYi5jb20vYmZzL2ZhY2UvbWVtYmVyL25vZmFjZS5qcGc6CyD///////////8BGmIKCeeyieS4neeJjBAKGMCBgwYgwIGDBijAgYMGMKb5tQRQgdrECWCsAXoJIzkxOTI5OENDggEJIzkxOTI5OENDigEJIzkxOTI5OENDkgEHI0ZGRkZGRpoBCSM5MTkyOThFNg=="
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 1
+   },
+   "data": {
+    "dmscore": 112,
+    "pb": "EgfnlKjmiLdFGi5odHRwOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnQiYIgtrECSgLMgnnsonkuJ3niYw4pvm1BEDAgYMGSMCBgwZQwIGDBlLwBAi88wESD+eyieS4neWboueBr+eJjBgBIAEoZDBkOGRCBGdvbGRKEzQ4MzgzNzgxODc1NTU3MzYwNjRQg+jX1wZYAmJTYmF0Y2g6Z2lmdDpjb21ib19pZDo3NDA1ZDU0ZTU3ZDA4NzgzM2E1ZGVhMDJmODhhMTVhZToyMDAwMDAwMTozMTE2NDoxNzk0NTAzNjgyLjMwNTJoCnDIAXgFhQEAAIA/kgEG5oqV5ZaCwAHxyqgD6gEOCgfkuLvmkq1BEIHaxAmKAp4BCIHaxAkSlgEKB+S4u+aSrUESL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnMjoKB+S4u+aSrUESL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnOh4IARIaYmlsaWJpbGkg55+l5ZCN5ri45oiPVVDkuLuSAgcIjODXAhABmgLlAQpKaHR0cHM6Ly9zMS5oZHNsYi5jb20vYmZzL2xpdmUvZTA1MWRmZDQ1NTc2NzhmOGVkY2FjNDk5M2VkMDBhMDkzNWNiZDljYy5wbmcSS2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlLzMyYjc5OTEyMGUxNjE0ZmE2Mjc1YjZkMTVkYTdhNTJiMjFkZDAxOWQud2VicCpKaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2xpdmUvODE2ZjhiN2FhMjEzMjg4OGZjZTkyOGNkZmIxN2I5Y2YyMWNjMDgyMy5naWaqAhQIARIHCPW38AIQAhIHCIzg1wIQAVgBagIICXrqARKBAQoH55So5oi3RRIuaHR0cDovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZzI5CgfnlKjmiLdFEi5odHRwOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnOgsg////////////ARpkCgnnsonkuJ3niYwQChim+bUEIKb5tQQopvm1BDCm+bUESAFQgdrECWCyAXoJIzU3NjJBNzk5ggEJIzU3NjJBNzk5igEJIzU3NjJBNzk5kgEHI0ZGRkZGRpoBCSM1NzYyQTdFNg=="
+   }
+  },
+  {
+   "cmd": "SEND_GIFT_V2",
+   "danmu": {
+    "area": 0
+   },
+   "data": {
+    "dmscore": 42,
+    "pb": "EgfnlKjmiLdGGi9odHRwczovL2kwLmhkc2xiLmNvbS9iZnMvZmFjZS9tZW1iZXIvbm9mYWNlLmpwZ0IAUuoGCLzyARIJ5bCP6Iqx6IqxGB4gAShkMGQ4uBdCBGdvbGRKEzQ4MzgzNzgxODg0MDcyMTcxNTJQg+jX1wZYAWJTYmF0Y2g6Z2lmdDpjb21ib19pZDo0NGM4OWQ1M2JhNTg1ZTdhMDJhYjdiNzQxNzdkZjBlMToyMDAwMDAwMTozMTAzNjoxNzk0NTAzNjgzLjg3MDZoCnC4F3gFhQEAAIA/iAEBkgEG5oqV5ZaCwAGOy6gD6gEOCgfkuLvmkq1BEIHaxAmKAp4BCIHaxAkSlgEKB+S4u+aSrUESL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnMjoKB+S4u+aSrUESL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnOh4IARIaYmlsaWJpbGkg55+l5ZCN5ri45oiPVVDkuLuSAgCaAuUBCkpodHRwczovL3MxLmhkc2xiLmNvbS9iZnMvbGl2ZS81MTI2OTczODkyNjI1ZjNhNDNhODI5MGJlNmI2MjViNWU1NDI2MWE1LnBuZxJLaHR0cHM6Ly9pMC5oZHNsYi5jb20vYmZzL2xpdmUvMjgzNTdiYTRjZDU2NjQxODczMGNhMjlkYTJjNTUyZWZhN2U0YTM5MC53ZWJwKkpodHRwczovL2kwLmhkc2xiLmNvbS9iZnMvbGl2ZS9jODA2ZWUyOTM5NGFhYjQ4NzdmYTNkNTM1ZGFjYTVjNjZjNjMxMzA2LmdpZqoCALICkwIKkAIKZmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9hY3Rpdml0eS1wbGF0L3N0YXRpYy8yMDI1MTAzMC8xZjBiODZlMzFkMjFiNDBmMGE1N2U4MTI4ZmU4MGRhNy9SZ2l2bmxMZ1ZOLnppcBIgMTQxMTNlODA1OWQzMTZmMjZiZTFlNDYxY2U4ZTI0M2YYCyAKKhLop6PplIHlvanom4vnibnmlYgySmh0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9saXZlL2ZhYTZhNDE4NWQ3MDVlOWMwYWRkMzgxZDYyMzVjZGYxYzE3MzA1NTEucG5nOiAxNjQzOGFjYTMwYmZmZmRjMzdhZGYxZGM4M2VhMDhhOVgBagB6hgESgwEKB+eUqOaIt0YSL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnMjoKB+eUqOaIt0YSL2h0dHBzOi8vaTAuaGRzbGIuY29tL2Jmcy9mYWNlL21lbWJlci9ub2ZhY2UuanBnOgsg////////////AQ=="
+   }
+  },
+  {
+   "cmd": "COMBO_SEND",
+   "data": {
+    "action": "投喂",
+    "batch_combo_id": "batch:gift:combo_id:7405d54e57d087833a5dea02f88a15ae:20000001:31164:1794503682.3052",
+    "batch_combo_num": 2,
+    "coin_type": "gold",
+    "combo_id": "gift:combo_id:7405d54e57d087833a5dea02f88a15ae:20000001:31164:1794503682.3042",
+    "combo_num": 2,
+    "combo_total_coin": 200,
+    "dmscore": 56,
+    "gift_id": 31164,
+    "gift_info": {
+     "img_basic": "https://s1.hdslb.com/bfs/live/e051dfd4557678f8edcac4993ed00a0935cbd9cc.png",
+     "webp": "https://i0.hdslb.com/bfs/live/32b799120e1614fa6275b6d15da7a52b21dd019d.webp"
+    },
+    "gift_name": "粉丝团灯牌",
+    "gift_num": 0,
+    "group_medal": null,
+    "is_join_receiver": false,
+    "is_naming": false,
+    "is_show": 1,
+    "medal_info": {
+     "anchor_roomid": 0,
+     "anchor_uname": "",
+     "guard_level": 0,
+     "icon_id": 0,
+     "is_lighted": 0,
+     "medal_color": 9272486,
+     "medal_color_border": 12632256,
+     "medal_color_end": 12632256,
+     "medal_color_start": 12632256,
+     "medal_level": 11,
+     "medal_name": "粉丝牌",
+     "special": "",
+     "target_id": 20000002
+    },
+    "name_color": "",
+    "r_uname": "主播A",
+    "receive_user_info": {
+     "uid": 20000001,
+     "uname": "主播A"
+    },
+    "receiver_uinfo": {
+     "anon": null,
+     "base": {
+      "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+      "is_mystery": false,
+      "name": "主播A",
+      "name_color": 0,
+      "name_color_str": "",
+      "official_info": {
+       "desc": "",
+       "role": 1,
+       "title": "bilibili 知名游戏UP主",
+       "type": 0
+      },
+      "origin_info": {
+       "face": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+       "name": "主播A"
+      },
+      "risk_ctrl_info": null
+     },
+     "bubble_box": null,
+     "dm_config": null,
+     "guard": null,
+     "guard_leader": null,
+     "medal": null,
+     "name_color": null,
+     "title": null,
+     "uhead_frame": null,
+     "uid": 20000001,
+     "wealth": null
+    },
+    "ruid": 20000001,
+    "send_master": null,
+    "sender_uinfo": {
+     "anon": null,
+     "base": {
+      "face": "http://i0.hdslb.com/bfs/face/member/noface.jpg",
+      "is_mystery": false,
+      "name": "用户E",
+      "name_color": 0,
+      "name_color_str": "",
+      "official_info": {
+       "desc": "",
+       "role": 0,
+       "title": "",
+       "type": -1
+      },
+      "origin_info": {
+       "face": "http://i0.hdslb.com/bfs/face/member/noface.jpg",
+       "name": "用户E"
+      },
+      "risk_ctrl_info": null
+     },
+     "bubble_box": null,
+     "dm_config": null,
+     "guard": null,
+     "guard_leader": null,
+     "medal": {
+      "color": 9272486,
+      "color_border": 9272486,
+      "color_end": 9272486,
+      "color_start": 9272486,
+      "guard_icon": "",
+      "guard_level": 0,
+      "honor_icon": "",
+      "id": 0,
+      "is_light": 1,
+      "level": 10,
+      "name": "粉丝牌",
+      "ruid": 20000001,
+      "score": 178,
+      "typ": 0,
+      "user_receive_count": 0,
+      "v2_medal_color_border": "#5762A799",
+      "v2_medal_color_end": "#5762A799",
+      "v2_medal_color_level": "#5762A7E6",
+      "v2_medal_color_start": "#5762A799",
+      "v2_medal_color_text": "#FFFFFF"
+     },
+     "name_color": null,
+     "title": null,
+     "uhead_frame": null,
+     "uid": 0,
+     "wealth": null
+    },
+    "total_num": 2,
+    "uid": 0,
+    "uname": "用户E",
+    "wealth_level": 9
+   }
+  }
+ ]
+}

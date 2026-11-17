@@ -1,0 +1,442 @@
+{
+ "data": {
+  "giftList": [
+   {
+    "basicInfo": {
+     "bizTag": "",
+     "borderColor": "#f79b5e",
+     "chatPic": "/2018/11/29/42669592fba5a9c067614dee8feea7de.gif",
+     "culture": "赞一个！",
+     "desc1": "赠送520以上赞可触发弹幕池特效哦~",
+     "desc2": "赠送1288以上赞更可触发神秘宝箱",
+     "focusPic": "/2018/11/29/abe536f393466727e02422b7cc1fbf57.gif",
+     "giftPic": "/2018/11/29/9d2a3e2948833de55455c555cd1fd5cb.png",
+     "giftType": 0,
+     "guardLevel": 0,
+     "sendPic": "/2018/11/29/b7858b382310316c422f33e92d5c447a.png",
+     "subscriptColor": "",
+     "subscriptText": "",
+     "webSubscriptBigPic": "",
+     "webSubscriptSmallPic": "",
+     "webSubscriptText": ""
+    },
+    "batchInfo": {
+     "6": {
+      "batchNum": 6,
+      "name": "好运连连"
+     },
+     "66": {
+      "batchNum": 66,
+      "name": "六六大顺"
+     },
+     "166": {
+      "batchNum": 166,
+      "name": "鸿运当头"
+     },
+     "520": {
+      "batchNum": 520,
+      "name": "我爱你"
+     },
+     "1288": {
+      "batchNum": 1288,
+      "name": "大吉大利"
+     },
+     "8888": {
+      "batchNum": 8888,
+      "name": "八方来财"
+     }
+    },
+    "batchInfoFlag": 1,
+    "cbTag": "",
+    "countLimit": 0,
+    "defaultSkinId": 12,
+    "donateStatus": 1,
+    "effectStatus": 1,
+    "endTime": 0,
+    "fansLevel": 0,
+    "giftBanner": "",
+    "giftBannerLink": "",
+    "giftVersion": 1,
+    "growthInfo": {
+     "contribution": 1,
+     "experience": 1,
+     "intimacy": 1
+    },
+    "hitInterval": 30000,
+    "id": 20006,
+    "isBatchLimited": 0,
+    "isFace": 0,
+    "name": "赞",
+    "picUrlPrefix": "https://gfs-op.douyucdn.cn/dygift",
+    "priceInfo": {
+     "price": 10,
+     "priceType": "YUCHI",
+     "returnNum": 0
+    },
+    "showStatus": 0,
+    "skinIds": [
+     "12"
+    ],
+    "startTime": 0,
+    "tabIds": [
+     1
+    ]
+   },
+   {
+    "basicInfo": {
+     "bizTag": "",
+     "borderColor": "#846fea",
+     "chatPic": "/2024/11/06/d7a372a7637c7ff904d6cb6001b961dd.png",
+     "culture": "",
+     "desc1": "",
+     "desc2": "",
+     "focusPic": "/2024/11/06/a88b02dc1761c1b253e7a2a410174319.webp/fmtgif",
+     "giftPic": "/2024/11/06/d970bc2b4da183ca0df0d93472340b43.png",
+     "giftType": 23,
+     "guardLevel": 0,
+     "sendPic": "/2024/11/06/72307e10c24da81688ca34bdd8781774.png/rs70",
+     "subscriptColor": "BLUE",
+     "subscriptText": "趣味",
+     "webSubscriptBigPic": "",
+     "webSubscriptSmallPic": "",
+     "webSubscriptText": "趣"
+    },
+    "batchInfo": {
+     "1": {
+      "batchNum": 1,
+      "name": "赠送1个"
+     },
+     "20": {
+      "batchNum": 20,
+      "name": "赠送20个"
+     },
+     "200": {
+      "batchNum": 200,
+      "name": "赠送200个"
+     },
+     "1000": {
+      "batchNum": 1000,
+      "name": "赠送1000个"
+     }
+    },
+    "batchInfoFlag": 1,
+    "cbTag": "",
+    "countLimit": 0,
+    "defaultSkinId": 3540,
+    "donateStatus": 1,
+    "effectStatus": 1,
+    "endTime": 0,
+    "fansLevel": 0,
+    "giftBanner": "",
+    "giftBannerLink": "",
+    "giftVersion": 1,
+    "growthInfo": {
+     "contribution": 0,
+     "experience": 0,
+     "intimacy": 0
+    },
+    "hitInterval": 5000,
+    "id": 24376,
+    "isBatchLimited": 1,
+    "isFace": 0,
+    "name": "心愿购物车",
+    "picUrlPrefix": "https://gfs-op.douyucdn.cn/dygift",
+    "priceInfo": {
+     "price": 50,
+     "priceType": "YUCHI",
+     "returnNum": 0
+    },
+    "showStatus": 0,
+    "skinIds": [
+     "3540"
+    ],
+    "startTime": 0,
+    "tabIds": [
+     1
+    ]
+   },
+   {
+    "basicInfo": {
+     "bizTag": "",
+     "borderColor": "#9a76c5",
+     "chatPic": "/2024/01/19/b15b53b34ebd248ab5cec0858ba9f1ae.png",
+     "culture": "主播带我飞 ~",
+     "desc1": "赠送神秘宝箱",
+     "desc2": "",
+     "focusPic": "/2024/01/19/1527152a605aca2a28cb07723710016d.webp/fmtgif",
+     "giftPic": "/2024/01/19/cba17567de2d7c9805653a028dbebfe8.png",
+     "giftType": 0,
+     "guardLevel": 0,
+     "sendPic": "/2024/01/19/7454bdb19d5cc74acfeace925c91124e.png/rs70",
+     "subscriptColor": "",
+     "subscriptText": "",
+     "webSubscriptBigPic": "",
+     "webSubscriptSmallPic": "",
+     "webSubscriptText": ""
+    },
+    "batchInfo": {},
+    "batchInfoFlag": 0,
+    "cbTag": "",
+    "countLimit": 0,
+    "defaultSkinId": 2,
+    "donateStatus": 1,
+    "effectStatus": 1,
+    "endTime": 0,
+    "fansLevel": 0,
+    "giftBanner": "",
+    "giftBannerLink": "",
+    "giftVersion": 1,
+    "growthInfo": {
+     "contribution": 1000,
+     "experience": 1000,
+     "intimacy": 1000
+    },
+    "hitInterval": 30000,
+    "id": 20003,
+    "isBatchLimited": 1,
+    "isFace": 0,
+    "name": "飞机",
+    "picUrlPrefix": "https://gfs-op.douyucdn.cn/dygift",
+    "priceInfo": {
+     "price": 10000,
+     "priceType": "YUCHI",
+     "returnNum": 0
+    },
+    "showStatus": 0,
+    "skinIds": [
+     "2"
+    ],
+    "startTime": 0,
+    "tabIds": [
+     1
+    ]
+   },
+   {
+    "basicInfo": {
+     "bizTag": "",
+     "borderColor": "#4697b5",
+     "chatPic": "/2021/08/03/245a431c966ebd232423ef083c222809.png",
+     "culture": "粉丝徽章1级解锁",
+     "desc1": "默默守候，一心一意为你守护",
+     "desc2": "",
+     "focusPic": "/2021/08/03/6a15e23b4c9f336716e2607ff87f7167.gif",
+     "giftPic": "/2021/08/03/4b701faa9f25bc0e85aad44ef3275d06.png",
+     "giftType": 27,
+     "guardLevel": 0,
+     "sendPic": "/2021/08/03/1ef8f9bd96988508edddd57bde1d1fe2.png",
+     "subscriptColor": "PINK",
+     "subscriptText": "粉丝",
+     "webSubscriptBigPic": "https://gfs-op.douyucdn.cn/dygift/2025/04/22/09ae1b6a45da31a02701f51c1b49bfdd.png",
+     "webSubscriptSmallPic": "https://gfs-op.douyucdn.cn/dygift/2025/04/22/44d3c91bfebeb329d08997b85ae0c4d5.png",
+     "webSubscriptText": "粉"
+    },
+    "batchInfo": {
+     "6": {
+      "batchNum": 6,
+      "name": "赠送6个"
+     },
+     "66": {
+      "batchNum": 66,
+      "name": "六六大顺"
+     },
+     "666": {
+      "batchNum": 666,
+      "name": "溜溜溜"
+     }
+    },
+    "batchInfoFlag": 1,
+    "cbTag": "",
+    "countLimit": 0,
+    "defaultSkinId": 1482,
+    "donateStatus": 1,
+    "effectStatus": 1,
+    "endTime": 0,
+    "fansLevel": 1,
+    "giftBanner": "",
+    "giftBannerLink": "",
+    "giftVersion": 1,
+    "growthInfo": {
+     "contribution": 1,
+     "experience": 1,
+     "intimacy": 1
+    },
+    "hitInterval": 30000,
+    "id": 24478,
+    "isBatchLimited": 0,
+    "isFace": 0,
+    "name": "全力守护",
+    "picUrlPrefix": "https://gfs-op.douyucdn.cn/dygift",
+    "priceInfo": {
+     "price": 10,
+     "priceType": "YUCHI",
+     "returnNum": 0
+    },
+    "showStatus": 0,
+    "skinIds": [
+     "1482"
+    ],
+    "startTime": 0,
+    "tabIds": [
+     1,
+     5
+    ]
+   },
+   {
+    "basicInfo": {
+     "bizTag": "",
+     "borderColor": "#2711cc",
+     "chatPic": "/2023/06/26/b55818a285a5d793d309e3cd4e024490.png",
+     "culture": "",
+     "desc1": "",
+     "desc2": "",
+     "focusPic": "/2023/06/26/a74899a6c2af694614a7f4aaf2fa792c.gif",
+     "giftPic": "/2023/06/26/39af68a9909faf71b8b4333eef5413a5.png",
+     "giftType": 0,
+     "guardLevel": 0,
+     "sendPic": "/2023/06/26/60e2da49bdb364565a93bb6005427d37.png",
+     "subscriptColor": "",
+     "subscriptText": "",
+     "webSubscriptBigPic": "",
+     "webSubscriptSmallPic": "",
+     "webSubscriptText": ""
+    },
+    "batchInfo": {
+     "10": {
+      "batchNum": 10,
+      "name": "赠送10个"
+     },
+     "66": {
+      "batchNum": 66,
+      "name": "赠送66个"
+     },
+     "99": {
+      "batchNum": 99,
+      "name": "赠送99个"
+     },
+     "520": {
+      "batchNum": 520,
+      "name": "赠送520个"
+     },
+     "666": {
+      "batchNum": 666,
+      "name": "赠送666个"
+     }
+    },
+    "batchInfoFlag": 1,
+    "cbTag": "",
+    "countLimit": 0,
+    "defaultSkinId": 2732,
+    "donateStatus": 1,
+    "effectStatus": 1,
+    "endTime": 0,
+    "fansLevel": 0,
+    "giftBanner": "",
+    "giftBannerLink": "",
+    "giftVersion": 1,
+    "growthInfo": {
+     "contribution": 0,
+     "experience": 1,
+     "intimacy": 1
+    },
+    "hitInterval": 5000,
+    "id": 24942,
+    "isBatchLimited": 0,
+    "isFace": 0,
+    "name": "招募令",
+    "picUrlPrefix": "https://gfs-op.douyucdn.cn/dygift",
+    "priceInfo": {
+     "price": 10,
+     "priceType": "YUCHI",
+     "returnNum": 0
+    },
+    "showStatus": 1,
+    "skinIds": [
+     "2732"
+    ],
+    "startTime": 0,
+    "tabIds": [
+     1
+    ]
+   },
+   {
+    "basicInfo": {
+     "bizTag": "",
+     "borderColor": "#eb3a22",
+     "chatPic": "/2018/12/18/66e19302ad32726d602a04e38c5cc726.gif",
+     "culture": "全新炽火鱼丸，热度劲燃！",
+     "desc1": "赠送鱼丸可增加主播热度值",
+     "desc2": "",
+     "focusPic": "/2018/12/18/5b0adde961d8076f54567599924d77b6.gif",
+     "giftPic": "/2018/12/18/9ab77573e02090883cc1813f2a656a29.png",
+     "giftType": 0,
+     "guardLevel": 0,
+     "sendPic": "/2018/12/18/f91cb23700e16a62360f0ae6ee51f79f.png",
+     "subscriptColor": "",
+     "subscriptText": "",
+     "webSubscriptBigPic": "",
+     "webSubscriptSmallPic": "",
+     "webSubscriptText": ""
+    },
+    "batchInfo": {
+     "10": {
+      "batchNum": 10,
+      "name": "十全十美"
+     },
+     "66": {
+      "batchNum": 66,
+      "name": "六六大顺"
+     },
+     "520": {
+      "batchNum": 520,
+      "name": "我爱你"
+     },
+     "2888": {
+      "batchNum": 2888,
+      "name": "恭喜发财"
+     },
+     "9999": {
+      "batchNum": 9999,
+      "name": "长长久久"
+     }
+    },
+    "batchInfoFlag": 1,
+    "cbTag": "",
+    "countLimit": 0,
+    "defaultSkinId": 8,
+    "donateStatus": 1,
+    "effectStatus": 1,
+    "endTime": 0,
+    "fansLevel": 0,
+    "giftBanner": "",
+    "giftBannerLink": "",
+    "giftVersion": 1,
+    "growthInfo": {
+     "contribution": 0,
+     "experience": 1,
+     "intimacy": 1
+    },
+    "hitInterval": 5000,
+    "id": 20000,
+    "isBatchLimited": 0,
+    "isFace": 0,
+    "name": "100鱼丸",
+    "picUrlPrefix": "https://gfs-op.douyucdn.cn/dygift",
+    "priceInfo": {
+     "price": 100,
+     "priceType": "YUWAN",
+     "returnNum": 0
+    },
+    "showStatus": 0,
+    "skinIds": [
+     "8"
+    ],
+    "startTime": 0,
+    "tabIds": [
+     1
+    ]
+   }
+  ]
+ },
+ "error": 0,
+ "msg": "success"
+}

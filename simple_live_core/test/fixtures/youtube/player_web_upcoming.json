@@ -1,0 +1,17 @@
+{
+  "playabilityStatus": {
+    "status": "LIVE_STREAM_OFFLINE",
+    "reason": "This live event will begin in 4 days.",
+    "liveStreamability": {"liveStreamabilityRenderer": {"videoId": "ZyXwVuTsRqP", "pollDelayMs": "15000"}}
+  },
+  "videoDetails": {
+    "videoId": "ZyXwVuTsRqP",
+    "title": "Upcoming stream",
+    "isUpcoming": true,
+    "channelId": "UCbbbbbbbbbbbbbbbbbbbbbb",
+    "author": "Other Channel"
+  },
+  "microformat": {"playerMicroformatRenderer": {
+    "liveBroadcastDetails": {"isLiveNow": false, "startTimestamp": "2026-10-30T23:00:00+00:00"}
+  }}
+}

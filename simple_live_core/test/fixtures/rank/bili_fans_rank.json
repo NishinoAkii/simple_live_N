@@ -1,0 +1,83 @@
+{
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "item": [
+      {
+        "user_rank": 1,
+        "uid": 31,
+        "name": "粉丝团一号",
+        "face": "https://i0.hdslb.com/bfs/face/fans31.jpg",
+        "score": 50990540,
+        "medal_name": "测试牌",
+        "level": 30,
+        "target_id": 3000000001,
+        "special": "",
+        "guard_level": 3,
+        "medal_color_start": 2951253,
+        "medal_color_end": 10329087,
+        "medal_color_border": 6809855,
+        "guard_icon": "",
+        "honor_icon": "",
+        "uinfo_medal": {
+          "name": "测试牌",
+          "level": 30,
+          "color_start": 398668,
+          "color_end": 6850801,
+          "color_border": 6809855,
+          "color": 398668,
+          "id": 0,
+          "typ": 0,
+          "is_light": 1,
+          "ruid": 3000000001,
+          "guard_level": 3,
+          "score": 50000000,
+          "guard_icon": "",
+          "honor_icon": "",
+          "v2_medal_color_start": "#4775EFCC"
+        },
+        "tag": null,
+        "is_pokeable": false
+      },
+      {
+        "user_rank": 2,
+        "uid": 32,
+        "name": "粉丝团二号",
+        "face": "https://i0.hdslb.com/bfs/face/fans32.jpg",
+        "score": 704568,
+        "medal_name": "测试牌",
+        "level": 21,
+        "target_id": 3000000001,
+        "special": "",
+        "guard_level": 0,
+        "medal_color_start": 398668,
+        "medal_color_end": 6850801,
+        "medal_color_border": 6809855,
+        "guard_icon": "",
+        "honor_icon": "",
+        "uinfo_medal": {
+          "name": "测试牌",
+          "level": 21,
+          "color_start": 398668,
+          "color_end": 6850801,
+          "color_border": 6809855,
+          "color": 398668,
+          "id": 0,
+          "typ": 0,
+          "is_light": 1,
+          "ruid": 3000000001,
+          "guard_level": 0,
+          "score": 50000000,
+          "guard_icon": "",
+          "honor_icon": "",
+          "v2_medal_color_start": "#4775EFCC"
+        },
+        "tag": null,
+        "is_pokeable": false
+      }
+    ],
+    "num": 89,
+    "medal_status": 1
+  }
+}

@@ -1,0 +1,29 @@
+{
+ "data": {
+  "searchFor": {
+   "channels": {
+    "cursor": "MzA=",
+    "totalMatches": 10211,
+    "items": [
+     {
+      "login": "shroudys1",
+      "displayName": "ShroudyS1",
+      "stream": null
+     },
+     {
+      "login": "smouker37",
+      "displayName": "SMOUKER37",
+      "stream": {
+       "id": "317112289877"
+      }
+     },
+     {
+      "login": "shroudy22",
+      "displayName": "shroudy22",
+      "stream": null
+     }
+    ]
+   }
+  }
+ }
+}

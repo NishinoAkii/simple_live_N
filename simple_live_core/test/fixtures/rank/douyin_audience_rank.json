@@ -1,0 +1,310 @@
+{
+  "data": {
+    "ranks": [
+      {
+        "score": 0,
+        "rank": 1,
+        "gap_description": "",
+        "delta": 0,
+        "first_gift": false,
+        "is_hidden": false,
+        "score_description": "",
+        "exactly_score": "",
+        "app_name": "",
+        "team_jump_schema": "",
+        "team_id": "",
+        "user": {
+          "id": 9000000000000001,
+          "id_str": "9000000000000001",
+          "nickname": "抖音观众甲🏅",
+          "avatar_thumb": {
+            "url_list": [
+              "https://p3-webcast.douyinpic.com/img/fixture/avatar_0.jpeg~tplv-obj.image"
+            ],
+            "uri": "fixture/avatar_0"
+          },
+          "pay_grade": {
+            "level": 31,
+            "new_im_icon_with_level": {
+              "url_list": [
+                "https://p11-webcast.douyinpic.com/img/webcast/new_user_grade_level_v1_31.png~tplv-obj.image",
+                "https://p3-webcast.douyinpic.com/img/webcast/new_user_grade_level_v1_31.png~tplv-obj.image"
+              ],
+              "uri": "webcast/new_user_grade_level_v1_31.png",
+              "height": 16,
+              "width": 32,
+              "avg_color": "",
+              "image_type": 1,
+              "open_web_url": "",
+              "is_animated": false,
+              "flex_setting_list": [],
+              "text_setting_list": []
+            }
+          },
+          "fans_club": {
+            "data": {
+              "club_name": "",
+              "level": 10,
+              "user_fans_club_status": 1,
+              "badge": {
+                "icons": {
+                  "2": {
+                    "url_list": [
+                      "https://p3-webcast.douyinpic.com/img/webcast/fansclub_level_v6_10.png~tplv-obj.image",
+                      "https://p11-webcast.douyinpic.com/img/webcast/fansclub_level_v6_10.png~tplv-obj.image"
+                    ],
+                    "uri": "webcast/fansclub_level_v6_10.png",
+                    "height": 0,
+                    "width": 0,
+                    "avg_color": "",
+                    "image_type": 0,
+                    "open_web_url": "",
+                    "is_animated": false,
+                    "flex_setting_list": [],
+                    "text_setting_list": []
+                  },
+                  "4": {
+                    "url_list": [
+                      "https://p11-webcast.douyinpic.com/img/webcast/fansclub_new_advanced_badge_10_xmp.png~tplv-obj.image",
+                      "https://p3-webcast.douyinpic.com/img/webcast/fansclub_new_advanced_badge_10_xmp.png~tplv-obj.image"
+                    ],
+                    "uri": "webcast/fansclub_new_advanced_badge_10_xmp.png",
+                    "height": 0,
+                    "width": 0,
+                    "avg_color": "",
+                    "image_type": 0,
+                    "open_web_url": "",
+                    "is_animated": false,
+                    "flex_setting_list": [],
+                    "text_setting_list": []
+                  }
+                },
+                "title": ""
+              }
+            }
+          },
+          "sec_uid": "MS4wLjABAAAA_fixture_0"
+        }
+      },
+      {
+        "score": 0,
+        "rank": 2,
+        "gap_description": "",
+        "delta": 0,
+        "first_gift": false,
+        "is_hidden": false,
+        "score_description": "",
+        "exactly_score": "",
+        "app_name": "",
+        "team_jump_schema": "",
+        "team_id": "",
+        "user": {
+          "id": 9000000000000002,
+          "id_str": "9000000000000002",
+          "nickname": "抖音观众乙",
+          "avatar_thumb": {
+            "url_list": [
+              "https://p3-webcast.douyinpic.com/img/fixture/avatar_1.jpeg~tplv-obj.image"
+            ],
+            "uri": "fixture/avatar_1"
+          },
+          "pay_grade": {
+            "level": 17,
+            "new_im_icon_with_level": {
+              "url_list": [
+                "https://p3-webcast.douyinpic.com/img/webcast/new_user_grade_level_v1_17.png~tplv-obj.image",
+                "https://p11-webcast.douyinpic.com/img/webcast/new_user_grade_level_v1_17.png~tplv-obj.image"
+              ],
+              "uri": "webcast/new_user_grade_level_v1_17.png",
+              "height": 16,
+              "width": 32,
+              "avg_color": "",
+              "image_type": 1,
+              "open_web_url": "",
+              "is_animated": false,
+              "flex_setting_list": [],
+              "text_setting_list": []
+            }
+          },
+          "fans_club": {
+            "data": {
+              "club_name": "",
+              "level": 10,
+              "user_fans_club_status": 1,
+              "badge": {
+                "icons": {
+                  "2": {
+                    "url_list": [
+                      "https://p3-webcast.douyinpic.com/img/webcast/fansclub_level_v6_10.png~tplv-obj.image",
+                      "https://p11-webcast.douyinpic.com/img/webcast/fansclub_level_v6_10.png~tplv-obj.image"
+                    ],
+                    "uri": "webcast/fansclub_level_v6_10.png",
+                    "height": 0,
+                    "width": 0,
+                    "avg_color": "",
+                    "image_type": 0,
+                    "open_web_url": "",
+                    "is_animated": false,
+                    "flex_setting_list": [],
+                    "text_setting_list": []
+                  },
+                  "4": {
+                    "url_list": [
+                      "https://p3-webcast.douyinpic.com/img/webcast/fansclub_new_advanced_badge_10_xmp.png~tplv-obj.image",
+                      "https://p11-webcast.douyinpic.com/img/webcast/fansclub_new_advanced_badge_10_xmp.png~tplv-obj.image"
+                    ],
+                    "uri": "webcast/fansclub_new_advanced_badge_10_xmp.png",
+                    "height": 0,
+                    "width": 0,
+                    "avg_color": "",
+                    "image_type": 0,
+                    "open_web_url": "",
+                    "is_animated": false,
+                    "flex_setting_list": [],
+                    "text_setting_list": []
+                  }
+                },
+                "title": ""
+              }
+            }
+          },
+          "sec_uid": "MS4wLjABAAAA_fixture_1"
+        }
+      },
+      {
+        "score": 0,
+        "rank": 3,
+        "gap_description": "",
+        "delta": 0,
+        "first_gift": false,
+        "is_hidden": false,
+        "score_description": "",
+        "exactly_score": "",
+        "app_name": "",
+        "team_jump_schema": "",
+        "team_id": "",
+        "user": {
+          "id": 9000000000000003,
+          "id_str": "9000000000000003",
+          "nickname": "抖音观众丙",
+          "avatar_thumb": {
+            "url_list": [
+              "https://p3-webcast.douyinpic.com/img/fixture/avatar_2.jpeg~tplv-obj.image"
+            ],
+            "uri": "fixture/avatar_2"
+          },
+          "pay_grade": {
+            "level": 20,
+            "new_im_icon_with_level": {
+              "url_list": [
+                "https://p11-webcast.douyinpic.com/img/webcast/new_user_grade_level_v1_20.png~tplv-obj.image",
+                "https://p3-webcast.douyinpic.com/img/webcast/new_user_grade_level_v1_20.png~tplv-obj.image"
+              ],
+              "uri": "webcast/new_user_grade_level_v1_20.png",
+              "height": 16,
+              "width": 32,
+              "avg_color": "",
+              "image_type": 1,
+              "open_web_url": "",
+              "is_animated": false,
+              "flex_setting_list": [],
+              "text_setting_list": []
+            }
+          },
+          "fans_club": {
+            "data": {
+              "club_name": "",
+              "level": 7,
+              "user_fans_club_status": 1,
+              "badge": {
+                "icons": {
+                  "2": {
+                    "url_list": [
+                      "https://p3-webcast.douyinpic.com/img/webcast/fansclub_level_v6_7.png~tplv-obj.image",
+                      "https://p11-webcast.douyinpic.com/img/webcast/fansclub_level_v6_7.png~tplv-obj.image"
+                    ],
+                    "uri": "webcast/fansclub_level_v6_7.png",
+                    "height": 0,
+                    "width": 0,
+                    "avg_color": "",
+                    "image_type": 0,
+                    "open_web_url": "",
+                    "is_animated": false,
+                    "flex_setting_list": [],
+                    "text_setting_list": []
+                  },
+                  "4": {
+                    "url_list": [
+                      "https://p3-webcast.douyinpic.com/img/webcast/fansclub_new_advanced_badge_7_xmp.png~tplv-obj.image",
+                      "https://p11-webcast.douyinpic.com/img/webcast/fansclub_new_advanced_badge_7_xmp.png~tplv-obj.image"
+                    ],
+                    "uri": "webcast/fansclub_new_advanced_badge_7_xmp.png",
+                    "height": 0,
+                    "width": 0,
+                    "avg_color": "",
+                    "image_type": 0,
+                    "open_web_url": "",
+                    "is_animated": false,
+                    "flex_setting_list": [],
+                    "text_setting_list": []
+                  }
+                },
+                "title": ""
+              }
+            }
+          },
+          "sec_uid": "MS4wLjABAAAA_fixture_2"
+        }
+      },
+      {
+        "score": 0,
+        "rank": 4,
+        "gap_description": "",
+        "delta": 0,
+        "first_gift": false,
+        "is_hidden": false,
+        "score_description": "",
+        "exactly_score": "",
+        "app_name": "",
+        "team_jump_schema": "",
+        "team_id": "",
+        "user": {
+          "id": 9000000000000004,
+          "id_str": "9000000000000004",
+          "nickname": "抖音观众丁",
+          "avatar_thumb": {
+            "url_list": [
+              "https://p3-webcast.douyinpic.com/img/fixture/avatar_3.jpeg~tplv-obj.image"
+            ],
+            "uri": "fixture/avatar_3"
+          },
+          "pay_grade": {
+            "level": 0,
+            "new_im_icon_with_level": {
+              "url_list": []
+            }
+          },
+          "fans_club": {
+            "data": {
+              "club_name": "",
+              "level": 0,
+              "user_fans_club_status": 0,
+              "badge": {
+                "icons": {}
+              }
+            }
+          },
+          "sec_uid": "MS4wLjABAAAA_fixture_3"
+        }
+      }
+    ],
+    "seats": [],
+    "has_more": false,
+    "total": 0,
+    "user_count_desc": "0"
+  },
+  "extra": {
+    "now": 1763150400000
+  },
+  "status_code": 0
+}

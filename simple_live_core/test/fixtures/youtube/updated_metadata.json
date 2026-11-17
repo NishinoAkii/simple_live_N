@@ -1,0 +1,4 @@
+{"actions": [{"updateViewershipAction": {"viewCount": {"videoViewCountRenderer": {
+  "viewCount": {"simpleText": "13,895 watching now"}, "isLive": true,
+  "unlabeledViewCountValue": {"simpleText": "13,895"}, "originalViewCount": "13895"}}}},
+  {"updateDateTextAction": {"dateText": {"simpleText": "Started streaming 2 hours ago"}}}]}

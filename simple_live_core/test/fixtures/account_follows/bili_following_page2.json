@@ -1,0 +1,33 @@
+{
+  "_fixture": "built from documented shape: bilibili-API-collect docs/live/follow_up_live.md（第 2 页、最后一页；内容为虚构）",
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "title": "哔哩哔哩直播 - 我的关注",
+    "pageSize": 2,
+    "totalPage": 2,
+    "list": [
+      {
+        "roomid": 7734200,
+        "uid": 50329118,
+        "uname": "哔哩哔哩英雄联盟赛事",
+        "title": "测试标题",
+        "face": "https://i0.hdslb.com/bfs/face/example.jpg",
+        "live_status": 0,
+        "record_live_time": 1720000000
+      },
+      {
+        "roomid": 544853,
+        "uid": 686127,
+        "uname": "籽岷（重复，翻页时可能出现）",
+        "face": "",
+        "live_status": 0
+      }
+    ],
+    "count": 3,
+    "never_lived_count": 30,
+    "live_count": 1,
+    "never_lived_faces": []
+  }
+}

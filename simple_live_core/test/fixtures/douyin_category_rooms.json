@@ -1,0 +1,45 @@
+{
+ "data": {
+  "count": 15,
+  "offset": 15,
+  "data": [
+   {
+    "web_rid": "240694364757",
+    "game_tag": "王者荣耀",
+    "room": {
+     "title": "年总决赛！【北京JDG vs 北京WB】揭晓FMVP！",
+     "cover": {
+      "url_list": [
+       "https://p3-webcast-sign.douyinpic.com/webcast-cover/7707949686396685071~tplv-qz53dukwul-common-resize:360:0.image?lk3s=7945d550&x-expires=1797256770&x-signature=QPpNW9UdHuKhkXlsLn3yIdvaeCk%3D"
+      ]
+     },
+     "owner": {
+      "nickname": "王者荣耀皓楠"
+     },
+     "room_view_stats": {
+      "display_value": 30931
+     }
+    }
+   },
+   {
+    "web_rid": "426926189705",
+    "game_tag": "其它游戏",
+    "room": {
+     "title": "你是魂大人，我是谁",
+     "cover": {
+      "url_list": [
+       "https://p3-webcast-sign.douyinpic.com/image-cut-tos-priv/f0422137900788d921721305729cff2c~tplv-qz53dukwul-common-resize:360:0.image?lk3s=7945d550&x-expires=1797256770&x-signature=Fh9xxip%2BmstCBpCAvKomQlsWFks%3D"
+      ]
+     },
+     "owner": {
+      "nickname": "贾雄凯（煜城）"
+     },
+     "room_view_stats": {
+      "display_value": 1486
+     }
+    }
+   }
+  ]
+ },
+ "status_code": 0
+}

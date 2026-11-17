@@ -1,0 +1,17 @@
+{
+  "playabilityStatus": {"status": "UNPLAYABLE", "reason": "Video unavailable"},
+  "videoDetails": {
+    "videoId": "AbCdEfGhIjK",
+    "title": "Test live stream",
+    "isLive": true,
+    "channelId": "UCaaaaaaaaaaaaaaaaaaaaaa",
+    "shortDescription": "Stream description",
+    "thumbnail": {"thumbnails": [{"url": "https://i.ytimg.com/vi/AbCdEfGhIjK/maxresdefault_live.jpg", "width": 1280, "height": 720}]},
+    "author": "Test Channel"
+  },
+  "microformat": {"playerMicroformatRenderer": {
+    "category": "Gaming",
+    "externalChannelId": "UCaaaaaaaaaaaaaaaaaaaaaa",
+    "liveBroadcastDetails": {"isLiveNow": true, "startTimestamp": "2026-10-25T23:29:21+00:00"}
+  }}
+}

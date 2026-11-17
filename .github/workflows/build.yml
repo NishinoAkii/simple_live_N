@@ -1,0 +1,551 @@
+name: Build
+
+# Release builds
+#   A push to main whose commit title is only the version, e.g. "1.25.0 (12500)" for
+#   "version: 1.25.0+12500" in simple_live_app/pubspec.yaml. The changes go into a
+#   "## 1.25.0（12500）" section at the top of CHANGELOG.md, not into the commit.
+#   Tests and all platforms are built; when they pass, Release "v1.25.0" is published with
+#   that CHANGELOG.md section as notes and the packages attached.
+#   Other pushes to main are built and tested the same way but publish nothing.
+#   Changes to Markdown files, workflows or windows7/ alone do not start a build.
+#   A release can also be started by hand (Run workflow): tick "release" and give the version
+#   title as the reason, e.g. "1.25.0 (12500)"; it must match the version and the commit title.
+#   This is for pushes GitHub cannot compare (rewritten history), which start no build.
+#
+# Debug builds
+#   Started by hand: Actions -> Build -> Run workflow. The reason is required and written in
+#   English, naming the issue, pull request or other cause, e.g. "Issue #12: crash when opening
+#   a Douyu room", "PR #7: emote picker" or "Other: check the Flutter upgrade". It becomes the
+#   run name. Debug builds only upload workflow artifacts and never publish a Release.
+#
+# The Windows 7 package has its own workflow (build_win7.yml).
+
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch'
+  && (inputs.release && inputs.reason || format('Debug build: {0}', inputs.reason))
+  || github.event.head_commit.message }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason in English: the issue, pull request or other cause (e.g. 'Issue #12: crash when opening a Douyu room')"
+        type: string
+        required: true
+      release:
+        description: "Publish the Release (the reason must then be the version title, e.g. '1.25.0 (12500)')"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows"
+        type: boolean
+        default: true
+      android:
+        description: "Android"
+        type: boolean
+        default: true
+      ios:
+        description: "iOS (unsigned IPA)"
+        type: boolean
+        default: true
+      macos:
+        description: "macOS (unsigned dmg)"
+        type: boolean
+        default: true
+      android_tv:
+        description: "Android TV"
+        type: boolean
+        default: true
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - ".github/**"
+      - "**/*.md"
+      - "windows7/**"
+
+env:
+  JAVA_VERSION: "21"
+  XCODE_VERSION: "26.3"
+
+jobs:
+  # Version of this build. Packages are named
+  #   simple_live_N-<version>-<build number>-<commit>[-debug]-<platform>
+  # and the About page shows the run number and commit (FORK_BUILD).
+  meta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      app: ${{ steps.v.outputs.app }}
+      title: ${{ steps.v.outputs.title }}
+      build: ${{ steps.v.outputs.build }}
+      prefix: ${{ steps.v.outputs.prefix }}
+      release: ${{ steps.v.outputs.release }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: v
+        env:
+          COMMIT_TITLE: ${{ github.event.head_commit.message }}
+          RELEASE_INPUT: ${{ inputs.release }}
+          REASON: ${{ inputs.reason }}
+        run: |
+          line=$(sed -nE 's/^version:[[:space:]]*([0-9.]+)\+([0-9]+).*/\1 \2/p' simple_live_app/pubspec.yaml | head -1)
+          app=${line% *}
+          code=${line#* }
+          sha=${GITHUB_SHA::7}
+          title="$app ($code)"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$RELEASE_INPUT" = "true" ]; then
+            # a release started by hand: the reason and the commit title must both be the version
+            head_title=$(git log -1 --format=%s)
+            if [ "$REASON" != "$title" ] || [ "$head_title" != "$title" ]; then
+              echo "::error::release needs reason and commit title '$title' (got '$REASON', '$head_title')"
+              exit 1
+            fi
+            build="b${GITHUB_RUN_NUMBER}-${sha}"
+            prefix="simple_live_N-${app}-${code}-${sha}"
+            release=true
+          elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            build="debug-b${GITHUB_RUN_NUMBER}-${sha}"
+            prefix="simple_live_N-${app}-${code}-${sha}-debug"
+            release=false
+          else
+            build="b${GITHUB_RUN_NUMBER}-${sha}"
+            prefix="simple_live_N-${app}-${code}-${sha}"
+            # only a commit titled exactly with the version publishes a Release
+            first_line=$(printf '%s\n' "$COMMIT_TITLE" | head -1)
+            if [ "$first_line" = "$title" ]; then release=true; else release=false; fi
+          fi
+          {
+            echo "app=$app"
+            echo "title=$title"
+            echo "build=$build"
+            echo "prefix=$prefix"
+            echo "release=$release"
+          } >> "$GITHUB_OUTPUT"
+          echo "### simple_live_N $title, build $build (release: $release)" >> "$GITHUB_STEP_SUMMARY"
+
+  # Unit tests that do not touch the network
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: simple_live_app/.fvmrc
+          cache: true
+      - name: Core tests
+        working-directory: simple_live_core
+        run: |
+          dart pub get
+          dart test test/send_and_new_sites_test.dart test/douyu_login_test.dart test/common/web_socket_util_test.dart test/avplayer_urls_test.dart test/live_source_runtime_test.dart test/emotes_test.dart test/third_party_emotes_test.dart test/douyu_emotes_test.dart test/huya_emotes_test.dart test/search_parse_test.dart test/search_suggest_test.dart test/account_follows_test.dart test/live_source_extensions_test.dart test/live_source_security_test.dart test/live_source_override_test.dart test/bilibili_gifts_test.dart test/douyin_gifts_test.dart test/douyu_gifts_test.dart test/huya_gifts_test.dart test/kick_gifts_test.dart test/twitch_gifts_test.dart test/youtube_gifts_test.dart test/guard_and_diamond_fans_test.dart test/douyin_category_test.dart test/douyu_aside_test.dart test/chat_badges_bili_douyu_test.dart test/chat_badges_huya_douyin_test.dart test/chat_badges_twitch_kick_youtube_test.dart test/link_mic_bili_douyu_test.dart test/link_mic_douyin_test.dart test/link_mic_huya_twitch_test.dart test/room_stats_test.dart test/online_poller_test.dart test/name_color_test.dart test/voice_room_test.dart test/huya_show_time_test.dart test/user_id_test.dart test/douyin_category_tree_test.dart test/live_rank_test.dart test/room_area_test.dart test/room_notice_test.dart test/bili_web_test.dart test/bili_web_entry_test.dart test/bili_watch_heart_test.dart
+      - name: App tests
+        working-directory: simple_live_app
+        run: |
+          flutter pub get
+          flutter test test/shared_profile_test.dart test/sync_lan_crypto_test.dart test/live_history_item_test.dart test/player_drag_adjust_test.dart test/sync_compat_test.dart test/catch_up_policy_test.dart test/sync_backup_format_test.dart test/danmaku_emotes_test.dart test/danmaku_screen_test.dart test/danmaku_view_mode_test.dart test/live_source_app_test.dart test/obs_bridge_test.dart test/search_test.dart test/search_text_test.dart test/search_suggest_test.dart test/search_rescue_test.dart test/search_widgets_test.dart test/account_follow_test.dart test/account_follow_pages_test.dart test/stream_tuning_test.dart test/live_source_override_app_test.dart test/webdav_auto_sync_test.dart test/sync_time_test.dart test/gifts_and_export_test.dart test/room_specific_settings_test.dart test/sync_vault_test.dart test/log_mask_test.dart test/chat_log_test.dart test/chat_keep_and_badges_test.dart test/danmaku_pacer_test.dart test/link_mic_tag_test.dart test/name_color_test.dart test/live_badges_test.dart test/room_stats_line_test.dart test/i18n_test.dart test/voice_room_view_test.dart test/follow_status_notify_test.dart test/debug_log_export_test.dart test/stall_slow_network_test.dart test/danmaku_dedupe_test.dart test/danmaku_delay_test.dart test/danmaku_filter_layout_test.dart test/chat_users_test.dart test/page_grid_order_test.dart test/chat_user_card_test.dart test/chat_users_sync_test.dart test/layout/chat_user_card_layout_test.dart test/category_tree_test.dart test/follow_unfollow_local_test.dart test/live_pause_quality_test.dart test/player_bars_layout_test.dart test/fullscreen_orientation_test.dart test/live_rank_test.dart test/follow_view_test.dart test/follow_view_page_test.dart test/follow_view_default_test.dart test/layout/follow_view_layout_test.dart test/layout/live_rank_layout_test.dart test/listen_mode_test.dart test/layout/listen_card_layout_test.dart test/multi_window_args_test.dart test/multi_window_layout_test.dart test/multi_window_snapshot_test.dart test/multi_window_services_test.dart test/multi_window_protocol_test.dart test/layout/multi_window_notice_layout_test.dart test/desktop_shortcuts_test.dart test/desktop_settings_page_test.dart test/window_geometry_test.dart test/gpu_preference_test.dart test/layout/desktop_settings_layout_test.dart test/history_area_test.dart test/room_notice_test.dart test/layout/room_notice_layout_test.dart test/windows_version_test.dart
+
+  windows:
+    needs: meta
+    if: github.event_name == 'push' || inputs.windows
+    runs-on: windows-2022
+    timeout-minutes: 40
+    env:
+      ARTIFACT: ${{ needs.meta.outputs.prefix }}-windows-x64
+      RELEASE_DIR: simple_live_app/build/windows/x64/runner/Release
+      # Code signing through SignPath Foundation (free for open-source projects, after they approve
+      # the project). Needs the SIGNPATH_API_TOKEN secret and the SIGNPATH_ORGANIZATION_ID,
+      # SIGNPATH_PROJECT_SLUG and SIGNPATH_POLICY_SLUG variables; without them the zip is unsigned
+      # and the MSIX stays a workflow artifact (an unsigned MSIX does not install normally).
+      HAS_SIGNPATH: ${{ secrets.SIGNPATH_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: simple_live_app/.fvmrc
+          cache: true
+      - name: Build
+        working-directory: simple_live_app
+        run: |
+          flutter config --enable-windows-desktop
+          flutter pub get
+          flutter build windows --release --dart-define=FORK_BUILD=${{ needs.meta.outputs.build }}
+      # the license and the third-party notices go into the package (GPL-3.0)
+      - name: Zip
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE "$env:RELEASE_DIR/LICENSE.txt"
+          Copy-Item THIRD_PARTY_NOTICES.md "$env:RELEASE_DIR/THIRD_PARTY_NOTICES.md"
+          Compress-Archive -Path "$env:RELEASE_DIR/*" -DestinationPath "$env:ARTIFACT.zip"
+      - uses: actions/upload-artifact@v7
+        id: zip
+        with:
+          name: windows
+          path: ${{ env.ARTIFACT }}.zip
+
+      # signed zip: SignPath signs the exe and dll files inside; the MSIX below is then made from them
+      - name: Sign the zip
+        if: env.HAS_SIGNPATH == 'true'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.zip.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/zip
+      - uses: actions/upload-artifact@v7
+        if: env.HAS_SIGNPATH == 'true'
+        with:
+          name: windows-signed
+          path: signed/zip/*.zip
+      - name: Use the signed files for the MSIX
+        if: env.HAS_SIGNPATH == 'true'
+        shell: pwsh
+        run: Expand-Archive -Path "signed/zip/$env:ARTIFACT.zip" -DestinationPath $env:RELEASE_DIR -Force
+
+      # MSIX (Windows 10 1809 or later) from the files above, with the msix tool; the publisher is
+      # the subject of the SignPath Foundation certificate, which has to match when it is signed
+      # first-time packaging: a failed MSIX does not block the zip or the Release
+      - name: MSIX
+        continue-on-error: true
+        working-directory: simple_live_app
+        shell: pwsh
+        run: |
+          dart pub global activate msix ">=3.16.0 <4.0.0"
+          dart pub global run msix:create --build-windows false --sign-msix false --install-certificate false `
+            --display-name "Simple Live N" --publisher-display-name "NishinoAkii" `
+            --identity-name "com.xycz.simple-live-N" --version "${{ needs.meta.outputs.app }}.0" `
+            --publisher "CN=SignPath Foundation, O=SignPath Foundation, L=Lewes, S=Delaware, C=US" `
+            --logo-path assets/logo_400.png `
+            --capabilities "internetClient,internetClientServer,privateNetworkClientServer" `
+            --output-path ../msix --output-name "$env:ARTIFACT"
+      - uses: actions/upload-artifact@v7
+        id: msix
+        continue-on-error: true
+        with:
+          name: windows-msix
+          path: msix/${{ env.ARTIFACT }}.msix
+      - name: Sign the MSIX
+        if: env.HAS_SIGNPATH == 'true'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.msix.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/msix
+      - uses: actions/upload-artifact@v7
+        if: env.HAS_SIGNPATH == 'true'
+        with:
+          name: windows-msix-signed
+          path: signed/msix/*.msix
+
+  android:
+    needs: meta
+    if: github.event_name == 'push' || inputs.android
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      PREFIX: ${{ needs.meta.outputs.prefix }}-android
+    steps:
+      # the default image does not have enough free space for NDK + Gradle + R8
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+            /usr/local/share/powershell /usr/share/swift /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force > /dev/null 2>&1 || true
+          df -h /
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v6
+        with:
+          distribution: "zulu"
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: "gradle"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: simple_live_app/.fvmrc
+          cache: true
+      # Release signing when the repository has the ANDROID_KEYSTORE_* secrets; without them
+      # the APKs are signed with the debug key (they install, but cannot update a differently
+      # signed install)
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: the APKs use the debug key"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.p12"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > simple_live_app/android/key.properties
+      - name: Build
+        working-directory: simple_live_app
+        run: |
+          flutter config --jdk-dir "$JAVA_HOME"
+          flutter pub get
+          flutter build apk --release --split-per-abi --dart-define=FORK_BUILD=${{ needs.meta.outputs.build }}
+      # one APK per CPU: arm64-v8a (most phones), armeabi-v7a (old 32-bit phones), x86_64 (emulators, some tablets)
+      - name: Rename
+        working-directory: simple_live_app/build/app/outputs/flutter-apk
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mv "app-$abi-release.apk" "$PREFIX-$abi.apk"
+          done
+          ls -la
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.p12" simple_live_app/android/key.properties
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          path: simple_live_app/build/app/outputs/flutter-apk/${{ env.PREFIX }}-*.apk
+
+  # The Android TV app (simple_live_tv_app: remote-control layout, also for Fire TV and Google TV).
+  # TV boxes often run 32-bit Android, so armeabi-v7a matters here.
+  android_tv:
+    needs: meta
+    if: github.event_name == 'push' || inputs.android_tv
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      PREFIX: ${{ needs.meta.outputs.prefix }}-android-tv
+    steps:
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+            /usr/local/share/powershell /usr/share/swift /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force > /dev/null 2>&1 || true
+          df -h /
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v6
+        with:
+          distribution: "zulu"
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: "gradle"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: simple_live_tv_app/.fvmrc
+          cache: true
+      # same signing as the phone app (see the android job)
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: the APKs use the debug key"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.p12"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > simple_live_tv_app/android/key.properties
+      - name: Build
+        working-directory: simple_live_tv_app
+        run: |
+          flutter config --jdk-dir "$JAVA_HOME"
+          flutter pub get
+          flutter build apk --release --split-per-abi
+      - name: Rename
+        working-directory: simple_live_tv_app/build/app/outputs/flutter-apk
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mv "app-$abi-release.apk" "$PREFIX-$abi.apk"
+          done
+          ls -la
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.p12" simple_live_tv_app/android/key.properties
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android-tv
+          path: simple_live_tv_app/build/app/outputs/flutter-apk/${{ env.PREFIX }}-*.apk
+
+  ios:
+    needs: meta
+    if: github.event_name == 'push' || inputs.ios
+    runs-on: macos-15-intel
+    timeout-minutes: 50
+    env:
+      ARTIFACT: ${{ needs.meta.outputs.prefix }}-ios-arm64-unsigned
+    steps:
+      - uses: actions/checkout@v6
+      - name: Select Xcode
+        run: sudo xcode-select --switch "/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: simple_live_app/.fvmrc
+          cache: true
+      - name: Build
+        working-directory: simple_live_app
+        run: |
+          flutter pub get
+          flutter build ios --release --no-codesign --dart-define=FORK_BUILD=${{ needs.meta.outputs.build }}
+          mkdir -p build/ios/iphoneos/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/Runner.app
+          cd build/ios/iphoneos && zip -q -r "$ARTIFACT.ipa" Payload
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ios
+          path: simple_live_app/build/ios/iphoneos/${{ env.ARTIFACT }}.ipa
+
+  macos:
+    needs: meta
+    if: github.event_name == 'push' || inputs.macos
+    runs-on: macos-15-intel
+    timeout-minutes: 40
+    env:
+      PREFIX: ${{ needs.meta.outputs.prefix }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Select Xcode
+        run: sudo xcode-select --switch "/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: simple_live_app/.fvmrc
+          cache: true
+      - name: Build
+        working-directory: simple_live_app
+        run: |
+          flutter config --enable-macos-desktop
+          flutter pub get
+          flutter build macos --release --dart-define=FORK_BUILD=${{ needs.meta.outputs.build }}
+      # The same dmg as upstream: the app on the left, a shortcut to Applications on the right.
+      # appdmg arranges icons through Finder and sometimes hangs on CI machines: 4 minutes at most,
+      # then unmount what is left and use hdiutil instead (same content, no icon layout)
+      - name: Package dmg
+        timeout-minutes: 10
+        working-directory: simple_live_app/build/macos/Build/Products/Release
+        run: |
+          app="Simple Live N.app"
+          archs=$(lipo -archs "$app/Contents/MacOS/Simple Live N")
+          case "$archs" in
+            *x86_64*arm64*|*arm64*x86_64*) arch=universal ;;
+            *) arch=$(echo "$archs" | tr ' ' '-') ;;
+          esac
+          name="${PREFIX}-macos-${arch}"
+          echo "NAME=$name" >> "$GITHUB_ENV"
+          cat > dmg.json <<EOF
+          {"title": "Simple Live N", "contents": [
+            {"x": 448, "y": 344, "type": "link", "path": "/Applications"},
+            {"x": 192, "y": 344, "type": "file", "path": "$PWD/$app"}]}
+          EOF
+          limit() { perl -e 'alarm shift; exec @ARGV' "$@"; }
+          if npm install -g appdmg && limit 240 appdmg dmg.json "$name.dmg"; then
+            echo "packed with appdmg"
+          else
+            echo "appdmg failed or timed out, using hdiutil"
+            for volume in /Volumes/Simple\ Live\ N*; do
+              [ -d "$volume" ] && hdiutil detach -force "$volume" || true
+            done
+            rm -rf dmg_root "$name.dmg"
+            mkdir dmg_root
+            cp -R "$app" dmg_root/
+            ln -s /Applications dmg_root/Applications
+            limit 300 hdiutil create -volname "Simple Live N" -srcfolder dmg_root -ov -format UDZO "$name.dmg"
+          fi
+          ls -la "$name.dmg"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos
+          path: simple_live_app/build/macos/Build/Products/Release/${{ env.NAME }}.dmg
+
+  # After tests, Windows, Android and iOS pass (a failed macOS or Android TV build does not block it):
+  # Release "v<version>" titled with the version, notes from CHANGELOG.md, packages attached.
+  release:
+    needs: [meta, test, windows, android, android_tv, ios, macos]
+    if: >-
+      always() &&
+      needs.meta.outputs.release == 'true' &&
+      needs.test.result == 'success' &&
+      needs.windows.result == 'success' &&
+      needs.android.result == 'success' &&
+      needs.ios.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      # one folder per artifact, so the signed Windows files can replace the unsigned ones
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+      - name: Pick the packages
+        run: |
+          mkdir packages
+          for a in android android-tv ios macos; do
+            [ -d "artifacts/$a" ] && cp artifacts/$a/* packages/
+          done
+          if [ -d artifacts/windows-signed ]; then
+            cp artifacts/windows-signed/* packages/
+          else
+            cp artifacts/windows/* packages/
+          fi
+          # an unsigned MSIX does not install normally: only the signed one goes onto the Release
+          if [ -d artifacts/windows-msix-signed ]; then
+            cp artifacts/windows-msix-signed/* packages/
+          fi
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP: ${{ needs.meta.outputs.app }}
+        run: |
+          # the section "## <version>（<build>）" or "## <version> (<build>)" of CHANGELOG.md
+          awk -v a="## ${APP}（" -v b="## ${APP} (" \
+            'index($0, a) == 1 || index($0, b) == 1 { found = 1; next } /^## / { found = 0 } found' \
+            CHANGELOG.md > notes.md
+          if [ -z "$(tr -d '[:space:]' < notes.md)" ]; then
+            echo "::warning::CHANGELOG.md has no section for ${APP}"
+            echo "No release notes were written for this version." > notes.md
+          fi
+          # the English notes of the same version follow the Chinese ones
+          if [ -f CHANGELOG.en.md ]; then
+            awk -v b="## ${APP} (" \
+              'index($0, b) == 1 { found = 1; next } /^## / { found = 0 } found' \
+              CHANGELOG.en.md > notes_en.md
+            if [ -n "$(tr -d '[:space:]' < notes_en.md)" ]; then
+              { echo; echo "---"; echo; cat notes_en.md; } >> notes.md
+            else
+              echo "::warning::CHANGELOG.en.md has no section for ${APP}"
+            fi
+          fi
+          {
+            echo
+            echo "Build: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } >> notes.md
+          cp LICENSE packages/LICENSE.txt
+          cp THIRD_PARTY_NOTICES.md packages/
+          ls -la packages
+          tag="v${APP}"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release edit "$tag" --title "$APP" --notes-file notes.md
+            gh release upload "$tag" packages/* --clobber
+          else
+            gh release create "$tag" packages/* --title "$APP" --notes-file notes.md --target "$GITHUB_SHA"
+          fi

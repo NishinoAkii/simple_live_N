@@ -1,0 +1,63 @@
+{
+ "response": {
+  "1": {
+   "numFound": 39,
+   "docs": [
+    {
+     "room_id": 688,
+     "game_nick": "张大仙",
+     "gameLiveOn": false,
+     "game_avatarUrl180": "https://huyaimg.msstatic.com/avatar/1016/b9/b6824c9d5593f03f5b5c4f71189023_180_135.jpg?1564815405",
+     "game_activityCount": 28153479,
+     "uid": 1259515661837,
+     "game_name": "王者荣耀"
+    },
+    {
+     "room_id": 18134205,
+     "game_nick": "张大嘴仙",
+     "gameLiveOn": false,
+     "game_avatarUrl180": "https://huyaimg.msstatic.com/avatar/1076/78/8a83c514989f906f7574f094f7289b_180_135.jpg?1610147980",
+     "game_activityCount": 35765,
+     "uid": 2332628097,
+     "game_name": ""
+    },
+    {
+     "room_id": 13085607,
+     "game_nick": "张爱大仙人",
+     "gameLiveOn": false,
+     "game_avatarUrl180": "https://huyaimg.msstatic.com/avatar/1074/9f/f442a3acbd6c9a1026430d50f24053_180_135.jpg?1564985526",
+     "game_activityCount": 16432,
+     "uid": 1728372951,
+     "game_name": ""
+    }
+   ]
+  },
+  "3": {
+   "numFound": 5,
+   "docs": [
+    {
+     "room_id": 24723662,
+     "game_nick": "羊了个羊z",
+     "game_introduction": "张大仙试玩《羊了个羊》，吐槽：玩了一晚上赚我一块八，弃游了-张大仙试玩《羊了个羊》，吐槽：玩了一晚上",
+     "game_roomName": "",
+     "game_screenshot": "https://v-huya-img2.msstatic.com/screenshot/2238/775697367/99.jpg",
+     "game_total_count": 37932,
+     "uid": 1099531785472
+    },
+    {
+     "room_id": 11186,
+     "game_nick": "仙女-大梦想家",
+     "game_introduction": "别往下了，就是这里进来！",
+     "game_roomName": "",
+     "game_screenshot": "https://anchorpost.msstatic.com/cdnimage/anchorpost/1072/06/5153c7011b6c4c0a2771d289d90c30_4079_1786806511.jpg?spformat=png,webp",
+     "game_total_count": 126597,
+     "uid": 1199542082059
+    }
+   ]
+  }
+ },
+ "responseHeader": {
+  "QTime": 909,
+  "status": 0
+ }
+}

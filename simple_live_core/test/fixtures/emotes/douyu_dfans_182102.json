@@ -1,0 +1,72 @@
+{
+ "error": 0,
+ "msg": "ok",
+ "data": {
+  "allSwitch": 1,
+  "webScreen": "https://sta-op.douyucdn.cn/dygev/2022/05/06/2950fbde22c0aa18a57932dbb3f1aee4.png",
+  "dmSwitch": 1,
+  "dmShowTime": [
+   1651386348,
+   1672467948
+  ],
+  "emoSwitch": 1,
+  "emoShowTime": [
+   1651386348,
+   1672467948
+  ],
+  "isOpen": 1,
+  "isHasEmoji": 1,
+  "emoList": [
+   {
+    "eid": "182102大舅哥1",
+    "text": "大舅哥1",
+    "pic": "https://sta-op.douyucdn.cn/dygev/2022/07/15/b2eb4cc5fdaabdd27a30d09db66ecbb7.png",
+    "type": 1,
+    "bigPic": ""
+   },
+   {
+    "eid": "182102大舅哥2",
+    "text": "大舅哥2",
+    "pic": "https://sta-op.douyucdn.cn/dygev/2022/07/15/c51e6eb7004ce4d2c0c667713d8aab04.png",
+    "type": 1,
+    "bigPic": ""
+   }
+  ],
+  "commEmoList": [],
+  "popularEmojis": {
+   "showEntry": 1.0,
+   "newTipsStartTime": 1715247720.0,
+   "newTipsEndTime": 1717171199.0,
+   "list": [
+    {
+     "msgId": 15.0,
+     "type": 3.0,
+     "name": "梗已老实",
+     "webPic": "https://sta-op.douyucdn.cn/dygev/2024/07/01/9c048b2d0791f5d917ae5a35ca27dec9.png",
+     "webPicHeight": 200.0,
+     "webPicWidth": 200.0,
+     "appPic": "https://sta-op.douyucdn.cn/dygev/2024/07/01/9c048b2d0791f5d917ae5a35ca27dec9.png",
+     "appPicHeight": 200.0,
+     "appPicWidth": 200.0,
+     "diy": 0.0,
+     "startTime": 0.0,
+     "endTime": 0.0
+    },
+    {
+     "msgId": 14.0,
+     "type": 3.0,
+     "name": "梗亲亲",
+     "webPic": "https://sta-op.douyucdn.cn/dygev/2024/07/01/59e8339a280b22fe0487fa13e19ab090.png",
+     "webPicHeight": 200.0,
+     "webPicWidth": 200.0,
+     "appPic": "https://sta-op.douyucdn.cn/dygev/2024/07/01/59e8339a280b22fe0487fa13e19ab090.png",
+     "appPicHeight": 200.0,
+     "appPicWidth": 200.0,
+     "diy": 0.0,
+     "startTime": 0.0,
+     "endTime": 0.0
+    }
+   ]
+  }
+ }
+}

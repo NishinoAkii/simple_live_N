@@ -1,0 +1,93 @@
+{
+ "code": 0,
+ "message": "OK",
+ "data": {
+  "page": 1,
+  "pagesize": 40,
+  "numPages": 6,
+  "suggest_keyword": "",
+  "pageinfo": {
+   "live_room": {
+    "numResults": 9,
+    "pages": 1,
+    "total": 9,
+    "numPages": 1
+   },
+   "live_user": {
+    "numResults": 208,
+    "pages": 35,
+    "total": 208,
+    "numPages": 35
+   }
+  },
+  "result": {
+   "live_room": [
+    {
+     "roomid": 4602773,
+     "uid": 6270951,
+     "title": "网文看稿，收留心碎番茄作者，助力签约起点",
+     "uname": "伊藤诚冠希",
+     "cover": "//i0.hdslb.com/bfs/live-key-frame/keyframe10281500000004602773nvgxws.jpg",
+     "online": 21395,
+     "live_status": 1,
+     "live_time": "2026-10-28 12:53:46"
+    },
+    {
+     "roomid": 6018972,
+     "uid": 6896171,
+     "title": "尝试二十五分钟番茄钟专注记录",
+     "uname": "Rk麦丽素",
+     "cover": "//i0.hdslb.com/bfs/live-key-frame/keyframe10281501000006018972gp8fck.jpg",
+     "online": 407,
+     "live_status": 1,
+     "live_time": "2026-10-28 14:50:27"
+    },
+    {
+     "roomid": 21404996,
+     "uid": 30172660,
+     "title": "写小说，码字日更一万，番茄，不报书名",
+     "uname": "写文的兔子",
+     "cover": "//i0.hdslb.com/bfs/live-key-frame/keyframe10281501000021404996ze7rqk.jpg",
+     "online": 428,
+     "live_status": 1,
+     "live_time": "2026-10-28 12:11:25"
+    }
+   ],
+   "live_user": [
+    {
+     "roomid": 21852,
+     "uid": 546195,
+     "uname": "<em class=\"keyword\">老番茄</em>",
+     "uface": "//i0.hdslb.com/bfs/face/bc5ca101313d4db223c395d64779e76eb3482d60.jpg",
+     "is_live": false,
+     "live_status": 0,
+     "live_time": "0000-00-00 00:00:00",
+     "attentions": 20860654,
+     "cate_name": "其他单机"
+    },
+    {
+     "roomid": 23684798,
+     "uid": 609013982,
+     "uname": "PPOMO<em class=\"keyword\">老番茄</em>",
+     "uface": "//i1.hdslb.com/bfs/face/c95178f76e64c175b07a8b8be4a035934a4edf28.jpg",
+     "is_live": false,
+     "live_status": 0,
+     "live_time": "0000-00-00 00:00:00",
+     "attentions": 96757,
+     "cate_name": "颜值"
+    },
+    {
+     "roomid": 31882785,
+     "uid": 3546616057301417,
+     "uname": "搞笑<em class=\"keyword\">老番茄</em>",
+     "uface": "//i2.hdslb.com/bfs/face/c0463320435889f7544a51467e0998bfcc6ba22c.jpg",
+     "is_live": false,
+     "live_status": 2,
+     "live_time": "0000-00-00 00:00:00",
+     "attentions": 53309,
+     "cate_name": "法律·心理"
+    }
+   ]
+  }
+ }
+}

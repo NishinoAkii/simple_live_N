@@ -1,0 +1,39 @@
+{
+  "_fixture": "documented: bilibili-API-collect docs/live/follow_up_live.md 响应示例，裁剪字段；totalPage 改为 2 以测翻页",
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "title": "哔哩哔哩直播 - 我的关注",
+    "pageSize": 2,
+    "totalPage": 2,
+    "list": [
+      {
+        "roomid": 544853,
+        "uid": 686127,
+        "uname": "籽岷",
+        "title": "尝试双机位",
+        "face": "https://i0.hdslb.com/bfs/face/7efb679569b2faeff38fa08f6f992fa1ada5e948.webp",
+        "live_status": 0,
+        "record_live_time": 1720011626,
+        "area_name_v2": "新游推荐",
+        "room_cover": "http://i0.hdslb.com/bfs/live/new_room_cover/6c89c41d7695a080d31ae21c128f7759a7f419e5.jpg"
+      },
+      {
+        "roomid": 21686237,
+        "uid": 456664753,
+        "uname": "央视新闻",
+        "title": "央视新闻的直播间",
+        "face": "https://i1.hdslb.com/bfs/face/38a8db1c187b64a1412fafffbf350f8a3f436371.jpg",
+        "live_status": 1,
+        "record_live_time": 0,
+        "area_name_v2": "社科法律心理",
+        "room_cover": "http://i0.hdslb.com/bfs/live/d650d0e6e49397ea71d630be0a0e686679df16d8.jpg"
+      }
+    ],
+    "count": 3,
+    "never_lived_count": 30,
+    "live_count": 1,
+    "never_lived_faces": []
+  }
+}

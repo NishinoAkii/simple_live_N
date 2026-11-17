@@ -1,0 +1,47 @@
+{"contents": {"twoColumnBrowseResultsRenderer": {"tabs": [{"tabRenderer": {"content": {"richGridRenderer": {"contents": [
+  {"richSectionRenderer": {"content": {"richShelfRenderer": {"title": {"runs": [{"text": "Live Now"}]}, "contents": [
+    {"richItemRenderer": {"content": {"videoRenderer": {
+      "videoId": "AbCdEfGhIjK",
+      "thumbnail": {"thumbnails": [
+        {"url": "https://i.ytimg.com/vi/AbCdEfGhIjK/hq720.jpg?sqp=small", "width": 360, "height": 202},
+        {"url": "https://i.ytimg.com/vi/AbCdEfGhIjK/hq720.jpg?sqp=large", "width": 720, "height": 404}]},
+      "title": {"runs": [{"text": "Test live stream"}]},
+      "ownerText": {"runs": [{"text": "Test Channel", "navigationEndpoint": {"browseEndpoint": {"browseId": "UCaaaaaaaaaaaaaaaaaaaaaa", "canonicalBaseUrl": "/@test"}}}]},
+      "viewCountText": {"runs": [{"text": "8,989"}, {"text": " watching"}]},
+      "shortViewCountText": {"runs": [{"text": "8.9K"}, {"text": " watching"}]},
+      "thumbnailOverlays": [{"thumbnailOverlayTimeStatusRenderer": {"style": "LIVE", "text": {"runs": [{"text": "LIVE"}]}}}]
+    }}}},
+    {"richItemRenderer": {"content": {"videoRenderer": {
+      "videoId": "AbCdEfGhIj2",
+      "title": {"runs": [{"text": "Second stream of the same channel"}]},
+      "ownerText": {"runs": [{"text": "Test Channel", "navigationEndpoint": {"browseEndpoint": {"browseId": "UCaaaaaaaaaaaaaaaaaaaaaa"}}}]},
+      "viewCountText": {"runs": [{"text": "12"}, {"text": " watching"}]},
+      "thumbnailOverlays": [{"thumbnailOverlayTimeStatusRenderer": {"style": "LIVE"}}]
+    }}}},
+    {"richItemRenderer": {"content": {"videoRenderer": {
+      "videoId": "LmNoPqRsTuV",
+      "thumbnail": {"thumbnails": [{"url": "//i.ytimg.com/vi/LmNoPqRsTuV/hqdefault.jpg", "width": 480, "height": 360}]},
+      "title": {"runs": [{"text": "Search style live"}]},
+      "longBylineText": {"runs": [{"text": "Third Channel", "navigationEndpoint": {"browseEndpoint": {"browseId": "UCcccccccccccccccccccccc"}}}]},
+      "viewCountText": {"runs": [{"text": "1,437"}, {"text": " 人正在观看"}]},
+      "badges": [{"metadataBadgeRenderer": {"style": "BADGE_STYLE_TYPE_LIVE_NOW", "label": "直播"}}]
+    }}}}
+  ]}}}},
+  {"richSectionRenderer": {"content": {"richShelfRenderer": {"title": {"runs": [{"text": "Upcoming Live Streams"}]}, "contents": [
+    {"richItemRenderer": {"content": {"videoRenderer": {
+      "videoId": "ZyXwVuTsRqP",
+      "title": {"runs": [{"text": "Upcoming stream"}]},
+      "ownerText": {"runs": [{"text": "Other Channel", "navigationEndpoint": {"browseEndpoint": {"browseId": "UCbbbbbbbbbbbbbbbbbbbbbb"}}}]},
+      "upcomingEventData": {"startTime": "1793401200"},
+      "thumbnailOverlays": [{"thumbnailOverlayTimeStatusRenderer": {"style": "UPCOMING"}}]
+    }}}},
+    {"richItemRenderer": {"content": {"videoRenderer": {
+      "videoId": "QqQqQqQqQqQ",
+      "title": {"runs": [{"text": "Past stream"}]},
+      "ownerText": {"runs": [{"text": "Past Channel", "navigationEndpoint": {"browseEndpoint": {"browseId": "UCdddddddddddddddddddddd"}}}]},
+      "viewCountText": {"simpleText": "17,128 views"},
+      "thumbnailOverlays": [{"thumbnailOverlayTimeStatusRenderer": {"style": "DEFAULT"}}]
+    }}}}
+  ]}}}},
+  {"continuationItemRenderer": {"continuationEndpoint": {"continuationCommand": {"token": "NEXT_PAGE_TOKEN", "request": "CONTINUATION_REQUEST_TYPE_BROWSE"}}}}
+]}}}}]}}}

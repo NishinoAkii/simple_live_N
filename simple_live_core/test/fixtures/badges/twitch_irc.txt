@@ -1,0 +1,28 @@
+# Twitch IRC PRIVMSG（匿名 justinfan 连接抓到的，2026-11-13；用户名、id、消息已替换）
+# 以 # 开头的是注释。标 [拼的] 的行是照抓到的行的格式拼的（主播、创始订阅、首席房管、官方、竞猜抓包时段内没出现）
+# 房管 + 订阅（badge-info 月数和档位不同）
+@badge-info=subscriber/44;badges=moderator/1,subscriber/24,hunt-red/1;client-nonce=00000000000000000000000000000001;color=#CEE0FF;display-name=Viewer01;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000001;mod=1;returning-chatter=0;room-id=100000001;subscriber=1;tmi-sent-ts=1794521408936;turbo=0;user-id=300000001;user-type=mod :viewer_01!viewer_01@viewer_01.tmi.twitch.tv PRIVMSG #channel_a :message 1
+# VIP（另有活动徽章，不要）
+@badge-info=;badges=vip/1,glhf-pledge/1;color=#5F9EA0;display-name=Viewer02;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000002;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794521429183;turbo=0;user-id=300000002;user-type=;vip=1 :viewer_02!viewer_02@viewer_02.tmi.twitch.tv PRIVMSG #channel_a :message 2
+# VIP + 订阅
+@badge-info=subscriber/68;badges=vip/1,subscriber/60,pichu/1;color=#008000;display-name=Viewer03;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000003;mod=0;returning-chatter=0;room-id=100000001;subscriber=1;tmi-sent-ts=1794521443584;turbo=0;user-id=300000003;user-type=;vip=1 :viewer_03!viewer_03@viewer_03.tmi.twitch.tv PRIVMSG #channel_a :message 3
+# 订阅 + Prime
+@badge-info=subscriber/22;badges=subscriber/18,premium/1;client-nonce=00000000000000000000000000000004;color=#8A2BE2;display-name=Viewer04;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000004;mod=0;returning-chatter=0;room-id=100000001;subscriber=1;tmi-sent-ts=1794521407237;turbo=0;user-id=300000004;user-type= :viewer_04!viewer_04@viewer_04.tmi.twitch.tv PRIVMSG #channel_a :message 4
+# Turbo
+@badge-info=;badges=turbo/1;client-nonce=00000000000000000000000000000005;color=#02FAFA;display-name=Viewer05;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000005;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794521408540;turbo=1;user-id=300000005;user-type= :viewer_05!viewer_05@viewer_05.tmi.twitch.tv PRIVMSG #channel_a :message 5
+# 订阅 + 送订阅（送订阅不要）
+@badge-info=subscriber/71;badges=subscriber/66,sub-gifter/100;color=#FF0000;display-name=Viewer06;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000006;mod=0;returning-chatter=0;room-id=100000001;subscriber=1;tmi-sent-ts=1794521409190;turbo=0;user-id=300000006;user-type= :viewer_06!viewer_06@viewer_06.tmi.twitch.tv PRIVMSG #channel_a :message 6
+# Bits（不要）
+@badge-info=;badges=bits/100;client-nonce=00000000000000000000000000000007;color=#FF0000;display-name=Viewer07;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000007;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794521409686;turbo=0;user-id=300000007;user-type= :viewer_07!viewer_07@viewer_07.tmi.twitch.tv PRIVMSG #channel_a :message 7
+# 只有活动徽章（不要）
+@badge-info=;badges=campaign-411377640-b1d73e12-01d1-4dda-b7f1-a0ee186bba33-mw/1;client-nonce=00000000000000000000000000000008;color=#FFFFFF;display-name=Viewer08;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000008;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794521407181;turbo=0;user-id=300000008;user-type= :viewer_08!viewer_08@viewer_08.tmi.twitch.tv PRIVMSG #channel_a :message 8
+# 没有徽章
+@badge-info=;badges=;client-nonce=00000000000000000000000000000009;color=;display-name=Viewer09;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000009;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794521407169;turbo=0;user-id=300000009;user-type= :viewer_09!viewer_09@viewer_09.tmi.twitch.tv PRIVMSG #channel_a :message 9
+# 房管
+@badge-info=;badges=moderator/1;color=#8A2BE2;display-name=Viewer10;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000010;mod=1;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794521427875;turbo=0;user-id=300000010;user-type=mod :viewer_10!viewer_10@viewer_10.tmi.twitch.tv PRIVMSG #channel_a :message 10
+# [拼的] 主播 + 认证 + 订阅（Tier 3 档位 3012，没有 badge-info）
+@badge-info=;badges=broadcaster/1,partner/1,subscriber/3012;color=#1E90FF;display-name=StreamerA;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000011;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794504000000;turbo=0;user-id=300000011;user-type= :streamer_a!streamer_a@streamer_a.tmi.twitch.tv PRIVMSG #channel_a :message 11
+# [拼的] 创始订阅（badge-info=founder/14）
+@badge-info=founder/14;badges=founder/0,premium/1;color=#1E90FF;display-name=Viewer20;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000012;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794504000000;turbo=0;user-id=300000012;user-type= :viewer_20!viewer_20@viewer_20.tmi.twitch.tv PRIVMSG #channel_a :message 12
+# [拼的] 首席房管 + 房管（只出一个“房管”）+ 官方 + 竞猜（不要）
+@badge-info=predictions/Blue\s1,subscriber/26;badges=lead_moderator/1,moderator/1,staff/1,predictions/blue-1,subscriber/24;color=#1E90FF;display-name=Viewer21;emotes=;first-msg=0;flags=;id=00000000-0000-0000-0001-000000000013;mod=0;returning-chatter=0;room-id=100000001;subscriber=0;tmi-sent-ts=1794504000000;turbo=0;user-id=300000013;user-type= :viewer_21!viewer_21@viewer_21.tmi.twitch.tv PRIVMSG #channel_a :message 13

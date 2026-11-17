@@ -1,0 +1,57 @@
+{
+ "code": 0,
+ "message": "OK",
+ "data": {
+  "page": 1,
+  "pagesize": 30,
+  "numResults": 208,
+  "numPages": 7,
+  "suggest_keyword": "",
+  "result": [
+   {
+    "roomid": 21852,
+    "uid": 546195,
+    "uname": "<em class=\"keyword\">老番茄</em>",
+    "uface": "//i0.hdslb.com/bfs/face/bc5ca101313d4db223c395d64779e76eb3482d60.jpg",
+    "is_live": false,
+    "live_status": 0,
+    "live_time": "0000-00-00 00:00:00",
+    "attentions": 20860654,
+    "cate_name": "其他单机"
+   },
+   {
+    "roomid": 23684798,
+    "uid": 609013982,
+    "uname": "PPOMO<em class=\"keyword\">老番茄</em>",
+    "uface": "//i1.hdslb.com/bfs/face/c95178f76e64c175b07a8b8be4a035934a4edf28.jpg",
+    "is_live": false,
+    "live_status": 0,
+    "live_time": "0000-00-00 00:00:00",
+    "attentions": 96757,
+    "cate_name": "颜值"
+   },
+   {
+    "roomid": 31882785,
+    "uid": 3546616057301417,
+    "uname": "搞笑<em class=\"keyword\">老番茄</em>",
+    "uface": "//i2.hdslb.com/bfs/face/c0463320435889f7544a51467e0998bfcc6ba22c.jpg",
+    "is_live": false,
+    "live_status": 2,
+    "live_time": "0000-00-00 00:00:00",
+    "attentions": 53309,
+    "cate_name": "法律·心理"
+   },
+   {
+    "roomid": 1840117187,
+    "uid": 1458133547,
+    "uname": "风趣的<em class=\"keyword\">老番茄</em>",
+    "uface": "//i0.hdslb.com/bfs/face/5baf1fd3b9a546bea7649609eb16a621c68272d3.jpg",
+    "is_live": false,
+    "live_status": 0,
+    "live_time": "0000-00-00 00:00:00",
+    "attentions": 22796,
+    "cate_name": "颜值"
+   }
+  ]
+ }
+}

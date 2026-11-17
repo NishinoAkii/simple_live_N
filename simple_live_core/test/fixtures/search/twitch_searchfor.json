@@ -1,0 +1,57 @@
+{
+ "data": {
+  "searchFor": {
+   "channels": {
+    "cursor": "MTU=",
+    "score": 0,
+    "totalMatches": 10214,
+    "items": [
+     {
+      "login": "shroud",
+      "displayName": "shroud",
+      "stream": null,
+      "lastBroadcast": {
+       "startedAt": "2026-10-28T00:24:27.816733Z",
+       "title": "WOW NAME DAY. FOR THE HORDE!"
+      },
+      "followers": {
+       "totalCount": 11291836
+      }
+     },
+     {
+      "login": "shrood",
+      "displayName": "shrood",
+      "stream": {
+       "id": "319708340439"
+      },
+      "lastBroadcast": {
+       "startedAt": "2026-10-26T21:17:09.520377Z",
+       "title": "24/7 @SHROUD | VODS AND STREAMS | CS:GO | PUBG | VALO | RPGS | REPLAYS"
+      },
+      "followers": {
+       "totalCount": 132247
+      }
+     },
+     {
+      "login": "areslps",
+      "displayName": "AresLPs",
+      "stream": {
+       "id": "318133648610"
+      },
+      "lastBroadcast": {
+       "startedAt": "2026-10-28T05:12:11.592675Z",
+       "title": "✨FREE-KEYS-!GIVEAWAY✨💯Follow->!giveaway->anwesend bei Ziehung💯|☕️Looten Morgen!☕️|💲!nitrado !emma !more💲"
+      },
+      "followers": {
+       "totalCount": 143224
+      }
+     }
+    ]
+   }
+  }
+ },
+ "extensions": {
+  "durationMilliseconds": 235,
+  "requestID": "01M60NGR26RAX8Z2B881FYQ39N"
+ }
+}

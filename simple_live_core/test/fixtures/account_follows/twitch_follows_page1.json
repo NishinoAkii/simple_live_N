@@ -1,0 +1,46 @@
+{
+  "_fixture": "built from documented shape: Xtra UserFollowedUsers.graphql + 调研笔记 §7.1 的查询（currentUser.follows），未用真账号抓取；内容为虚构",
+  "data": {
+    "currentUser": {
+      "follows": {
+        "totalCount": 150,
+        "edges": [
+          {
+            "cursor": "c1",
+            "followedAt": "2024-01-01T00:00:00Z",
+            "node": {
+              "id": "71092938",
+              "login": "xqc",
+              "displayName": "xQcOW",
+              "profileImageURL": "https://static-cdn.jtvnw.net/jtv_user_pictures/xqc-70x70.png",
+              "stream": {"type": "live"}
+            }
+          },
+          {
+            "cursor": "c2",
+            "followedAt": "2024-02-01T00:00:00Z",
+            "node": {
+              "id": "12345",
+              "login": "Some_Streamer",
+              "displayName": "some_streamer",
+              "profileImageURL": "https://static-cdn.jtvnw.net/jtv_user_pictures/s-70x70.png",
+              "stream": null
+            }
+          },
+          {
+            "cursor": "c3",
+            "node": {
+              "id": "67890",
+              "login": "kr_streamer",
+              "displayName": "한국어",
+              "profileImageURL": "",
+              "stream": {"type": "rerun"}
+            }
+          }
+        ],
+        "pageInfo": {"hasNextPage": true}
+      }
+    }
+  },
+  "extensions": {"durationMilliseconds": 30}
+}

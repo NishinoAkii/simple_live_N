@@ -1,0 +1,6 @@
+# Tests tagged "live" call the real sites over the network (simple_live_core_test.dart).
+# They are skipped by default so a plain `dart test` stays offline.
+# Run them on purpose with: dart test --run-skipped -t live
+tags:
+  live:
+    skip: "calls the live sites over the network"

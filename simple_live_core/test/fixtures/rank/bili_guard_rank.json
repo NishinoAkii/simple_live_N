@@ -1,0 +1,243 @@
+{
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "info": {
+      "num": 5,
+      "page": 1,
+      "now": 1,
+      "achievement_level": 1
+    },
+    "list": [
+      {
+        "ruid": 3000000001,
+        "rank": 4,
+        "accompany": 36,
+        "uinfo": {
+          "uid": 24,
+          "base": {
+            "name": "舰长四号",
+            "face": "https://i0.hdslb.com/bfs/face/guard24.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "舰长四号",
+              "face": "https://i0.hdslb.com/bfs/face/guard24.jpg"
+            }
+          },
+          "medal": {
+            "name": "测试牌",
+            "level": 25,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000001,
+            "guard_level": 3,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": null,
+          "title": null,
+          "guard": {
+            "level": 3,
+            "expired_str": "2026-12-31 23:59:59"
+          },
+          "uhead_frame": null,
+          "guard_leader": null
+        },
+        "score": 0
+      },
+      {
+        "ruid": 3000000001,
+        "rank": 5,
+        "accompany": 513,
+        "uinfo": {
+          "uid": 25,
+          "base": {
+            "name": "舰长五号",
+            "face": "https://i0.hdslb.com/bfs/face/guard25.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "舰长五号",
+              "face": "https://i0.hdslb.com/bfs/face/guard25.jpg"
+            }
+          },
+          "medal": {
+            "name": "测试牌",
+            "level": 25,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000001,
+            "guard_level": 3,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": null,
+          "title": null,
+          "guard": {
+            "level": 3,
+            "expired_str": "2026-12-31 23:59:59"
+          },
+          "uhead_frame": null,
+          "guard_leader": null
+        },
+        "score": 0
+      }
+    ],
+    "top3": [
+      {
+        "ruid": 3000000001,
+        "rank": 1,
+        "accompany": 306,
+        "uinfo": {
+          "uid": 21,
+          "base": {
+            "name": "总督一号",
+            "face": "https://i0.hdslb.com/bfs/face/guard21.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "总督一号",
+              "face": "https://i0.hdslb.com/bfs/face/guard21.jpg"
+            }
+          },
+          "medal": {
+            "name": "测试牌",
+            "level": 25,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000001,
+            "guard_level": 1,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": null,
+          "title": null,
+          "guard": {
+            "level": 1,
+            "expired_str": "2026-12-31 23:59:59"
+          },
+          "uhead_frame": null,
+          "guard_leader": null
+        },
+        "score": 0
+      },
+      {
+        "ruid": 3000000001,
+        "rank": 2,
+        "accompany": 120,
+        "uinfo": {
+          "uid": 22,
+          "base": {
+            "name": "提督二号",
+            "face": "https://i0.hdslb.com/bfs/face/guard22.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "提督二号",
+              "face": "https://i0.hdslb.com/bfs/face/guard22.jpg"
+            }
+          },
+          "medal": {
+            "name": "测试牌",
+            "level": 25,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000001,
+            "guard_level": 2,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": null,
+          "title": null,
+          "guard": {
+            "level": 2,
+            "expired_str": "2026-12-31 23:59:59"
+          },
+          "uhead_frame": null,
+          "guard_leader": null
+        },
+        "score": 0
+      },
+      {
+        "ruid": 3000000001,
+        "rank": 3,
+        "accompany": 90,
+        "uinfo": {
+          "uid": 23,
+          "base": {
+            "name": "舰长三号",
+            "face": "https://i0.hdslb.com/bfs/face/guard23.jpg",
+            "name_color": 0,
+            "is_mystery": false,
+            "origin_info": {
+              "name": "舰长三号",
+              "face": "https://i0.hdslb.com/bfs/face/guard23.jpg"
+            }
+          },
+          "medal": {
+            "name": "测试牌",
+            "level": 25,
+            "color_start": 398668,
+            "color_end": 6850801,
+            "color_border": 6809855,
+            "color": 398668,
+            "id": 0,
+            "typ": 0,
+            "is_light": 1,
+            "ruid": 3000000001,
+            "guard_level": 3,
+            "score": 50000000,
+            "guard_icon": "",
+            "honor_icon": "",
+            "v2_medal_color_start": "#4775EFCC"
+          },
+          "wealth": null,
+          "title": null,
+          "guard": {
+            "level": 3,
+            "expired_str": "2026-12-31 23:59:59"
+          },
+          "uhead_frame": null,
+          "guard_leader": null
+        },
+        "score": 0
+      }
+    ],
+    "my_follow_info": {
+      "rank": 0,
+      "ruid": 0,
+      "uinfo": null
+    },
+    "remind_msg": "头号粉丝大航海，上船后可上榜"
+  }
+}

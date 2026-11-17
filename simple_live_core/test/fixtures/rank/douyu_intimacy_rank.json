@@ -1,0 +1,95 @@
+{
+  "error": 0,
+  "msg": "操作成功",
+  "data": {
+    "guardRank": [],
+    "signRank": [],
+    "watchRank": [],
+    "intimacyRank": [
+      {
+        "rank": 1,
+        "uid": 10000,
+        "nickname": "斗鱼观众01",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/00_big.jpg",
+        "value": 23363300
+      },
+      {
+        "rank": 2,
+        "uid": 10001,
+        "nickname": "斗鱼观众02",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/01_big.jpg",
+        "value": 22384410
+      },
+      {
+        "rank": 3,
+        "uid": 10002,
+        "nickname": "斗鱼观众03",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/02_big.jpg",
+        "value": 21483400
+      },
+      {
+        "rank": 4,
+        "uid": 10003,
+        "nickname": "斗鱼观众04",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/03_big.jpg",
+        "value": 20220500
+      },
+      {
+        "rank": 5,
+        "uid": 10004,
+        "nickname": "斗鱼观众05",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/04_big.jpg",
+        "value": 20209600
+      },
+      {
+        "rank": 6,
+        "uid": 10005,
+        "nickname": "斗鱼观众06",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/05_big.jpg",
+        "value": 18967900
+      },
+      {
+        "rank": 7,
+        "uid": 10006,
+        "nickname": "斗鱼观众07",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/06_big.jpg",
+        "value": 18684000
+      },
+      {
+        "rank": 8,
+        "uid": 10007,
+        "nickname": "斗鱼观众08",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/07_big.jpg",
+        "value": 17864100
+      },
+      {
+        "rank": 9,
+        "uid": 10008,
+        "nickname": "斗鱼观众09",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/08_big.jpg",
+        "value": 17654700
+      },
+      {
+        "rank": 10,
+        "uid": 10009,
+        "nickname": "斗鱼观众10",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/09_big.jpg",
+        "value": 17328300
+      },
+      {
+        "rank": 11,
+        "uid": 10010,
+        "nickname": "斗鱼观众11",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/10_big.jpg",
+        "value": 17111900
+      },
+      {
+        "rank": 12,
+        "uid": 10011,
+        "nickname": "斗鱼观众12",
+        "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/fixture/11_big.jpg",
+        "value": 16570400
+      }
+    ]
+  }
+}

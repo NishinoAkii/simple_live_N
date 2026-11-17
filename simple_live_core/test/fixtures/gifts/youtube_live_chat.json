@@ -1,0 +1,314 @@
+{
+  "continuationContents": {
+    "liveChatContinuation": {
+      "continuations": [
+        {
+          "invalidationContinuationData": {
+            "continuation": "NEXT_GIFT_TOKEN",
+            "timeoutMs": 5000
+          }
+        }
+      ],
+      "actions": [
+        {
+          "clickTrackingParams": "CAEQl98BIhMI",
+          "addChatItemAction": {
+            "item": {
+              "liveChatTextMessageRenderer": {
+                "message": {"runs": [{"text": "lol"}]},
+                "authorName": {"simpleText": "@chat-viewer"},
+                "authorPhoto": {
+                  "thumbnails": [
+                    {"url": "https://yt4.ggpht.com/avatar-chat=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                    {"url": "https://yt4.ggpht.com/avatar-chat=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                  ]
+                },
+                "id": "TEXT_1",
+                "timestampUsec": "1794503236581063",
+                "authorBadges": [
+                  {
+                    "liveChatAuthorBadgeRenderer": {
+                      "customThumbnail": {"thumbnails": [{"url": "https://yt3.ggpht.com/badge=s16-c-k", "width": 16, "height": 16}]},
+                      "tooltip": "会员（6 个月）",
+                      "accessibility": {"accessibilityData": {"label": "会员（6 个月）"}}
+                    }
+                  }
+                ],
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa1",
+                "contextMenuAccessibility": {"accessibilityData": {"label": "聊天操作"}},
+                "trackingParams": "CAEQl98BIhMI"
+              }
+            },
+            "clientId": "CLIENT_TEXT_1"
+          }
+        },
+        {
+          "clickTrackingParams": "CAEQl98BIhMI",
+          "addChatItemAction": {
+            "item": {
+              "liveChatMembershipItemRenderer": {
+                "id": "MEMBER_MILESTONE_1",
+                "timestampUsec": "1794503449491428",
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa2",
+                "headerPrimaryText": {"runs": [{"text": "会龄："}, {"text": "9"}, {"text": " 个月"}]},
+                "headerSubtext": {"simpleText": "KAELUARGA"},
+                "message": {
+                  "runs": [
+                    {
+                      "emoji": {
+                        "emojiId": "UCbbbbbbbbbbbbbbbbbbbbbb/heartEmojiId",
+                        "shortcuts": [":_heart:", ":heart:"],
+                        "searchTerms": ["_heart", "heart"],
+                        "image": {
+                          "thumbnails": [
+                            {"url": "https://yt3.ggpht.com/emoji-heart=w24-h24-c-k-nd", "width": 24, "height": 24},
+                            {"url": "https://yt3.ggpht.com/emoji-heart=w48-h48-c-k-nd", "width": 48, "height": 48}
+                          ],
+                          "accessibility": {"accessibilityData": {"label": "heart"}}
+                        },
+                        "isCustomEmoji": true
+                      }
+                    }
+                  ]
+                },
+                "authorName": {"simpleText": "@member-one"},
+                "authorPhoto": {
+                  "thumbnails": [
+                    {"url": "https://yt4.ggpht.com/avatar-member-one=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                    {"url": "https://yt4.ggpht.com/avatar-member-one=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                  ]
+                },
+                "authorBadges": [
+                  {
+                    "liveChatAuthorBadgeRenderer": {
+                      "customThumbnail": {"thumbnails": [{"url": "https://yt3.ggpht.com/badge=s16-c-k", "width": 16, "height": 16}]},
+                      "tooltip": "会员（6 个月）",
+                      "accessibility": {"accessibilityData": {"label": "会员（6 个月）"}}
+                    }
+                  }
+                ],
+                "contextMenuAccessibility": {"accessibilityData": {"label": "聊天操作"}},
+                "trackingParams": "CCkQ4f0GIhMI"
+              }
+            },
+            "clientId": "CLIENT_MEMBER_1"
+          }
+        },
+        {
+          "clickTrackingParams": "CAEQl98BIhMI",
+          "addLiveChatTickerItemAction": {
+            "item": {
+              "liveChatTickerSponsorItemRenderer": {
+                "id": "MEMBER_MILESTONE_2",
+                "detailText": {"accessibility": {"accessibilityData": {"label": "53个月"}}, "simpleText": "53个月"},
+                "detailTextColor": 4294967295,
+                "startBackgroundColor": 4279213400,
+                "endBackgroundColor": 4278943811,
+                "sponsorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/avatar-member-two=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+                "durationSec": 73,
+                "fullDurationSec": 120
+              }
+            },
+            "durationSec": "73"
+          }
+        },
+        {
+          "clickTrackingParams": "CAEQl98BIhMI",
+          "addChatItemAction": {
+            "item": {
+              "liveChatMembershipItemRenderer": {
+                "id": "MEMBER_MILESTONE_2",
+                "timestampUsec": "1794503563745158",
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa3",
+                "headerPrimaryText": {"runs": [{"text": "会龄："}, {"text": "53"}, {"text": " 个月"}]},
+                "headerSubtext": {"simpleText": "KAELUARGA"},
+                "empty": true,
+                "authorName": {"simpleText": "@member-two"},
+                "authorPhoto": {
+                  "thumbnails": [
+                    {"url": "https://yt4.ggpht.com/avatar-member-two=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                    {"url": "https://yt4.ggpht.com/avatar-member-two=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                  ]
+                },
+                "contextMenuAccessibility": {"accessibilityData": {"label": "聊天操作"}},
+                "trackingParams": "CCgQ4f0GIhMI"
+              }
+            },
+            "clientId": "CLIENT_MEMBER_2"
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "liveChatMembershipItemRenderer": {
+                "id": "MEMBER_NEW_1",
+                "timestampUsec": "1794503600000000",
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa4",
+                "headerSubtext": {"runs": [{"text": "欢迎加入 "}, {"text": "KAELUARGA"}, {"text": "！"}]},
+                "authorName": {"simpleText": "@member-new"},
+                "authorPhoto": {
+                  "thumbnails": [
+                    {"url": "https://yt4.ggpht.com/avatar-member-new=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                    {"url": "https://yt4.ggpht.com/avatar-member-new=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                  ]
+                }
+              }
+            },
+            "clientId": "CLIENT_MEMBER_3"
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "liveChatSponsorshipsGiftPurchaseAnnouncementRenderer": {
+                "id": "GIFT_PURCHASE_1",
+                "timestampUsec": "1794503700000000",
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa5",
+                "header": {
+                  "liveChatSponsorshipsHeaderRenderer": {
+                    "authorName": {"simpleText": "@gifter-one"},
+                    "authorPhoto": {
+                      "thumbnails": [
+                        {"url": "https://yt4.ggpht.com/avatar-gifter-one=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                        {"url": "https://yt4.ggpht.com/avatar-gifter-one=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                      ]
+                    },
+                    "primaryText": {"runs": [{"text": "Sent ", "bold": true}, {"text": "5", "bold": true}, {"text": " ", "bold": true}, {"text": "KAELUARGA 2", "bold": true}, {"text": " gift memberships", "bold": true}]},
+                    "image": {"thumbnails": [{"url": "https://www.gstatic.com/youtube/img/sponsorships/sponsorships_gift_purchase_announcement_artwork.png"}]}
+                  }
+                }
+              }
+            },
+            "clientId": "CLIENT_GIFT_PURCHASE_1"
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "liveChatSponsorshipsGiftRedemptionAnnouncementRenderer": {
+                "id": "GIFT_REDEMPTION_1",
+                "timestampUsec": "1794503701000000",
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa6",
+                "authorName": {"simpleText": "@lucky-viewer-one"},
+                "authorPhoto": {"thumbnails": [{"url": "https://yt4.ggpht.com/avatar-lucky-one=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}]},
+                "message": {"runs": [{"text": "received a gift membership by "}, {"text": "@gifter-one", "bold": true}]}
+              }
+            },
+            "clientId": "CLIENT_GIFT_REDEMPTION_1"
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "liveChatSponsorshipsGiftRedemptionAnnouncementRenderer": {
+                "id": "GIFT_REDEMPTION_2",
+                "timestampUsec": "1794503701100000",
+                "authorExternalChannelId": "UCaaaaaaaaaaaaaaaaaaaaa7",
+                "authorName": {"simpleText": "@lucky-viewer-two"},
+                "message": {"runs": [{"text": "received a gift membership by "}, {"text": "@gifter-one", "bold": true}]}
+              }
+            },
+            "clientId": "CLIENT_GIFT_REDEMPTION_2"
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "liveChatSponsorshipsGiftPurchaseAnnouncementRenderer": {
+                "id": "GIFT_PURCHASE_2",
+                "timestampUsec": "1794503710000000",
+                "header": {
+                  "liveChatSponsorshipsHeaderRenderer": {
+                    "primaryText": {"runs": [{"text": "Sent ", "bold": true}, {"text": "20", "bold": true}, {"text": " ", "bold": true}, {"text": "KAELUARGA", "bold": true}, {"text": " gift memberships", "bold": true}]}
+                  }
+                }
+              }
+            },
+            "clientId": "CLIENT_GIFT_PURCHASE_2"
+          }
+        },
+        {
+          "clickTrackingParams": "CAEQl98BIhMI",
+          "addChatItemAction": {
+            "item": {
+              "giftMessageViewModel": {
+                "text": {"content": "已发送：爱心", "styleRuns": [{"startIndex": 0, "length": 6}]},
+                "authorName": {"content": "@gift-sender-one ", "styleRuns": [{"startIndex": 0, "length": 17}]},
+                "id": "GIFT_MSG_1",
+                "authorAvatar": {
+                  "avatarViewModel": {
+                    "image": {
+                      "sources": [
+                        {"url": "https://yt4.ggpht.com/avatar-gift-one=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                        {"url": "https://yt4.ggpht.com/avatar-gift-one=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                      ],
+                      "processor": {"borderImageProcessor": {"circular": true}}
+                    },
+                    "avatarImageSize": "AVATAR_SIZE_XS"
+                  }
+                },
+                "giftImage": {
+                  "sources": [
+                    {"url": "//www.gstatic.com/youtube/img/pdg/gift/assets/heart.png=w480-h480", "width": 480, "height": 480},
+                    {"url": "//www.gstatic.com/youtube/img/pdg/gift/assets/heart.png=w640-h640", "width": 640, "height": 640}
+                  ]
+                },
+                "giftImageA11yLabel": "@gift-sender-one赠送了礼物，爱心",
+                "rendererContext": {"loggingContext": {"loggingDirectives": {"trackingParams": "CDAQ9p4PIhMI", "visibility": {"types": "12"}}}}
+              }
+            },
+            "clientId": "CLIENT_GIFT_MSG_1"
+          }
+        },
+        {
+          "clickTrackingParams": "CAEQl98BIhMI",
+          "addChatItemAction": {
+            "item": {
+              "giftMessageViewModel": {
+                "text": {"content": "已发送：100", "styleRuns": [{"startIndex": 0, "length": 7}]},
+                "authorName": {"content": "@gift-sender-two ", "styleRuns": [{"startIndex": 0, "length": 17}]},
+                "id": "GIFT_MSG_2",
+                "authorAvatar": {
+                  "avatarViewModel": {
+                    "image": {
+                      "sources": [
+                        {"url": "https://yt4.ggpht.com/avatar-gift-two=s32-c-k-c0x00ffffff-no-rj", "width": 32, "height": 32},
+                        {"url": "https://yt4.ggpht.com/avatar-gift-two=s64-c-k-c0x00ffffff-no-rj", "width": 64, "height": 64}
+                      ],
+                      "processor": {"borderImageProcessor": {"circular": true}}
+                    },
+                    "avatarImageSize": "AVATAR_SIZE_XS"
+                  }
+                },
+                "giftImage": {
+                  "sources": [
+                    {"url": "//www.gstatic.com/youtube/img/pdg/gift/assets/one_hundred_v2_320x320.png=w480-h480", "width": 480, "height": 480},
+                    {"url": "//www.gstatic.com/youtube/img/pdg/gift/assets/one_hundred_v2_320x320.png=w640-h640", "width": 640, "height": 640}
+                  ]
+                },
+                "giftImageA11yLabel": "@gift-sender-two赠送了礼物，100",
+                "rendererContext": {"loggingContext": {"loggingDirectives": {"trackingParams": "CDEQ9p4PIhMI", "visibility": {"types": "12"}}}}
+              }
+            },
+            "clientId": "CLIENT_GIFT_MSG_2"
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "giftMessageViewModel": {"id": "GIFT_NO_AUTHOR", "text": {"content": "sent Heart"}}
+            }
+          }
+        },
+        {
+          "addChatItemAction": {
+            "item": {
+              "liveChatPlaceholderItemRenderer": {"id": "PLACEHOLDER_1", "timestampUsec": "1794504221498149"}
+            },
+            "clientId": "CLIENT_PLACEHOLDER_1"
+          }
+        }
+      ]
+    }
+  }
+}

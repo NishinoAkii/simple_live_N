@@ -1,0 +1,85 @@
+{
+ "error": 0,
+ "msg": "请求成功",
+ "data": [
+  {
+   "kw": "一条小团团OvO",
+   "type": 1,
+   "roomResult": {
+    "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/202212/d4f61c2ee2c1493186c1c47bdc10377e_middle.jpg",
+    "cateName": "热门游戏",
+    "cid": 270,
+    "isLive": 2,
+    "isLoop": 0,
+    "kw": "一条小团团OvO",
+    "nickName": "一条小团团OvO",
+    "rid": 4615502,
+    "roomType": 0,
+    "vipId": 2222
+   }
+  },
+  {
+   "kw": "一条小团团Ov0",
+   "type": 1,
+   "roomResult": {
+    "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/201812/7fcc8d88577122f803bc08fe9dcac5bb_middle.jpg",
+    "cateName": "户外",
+    "cid": 124,
+    "isLive": 2,
+    "isLoop": 0,
+    "kw": "一条小团团Ov0",
+    "nickName": "一条小团团Ov0",
+    "rid": 6384853,
+    "roomType": 2,
+    "vipId": 0
+   }
+  },
+  {
+   "kw": "一条小姽婳",
+   "type": 1,
+   "roomResult": {
+    "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/202008/0e990906adcb4740bce55793a0ac2e6f_middle.jpg",
+    "cateName": "热门游戏",
+    "cid": 270,
+    "isLive": 2,
+    "isLoop": 0,
+    "kw": "一条小姽婳",
+    "nickName": "一条小姽婳",
+    "rid": 1409682,
+    "roomType": 0,
+    "vipId": 0
+   }
+  },
+  {
+   "kw": "一条小脑虎",
+   "type": 1,
+   "roomResult": {
+    "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/202002/91961e042fdd4070bd682da9d19fc5c9_middle.jpg",
+    "cateName": "DNF",
+    "cid": 40,
+    "isLive": 2,
+    "isLoop": 0,
+    "kw": "一条小脑虎",
+    "nickName": "一条小脑虎",
+    "rid": 7443498,
+    "roomType": 0,
+    "vipId": 0
+   }
+  },
+  {
+   "kw": "一条小咸鱼zzZ",
+   "type": 14,
+   "userResult": {
+    "avatar": "https://apic.douyucdn.cn/upload/avatar_v3/202202/932cd12827bb4a09bc10476d7f5c3ff1_middle.jpg",
+    "fansNum": 721,
+    "feedNum": 300,
+    "kw": "一条小咸鱼zzZ",
+    "nickName": "一条小咸鱼zzZ",
+    "nickname": "一条小咸鱼zzZ",
+    "uid": 55944160,
+    "vodNum": 0,
+    "webHomeUrl": "https://yuba.douyu.com/user/main/JjALLY1OpAXr"
+   }
+  }
+ ]
+}

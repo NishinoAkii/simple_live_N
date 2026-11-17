@@ -1,0 +1,59 @@
+name: Windows 7 package
+
+# The Windows 7 package keeps the features of 1.24.0: bugs get fixed, no new features are added.
+# This workflow only runs when started by hand (Actions -> Windows 7 package -> Run workflow),
+# for 1.24.0 and for later bug-fix builds of the Windows 7 package.
+# It runs windows7/build_win7.ps1, the same script used for local builds (see windows7/README.md).
+
+run-name: "Windows 7 package: ${{ inputs.reason }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason in English, e.g. 'Release 1.24.0' or 'Issue #20: crash on start'"
+        type: string
+        required: true
+      release_tag:
+        description: "Release tag to attach the zip to (empty: keep it as a workflow artifact only)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  win7:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the Windows 7 package
+        shell: pwsh
+        run: |
+          $commit = $env:GITHUB_SHA.Substring(0, 7)
+          powershell -ExecutionPolicy Bypass -File windows7\build_win7.ps1 -Commit $commit
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows7
+          path: simple_live_app/build/win7/*.zip
+
+      - name: Attach to the Release
+        if: inputs.release_tag != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $zip = (Get-Item simple_live_app/build/win7/*.zip).FullName
+          gh release upload "${{ inputs.release_tag }}" "$zip" --clobber

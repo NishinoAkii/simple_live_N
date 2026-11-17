@@ -1,0 +1,65 @@
+{
+  "_fixture": "built from documented shape: YouTube.js getChannelsFeed（browse FEchannels）里的 channelRenderer 与 continuationItemRenderer 结构，未用真账号抓取；内容为虚构",
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "shelfRenderer": {
+                            "content": {
+                              "expandedShelfContentsRenderer": {
+                                "items": [
+                                  {
+                                    "channelRenderer": {
+                                      "channelId": "UCSJ4gkVC6NrvII8umztf0Ow",
+                                      "title": {"simpleText": "Lofi Girl"},
+                                      "thumbnail": {"thumbnails": [
+                                        {"url": "//yt3.ggpht.com/lofi=s88", "width": 88, "height": 88},
+                                        {"url": "//yt3.ggpht.com/lofi=s176", "width": 176, "height": 176}
+                                      ]}
+                                    }
+                                  },
+                                  {
+                                    "channelRenderer": {
+                                      "channelId": "UCLA_DiR1FfKNvjuUpBHmylQ",
+                                      "title": {"runs": [{"text": "NASA"}]},
+                                      "thumbnail": {"thumbnails": [{"url": "https://yt3.ggpht.com/nasa=s88", "width": 88}]}
+                                    }
+                                  },
+                                  {
+                                    "channelRenderer": {
+                                      "channelId": "not-a-channel-id",
+                                      "title": {"simpleText": "会被跳过"}
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "continuationItemRenderer": {
+                      "continuationEndpoint": {
+                        "continuationCommand": {"token": "4qmFsgNEXT", "request": "CONTINUATION_REQUEST_TYPE_BROWSE"}
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

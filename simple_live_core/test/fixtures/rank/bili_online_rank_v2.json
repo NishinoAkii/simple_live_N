@@ -1,0 +1,32 @@
+{
+  "cmd": "ONLINE_RANK_V2",
+  "data": {
+    "list": [
+      {
+        "uid": 12,
+        "face": "https://i0.hdslb.com/bfs/face/fixture2.jpg",
+        "score": "20",
+        "uname": "B站观众二",
+        "rank": 1,
+        "guard_level": 0
+      },
+      {
+        "uid": 11,
+        "face": "https://i0.hdslb.com/bfs/face/fixture1.jpg",
+        "score": "18",
+        "uname": "B站观众一",
+        "rank": 2,
+        "guard_level": 3
+      },
+      {
+        "uid": 15,
+        "face": "https://i0.hdslb.com/bfs/face/fixture5.jpg",
+        "score": "12",
+        "uname": "B站观众五",
+        "rank": 3,
+        "guard_level": 0
+      }
+    ],
+    "rank_type": "gold-rank"
+  }
+}

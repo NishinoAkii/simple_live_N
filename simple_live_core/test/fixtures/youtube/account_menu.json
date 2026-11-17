@@ -1,0 +1,10 @@
+{"actions": [{"openPopupAction": {"popup": {"multiPageMenuRenderer": {
+  "header": {"activeAccountHeaderRenderer": {
+    "accountName": {"simpleText": "Test Account"},
+    "accountPhoto": {"thumbnails": [{"url": "https://yt3.ggpht.com/account=s88-c-k-c0x00ffffff-no-rj", "width": 88, "height": 88}]},
+    "channelHandle": {"simpleText": "@testaccount"}}},
+  "sections": [{"multiPageMenuSectionRenderer": {"items": [
+    {"compactLinkRenderer": {"title": {"runs": [{"text": "Your channel"}]},
+      "navigationEndpoint": {"browseEndpoint": {"browseId": "UCffffffffffffffffffffff", "canonicalBaseUrl": "/@testaccount"}}}}
+  ]}}]
+}}}}]}

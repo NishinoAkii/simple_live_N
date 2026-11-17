@@ -1,0 +1,29 @@
+{
+  "_fixture": "built from documented shape: DouyuEx FollowList.js / Sign_Room.js 用到的字段（data.list[].room_id/nickname/avatar_small/show_status/videoLoop、data.pageCount、data.total），未用真账号抓取；内容为虚构",
+  "error": 0,
+  "msg": "",
+  "data": {
+    "total": 3,
+    "pageCount": 2,
+    "list": [
+      {
+        "room_id": 9999,
+        "room_name": "直播中",
+        "nickname": "主播甲",
+        "avatar_small": "https://apic.douyucdn.cn/upload/avatar/a_small.jpg",
+        "show_status": "1",
+        "videoLoop": "0",
+        "online": "12.3万",
+        "show_time": 1761600000
+      },
+      {
+        "room_id": 288016,
+        "room_name": "轮播中",
+        "nickname": "主播乙",
+        "avatar_small": "https://apic.douyucdn.cn/upload/avatar/b_small.jpg",
+        "show_status": 1,
+        "videoLoop": 1
+      }
+    ]
+  }
+}

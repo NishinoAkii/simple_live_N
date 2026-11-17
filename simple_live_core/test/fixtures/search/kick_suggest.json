@@ -1,0 +1,49 @@
+{
+ "data": {
+  "categories": [],
+  "channels": [
+   {
+    "is_live": true,
+    "is_verified": true,
+    "profile_picture": "https://files.kick.com/images/user/676/profile_image/conversion/931b4e8f-5445-427c-bd82-b473530390cc-medium.webp",
+    "slug": "xqc",
+    "username": "xQc"
+   },
+   {
+    "is_live": true,
+    "is_verified": false,
+    "profile_picture": "https://files.kick.com/images/user/67553903/profile_image/conversion/752135e0-8198-4d61-aab5-0e8c7629b3f6-medium.webp",
+    "slug": "xqcow-waiting-room-x",
+    "username": "xQcOW_waiting_room_X"
+   },
+   {
+    "is_live": false,
+    "is_verified": true,
+    "profile_picture": "https://files.kick.com/images/user/153175/profile_image/conversion/950ea8b7-f5de-43b4-b75c-a771080e10ec-medium.webp",
+    "slug": "xqu33n_rogu3x",
+    "username": "xqu33n_rogu3x"
+   }
+  ],
+  "livestreams": [
+   {
+    "is_mature": false,
+    "language": "es",
+    "slug": "sunakitovt",
+    "thumbnail": {
+     "src": "https://images.kick.com/video_thumbnails/RI0YLI9fYdnX/7afPhwYbRZmp/720.webp"
+    },
+    "title": "Dibujita busca como aumentar sus ingresos pero no puede xq no le dan los cesos ⸜(｡˃ ᵕ ˂ )⸝"
+   },
+   {
+    "is_mature": false,
+    "language": "en",
+    "slug": "xqcow-waiting-room-x",
+    "thumbnail": {
+     "src": "https://images.kick.com/video_thumbnails/C0JQZ3W3QyUh/EBGUyixZrBLV/720.webp"
+    },
+    "title": "25/8 Rain Thunderstorm Sounds to Sleep, Study, Relax, Reduce Stress, Help Insomnia / AD FREE so you can play it while you Sleep. xqcL"
+   }
+  ]
+ },
+ "message": "success"
+}

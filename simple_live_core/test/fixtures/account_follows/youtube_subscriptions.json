@@ -1,0 +1,30 @@
+{
+  "_fixture": "documented: YouTube Data API v3 subscriptions.list 资源格式（developers.google.com/youtube/v3/docs/subscriptions），未用真账号抓取；内容为虚构",
+  "kind": "youtube#subscriptionListResponse",
+  "etag": "x",
+  "nextPageToken": "CDIQAA",
+  "pageInfo": {"totalResults": 52, "resultsPerPage": 50},
+  "items": [
+    {
+      "kind": "youtube#subscription",
+      "id": "sub-aaa",
+      "snippet": {
+        "title": "Lofi Girl",
+        "resourceId": {"kind": "youtube#channel", "channelId": "UCSJ4gkVC6NrvII8umztf0Ow"},
+        "thumbnails": {
+          "default": {"url": "https://yt3.ggpht.com/lofi=s88"},
+          "medium": {"url": "https://yt3.ggpht.com/lofi=s240"}
+        }
+      }
+    },
+    {
+      "kind": "youtube#subscription",
+      "id": "sub-bbb",
+      "snippet": {
+        "title": "NASA",
+        "resourceId": {"kind": "youtube#channel", "channelId": "UCLA_DiR1FfKNvjuUpBHmylQ"},
+        "thumbnails": {"default": {"url": "https://yt3.ggpht.com/nasa=s88"}}
+      }
+    }
+  ]
+}
