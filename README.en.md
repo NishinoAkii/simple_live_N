@@ -17,7 +17,7 @@ simple_live_N is a modified version of [Simple Live](https://github.com/xiaoyaoc
 
 ![Dark mode](/assets/screenshot_dark.jpg)
 
-## Main features
+## Main new features
 
 - [Live source subscriptions](https://github.com/NishinoAkii/simple_live_N-sources/blob/main/README.en.md): one script per platform, updated without reinstalling the app.
 - Speed up to catch up: when the picture falls behind, playback speeds up slightly to get close to live again.

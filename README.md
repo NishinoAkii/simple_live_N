@@ -17,7 +17,7 @@ simple_live_N 是 [Simple Live](https://github.com/xiaoyaocz/dart_simple_live)�
 
 ![深色模式](/assets/screenshot_dark.jpg)
 
-## 主要功能
+## 主要新功能
 
 - [直播源订阅](https://github.com/NishinoAkii/simple_live_N-sources)：一个脚本接入一个平台，脚本更新后无需重装 App。
 - 追帧加速：画面落后时略微加速，追回到接近实时。
