@@ -13,7 +13,7 @@
 | 使用方法、设置等问题 | [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions) |
 | 直播源脚本、新直播源、翻译 | [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues) |
 
-报告 Bug 时请写明版本、系统、直播平台和直播间，并附上重现步骤和日志：在“我的 → 其他设置”中开启“调试模式”，重现问题后点“导出日志”。导出的日志会隐藏账号和 Cookie，上传前仍请检查一遍。不要在 Issue 中贴出账号、Cookie 或密码。
+常见问题和基础的排查方法见置顶的[必读 Issue](https://github.com/NishinoAkii/simple_live_N/issues/2)。报告 Bug 时请写明版本、系统、直播平台和直播间，并附上重现步骤和日志：在“我的 → 其他设置”中开启“调试模式”，重现问题后点“导出日志”。导出的日志会隐藏账号和 Cookie，上传前仍请检查一遍。不要在 Issue 中贴出账号、Cookie 或密码。
 
 ## 提交代码
 

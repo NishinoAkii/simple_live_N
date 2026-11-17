@@ -7,9 +7,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        提交前请先搜索已有的 Issue，并确认用的是[最新版本](https://github.com/NishinoAkii/simple_live_N/releases)。直播源（`.live.js`）的问题请到 [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues) 提交，使用方法的问题请到 [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions) 提问。
+        提交前请先看[常见问题和排查方法](https://github.com/NishinoAkii/simple_live_N/issues/2)，搜索已有的 Issue，并确认用的是[最新版本](https://github.com/NishinoAkii/simple_live_N/releases)。直播源（`.live.js`）的问题请到 [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues) 提交，使用方法的问题请到 [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions) 提问。
 
-        Please search existing issues first and make sure you are on the [latest release](https://github.com/NishinoAkii/simple_live_N/releases). Problems with a live source (`.live.js`) belong in [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues); how-to questions belong in [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions).
+        Please read the [common problems and troubleshooting](https://github.com/NishinoAkii/simple_live_N/issues/2), search existing issues, and make sure you are on the [latest release](https://github.com/NishinoAkii/simple_live_N/releases). Problems with a live source (`.live.js`) belong in [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues); how-to questions belong in [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions).
 
   - type: input
     id: version

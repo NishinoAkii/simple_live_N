@@ -13,7 +13,7 @@ Bug reports, suggestions and code are all welcome.
 | How-to questions and settings | [Discussions](https://github.com/NishinoAkii/simple_live_N/discussions) |
 | Live source scripts, new sources, translations | [simple_live_N-sources](https://github.com/NishinoAkii/simple_live_N-sources/issues) |
 
-For a bug, give the version, system, platform and room, with steps to reproduce and logs: turn on Debug mode under Me → Other settings, reproduce the problem, then use Export logs. Accounts and cookies are masked in the exported logs, but please check before uploading. Never post accounts, cookies or passwords in an issue.
+Common problems and basic troubleshooting are in the pinned [read-first issue](https://github.com/NishinoAkii/simple_live_N/issues/2). For a bug, give the version, system, platform and room, with steps to reproduce and logs: turn on Debug mode under Me → Other settings, reproduce the problem, then use Export logs. Accounts and cookies are masked in the exported logs, but please check before uploading. Never post accounts, cookies or passwords in an issue.
 
 ## Contributing code
 
