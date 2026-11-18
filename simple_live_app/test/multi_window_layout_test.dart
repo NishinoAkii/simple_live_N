@@ -1,129 +1,98 @@
 import 'dart:ui' show Rect;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:simple_live_app/app/multi_window/window_args.dart';
 import 'package:simple_live_app/app/multi_window/window_layout.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
+import 'package:simple_live_app/app/window_geometry.dart';
 
-// 多开：副窗口的摆放（物理像素）。
-// 1 到 4 个窗口，在不同大小、不同缩放的屏幕上：不重叠、都在可用区域里、不小于最小尺寸
+// 多开：副窗口的摆放（物理像素）。没有固定的格子：每个编号记住用户拖到的位置，
+// 没记过时从前一个窗口（或主窗口）往右下错开
 
 /// 可用区域都去掉了底部任务栏（按缩放 48 逻辑像素）
 ScreenArea screen(double left, double top, double w, double h, double scale) =>
     ScreenArea(Rect.fromLTWH(left, top, w, h - 48 * scale), scale);
 
-final screens = <String, ScreenArea>{
-  "1080p 100%": screen(0, 0, 1920, 1080, 1.0),
-  "1080p 125%": screen(0, 0, 1920, 1080, 1.25),
-  "1440p 150%（右边的副屏）": screen(1920, -200, 2560, 1440, 1.5),
-  "4K 200%": screen(0, 0, 3840, 2160, 2.0),
-  "4K 150%（左边的副屏，坐标为负）": screen(-3840, 0, 3840, 2160, 1.5),
-  "1366×768 100%": screen(0, 0, 1366, 768, 1.0),
-  "720p 150%（很小）": screen(0, 0, 1280, 720, 1.5),
-  "竖屏 1080×1920 125%": screen(0, 0, 1080, 1920, 1.25),
-};
-
 void main() {
-  void checkPlacement(ScreenArea s, List<Rect> rects, String name) {
-    for (var r in rects) {
-      expect(s.work.left <= r.left && s.work.top <= r.top, isTrue,
-          reason: "$name：$r 超出了 ${s.work}");
-      expect(r.right <= s.work.right && r.bottom <= s.work.bottom, isTrue,
-          reason: "$name：$r 超出了 ${s.work}");
-      expect(r.width >= WindowLayout.minSize.width * s.scale, isTrue,
-          reason: "$name：$r 太窄");
-      expect(r.height >= WindowLayout.minSize.height * s.scale, isTrue,
-          reason: "$name：$r 太矮");
-    }
-    for (var i = 0; i < rects.length; i++) {
-      for (var j = i + 1; j < rects.length; j++) {
-        var a = rects[i], b = rects[j];
-        var overlap = a.left < b.right &&
-            b.left < a.right &&
-            a.top < b.bottom &&
-            b.top < a.bottom;
-        expect(overlap, isFalse, reason: "$name：$a 和 $b 重叠");
-      }
-    }
-  }
+  // 左边 1080p 100%，右边 2560×1600 150%
+  var left = screen(0, 0, 1920, 1080, 1.0);
+  var right = screen(1920, 0, 2560, 1600, 1.5);
+  var both = [left, right];
 
-  test("1 到 4 个窗口：不重叠、都在屏幕里", () {
-    for (var entry in screens.entries) {
-      var s = entry.value;
-      var slots = WindowLayout.slots(s);
-      expect(slots, hasLength(4), reason: entry.key);
-      // 主窗口在屏幕中间，开 1 到 4 个
-      var main = Rect.fromCenter(
-          center: s.work.center,
-          width: s.work.width / 2,
-          height: s.work.height / 2);
-      var used = <int>{};
-      for (var n = 1; n <= 4; n++) {
-        var index = WindowLayout.pickSlot(slots, used, main);
-        expect(index, isNotNull, reason: "${entry.key} 第 $n 个");
-        used.add(index!);
-        checkPlacement(s, [for (var i in used) slots[i]], "${entry.key} $n 个");
-      }
-      // 第 5 个没有位置
-      expect(WindowLayout.pickSlot(slots, used, main), isNull);
-    }
+  test("最多同时开 6 个", () {
+    expect(SecondaryLaunch.maxWindows, 6);
   });
 
-  test("横屏排 2×2，竖屏排 1×4，空隙按缩放算", () {
-    var wide = WindowLayout.slots(screens["1080p 100%"]!);
-    expect(wide.map((e) => e.top).toSet(), hasLength(2));
-    expect(wide.map((e) => e.left).toSet(), hasLength(2));
-    expect(wide.first, const Rect.fromLTWH(8, 8, 948, 504));
-    var tall = WindowLayout.slots(screens["竖屏 1080×1920 125%"]!);
-    expect(tall.map((e) => e.left).toSet(), hasLength(1));
-    expect(tall.map((e) => e.top).toSet(), hasLength(4));
-    var hi = WindowLayout.slots(screens["4K 200%"]!);
-    expect(hi.first.left, 16);
-    expect(hi[1].left - hi[0].right, 16);
-  });
-
-  test("先用不挡主窗口的格子", () {
-    var s = screens["1080p 100%"]!;
-    var slots = WindowLayout.slots(s);
-    // 主窗口在左上角：先用右上、左下、右下
-    var main = const Rect.fromLTWH(0, 0, 900, 500);
-    var used = <int>{};
-    var order = <int>[];
-    for (var n = 0; n < 4; n++) {
-      var i = WindowLayout.pickSlot(slots, used, main)!;
-      used.add(i);
-      order.add(i);
-    }
-    expect(order.first, isNot(0));
-    expect(order.last, 0);
-    // 主窗口占满屏幕（最大化）：按顺序
-    used.clear();
-    var full = s.work;
-    expect(WindowLayout.pickSlot(slots, used, full), 0);
-    expect(WindowLayout.pickSlot(slots, {0}, full), 1);
-  });
-
-  test("主窗口在哪块屏幕上，就排在哪块", () {
-    var left = screens["1080p 100%"]!;
-    var right = screens["1440p 150%（右边的副屏）"]!;
-    var list = [left, right];
+  test("没记过位置：往右下错开 32，默认 800×500，整个在屏幕里（两块屏幕，一块 150%）", () {
+    // 主窗口在左边
+    expect(WindowLayout.cascade(both, const Rect.fromLTWH(100, 100, 1200, 700)),
+        (const Rect.fromLTWH(132, 132, 800, 500), 1.0));
+    // 主窗口在右边 150% 的屏幕上：错开和大小都按 1.5 倍
     expect(
-        WindowLayout.screenOf(list, const Rect.fromLTWH(2000, 100, 1280, 720)),
+        WindowLayout.cascade(both, const Rect.fromLTWH(2000, 100, 1500, 900)),
+        (const Rect.fromLTWH(2048, 148, 1200, 750), 1.5));
+    // 靠近右下角：整个挪进屏幕
+    expect(WindowLayout.cascade(both, const Rect.fromLTWH(1800, 900, 100, 100)),
+        (const Rect.fromLTWH(1120, 532, 800, 500), 1.0));
+    // 屏幕很小：缩小到放得下
+    var tiny = [screen(0, 0, 640, 480, 1.0)];
+    expect(WindowLayout.cascade(tiny, const Rect.fromLTWH(0, 0, 640, 432)),
+        (const Rect.fromLTWH(0, 0, 640, 432), 1.0));
+    // 一块屏幕都读不到：交给副窗口居中
+    expect(WindowLayout.cascade(const [], null), isNull);
+  });
+
+  test("第 k 个从前一个开着的窗口错开，第 1 个从主窗口错开", () {
+    const main = Rect.fromLTWH(100, 100, 1200, 700);
+    const first = Rect.fromLTWH(400, 200, 800, 500);
+    const second = Rect.fromLTWH(2100, 300, 1200, 750);
+    expect(WindowRestore.place(1, screens: both, main: main),
+        (const Rect.fromLTWH(132, 132, 800, 500), 1.0));
+    expect(WindowRestore.place(2, screens: both, open: {1: first}, main: main),
+        (const Rect.fromLTWH(432, 232, 800, 500), 1.0));
+    // 第 3 个：前一个（第 2 个）在右边的屏幕上
+    expect(
+        WindowRestore.place(3,
+            screens: both, open: {1: first, 2: second}, main: main),
+        (const Rect.fromLTWH(2148, 348, 1200, 750), 1.5));
+    // 第 2 个空着时，第 3 个从第 1 个错开；后面开着的不算
+    expect(WindowRestore.place(3, screens: both, open: {1: first, 5: second}),
+        (const Rect.fromLTWH(432, 232, 800, 500), 1.0));
+  });
+
+  test("记过位置的编号放回原处；那块屏幕没了时错开放", () {
+    const main = Rect.fromLTWH(100, 100, 1200, 700);
+    var remembered = {
+      2: const WindowPlacement(Rect.fromLTWH(2100, 200, 1200, 750), 1.5),
+      // 记下时右边的屏幕是 100%，现在是 150%：逻辑大小不变
+      3: const WindowPlacement(Rect.fromLTWH(2000, 100, 1200, 700), 1.0),
+    };
+    expect(
+        WindowRestore.place(2,
+            screens: both, remembered: remembered, main: main),
+        (const Rect.fromLTWH(2100, 200, 1200, 750), 1.5));
+    expect(
+        WindowRestore.place(3,
+            screens: both, remembered: remembered, main: main),
+        (const Rect.fromLTWH(2000, 100, 1800, 1050), 1.5));
+    // 拔了右边的屏幕：从主窗口错开
+    expect(
+        WindowRestore.place(2,
+            screens: [left], remembered: remembered, main: main),
+        (const Rect.fromLTWH(132, 132, 800, 500), 1.0));
+  });
+
+  test("主窗口在哪块屏幕上，就从哪块开始", () {
+    expect(
+        WindowLayout.screenOf(both, const Rect.fromLTWH(2000, 100, 1280, 720)),
         right);
-    expect(WindowLayout.screenOf(list, const Rect.fromLTWH(100, 100, 800, 600)),
+    expect(WindowLayout.screenOf(both, const Rect.fromLTWH(100, 100, 800, 600)),
         left);
     // 中心不在任何屏幕上（跨在边上、或者在屏幕外）：重叠最多的
     expect(
-        WindowLayout.screenOf(list, const Rect.fromLTWH(1500, 1050, 1000, 400)),
+        WindowLayout.screenOf(both, const Rect.fromLTWH(1500, 1050, 1000, 400)),
         right);
-    expect(WindowLayout.screenOf(list, null), left);
+    expect(WindowLayout.screenOf(both, null), left);
     expect(WindowLayout.screenOf(const [], null), isNull);
-  });
-
-  test("屏幕太小放不下 4 个时少分几格，仍然不重叠", () {
-    // 800×600 的屏幕、200% 缩放：逻辑上只有 400×276
-    const tiny = ScreenArea(Rect.fromLTWH(0, 0, 800, 552), 2.0);
-    var slots = WindowLayout.slots(tiny);
-    expect(slots.length, lessThan(4));
-    expect(slots, isNotEmpty);
-    checkPlacement(tiny, slots, "tiny");
   });
 }

@@ -1197,6 +1197,8 @@ class LiveRoomPage extends GetView<LiveRoomController> {
               controller.roomId,
               close: () => Get.back(),
               afterOpen: () => Get.back(),
+              userName: controller.detail.value?.userName ?? "",
+              title: controller.detail.value?.title ?? "",
             ),
             Obx(
               () => ListTile(

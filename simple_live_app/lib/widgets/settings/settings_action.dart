@@ -9,12 +9,16 @@ class SettingsAction extends StatelessWidget {
   final String? value;
   final Widget? leading;
 
+  /// false 时灰掉、点不了
+  final bool enabled;
+
   const SettingsAction({
     required this.title,
     this.value,
     this.onTap,
     this.subtitle,
     this.leading,
+    this.enabled = true,
     Key? key,
   }) : super(key: key);
 
@@ -23,9 +27,12 @@ class SettingsAction extends StatelessWidget {
     return ListTile(
       // visualDensity: VisualDensity.compact,
       leading: leading,
+      enabled: enabled,
       title: Text(
         title,
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+              color: enabled ? null : Theme.of(context).disabledColor,
+            ),
       ),
       shape: RoundedRectangleBorder(
         borderRadius: AppStyle.radius8,

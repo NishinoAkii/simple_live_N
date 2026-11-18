@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:simple_live_app/app/multi_window/multi_window.dart';
+import 'package:simple_live_app/app/multi_window/multi_window_widgets.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/models/db/history.dart';
 import 'package:simple_live_app/modules/mine/history/history_controller.dart';
 import 'package:simple_live_app/modules/mine/history/history_page.dart';
 import 'package:simple_live_app/widgets/net_image.dart';
+
+import 'fakes/memory_storage.dart';
 
 class _FakeLive extends HistoryController {
   var refreshed = 0;
@@ -211,5 +216,101 @@ void main() {
     
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  group('刷新旁边的“打开上次的窗口”', () {
+    late MemoryStorage storage;
+
+    setUp(() {
+      storage = MemoryStorage.install();
+      MultiWindow.recorder = WindowSetRecorder(saveDelay: Duration.zero);
+      Get.put<HistoryController>(_FakeLive());
+    });
+
+    tearDown(() {
+      MultiWindow.debugSupported = null;
+      MultiWindow.recorder = WindowSetRecorder();
+      Get.reset();
+    });
+
+    WindowEntry entry(int slot, String name) => WindowEntry(
+          slot: slot,
+          room: WindowRoom(siteId: 'douyu', roomId: '$slot', userName: name),
+          bounds: Rect.fromLTWH(8.0 + 637 * (slot - 1), 8, 629, 504),
+        );
+
+    void saveLast() => storage.values[WindowSetRecorder.kLast] = WindowSet(
+          [entry(1, '主播甲'), entry(2, '主播乙')],
+          time: DateTime(2026, 11, 19),
+        ).encode();
+
+    final button = find.byIcon(Icons.filter_none);
+
+    Future<void> show(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const GetMaterialApp(home: HistoryPage()));
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    Future<void> close(WidgetTester tester) async {
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    testWidgets('电脑上记着上次的一组：刷新右边多一个按钮，提示里是几个窗口和主播名', (tester) async {
+      MultiWindow.debugSupported = true;
+      saveLast();
+      await show(tester);
+      expect(button, findsOneWidget);
+      expect(find.byTooltip('打开上次的 2 个窗口\n主播甲、主播乙'), findsOneWidget);
+      // 返回键还在默认的位置；刷新、打开上次的窗口依次排在右边，不重叠
+      var back = tester.getRect(find.byType(BackButton));
+      var refresh = tester.getRect(find.byTooltip('刷新'));
+      var restore = tester.getRect(find.byType(RestoreWindowsButton));
+      expect(back.center.dx, 28);
+      expect(refresh.left, greaterThanOrEqualTo(back.right));
+      expect(restore.left, greaterThanOrEqualTo(refresh.right));
+      expect(restore.center.dy, refresh.center.dy);
+      expect(restore.right, lessThanOrEqualTo(152));
+      // 标题让开了
+      expect(tester.getRect(find.text('观看记录')).left,
+          greaterThanOrEqualTo(restore.right));
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    });
+
+    testWidgets('没有上次的一组时没有按钮，标题位置和原来一样；关全部以后马上出现', (tester) async {
+      MultiWindow.debugSupported = true;
+      await show(tester);
+      expect(button, findsNothing);
+      expect(find.byTooltip('刷新'), findsOneWidget);
+      var title = tester.getRect(find.text('观看记录')).left;
+      // 原来的宽度：返回 56 + 刷新 48
+      expect(title, greaterThanOrEqualTo(104));
+      expect(title, lessThan(104 + 48));
+
+      // 开着两个窗口，点了关闭全部：这一组定下来，按钮跟着出现
+      var recorder = MultiWindow.recorder;
+      recorder.opened(entry(1, '主播甲'));
+      recorder.opened(entry(2, '主播乙'));
+      await tester.pump();
+      expect(button, findsNothing);
+      await recorder.closingAll();
+      await tester.pump();
+      expect(button, findsOneWidget);
+      expect(tester.getRect(find.text('观看记录')).left, title + 48);
+      await close(tester);
+    });
+
+    testWidgets('不是电脑（或者是多开的副窗口）：记着也不显示', (tester) async {
+      MultiWindow.debugSupported = false;
+      saveLast();
+      await show(tester);
+      expect(button, findsNothing);
+      expect(find.byTooltip('刷新'), findsOneWidget);
+      await close(tester);
+    });
   });
 }

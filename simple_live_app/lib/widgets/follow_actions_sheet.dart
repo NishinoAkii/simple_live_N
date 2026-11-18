@@ -81,6 +81,7 @@ Future<void> showFollowActions(
                   site,
                   item.roomId,
                   close: () => Navigator.of(sheetContext).pop(),
+                  userName: item.userName,
                 ),
               if (onSetTag != null)
                 action(Icons.label_outline, "设置标签".t, onSetTag),

@@ -1,14 +1,20 @@
 # Changelog
 
-## 1.24.1 (12401)
+## 1.24.2 (12402)
 
 ### New
 
-- On desktop, a pin button at the top right of the live room keeps the window above other windows; click it again to turn it off. The main window and each new window are set separately, and the setting is not kept after the window closes. Leaving the small window restores the previous state. Not included in the Windows 7 package.
+- On desktop, a pin button at the top right of the live room keeps the window above other windows; click it again to turn it off. Pinning or unpinning the main window applies to every open extra window, while the pin in an extra window affects only that window. The setting is not kept after the window closes, and leaving the small window restores the previous state. Not included in the Windows 7 package.
+- On desktop, up to 6 extra windows can be open (previously 4). Each window remembers where you moved it and its size, and opens there next time.
+- The app remembers the last set of extra windows (rooms, positions and opening order). Reopen them with the button next to Refresh on the watch history page or under Me → Desktop settings → Extra windows; rooms that are already open are not opened twice. At startup the app asks whether to reopen them by default, and Desktop settings can change this to always or never.
+
+### Improved
+
+- Closing the main window also closes the extra windows. If the main window quits unexpectedly, the extra windows close by themselves after a few seconds.
 
 ### Fixed
 
-- On desktop, the live room's More menu showed a grey area below Screenshot, so Open in new window, Audio only, Sleep timer, Share room and the other items could not be used. Fixed in the Windows 7 package as well.
+- On desktop, the live room's More menu showed a grey area below Screenshot, so Open in new window, Audio only, Sleep timer, Share room and the other items could not be used.
 
 ## 1.24.0 (12400)
 

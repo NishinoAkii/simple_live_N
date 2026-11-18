@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/log.dart';
+import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/app/windows_version.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 import 'package:window_manager/window_manager.dart';
 
-/// 电脑上的窗口置顶：主窗口和每个多开窗口各管各的，只在这次打开时有效，
-/// 重新打开窗口后是正常层。直播间小窗本来就在最前面，退出小窗后回到这里记的状态
+/// 电脑上的窗口置顶：主窗口和每个多开窗口各有一个，只在这次打开时有效，
+/// 重新打开窗口后是正常层。主窗口的置顶变了时，开着的多开窗口都跟着变（见 WindowHost），
+/// 多开窗口自己再点只改它自己。直播间小窗本来就在最前面，退出小窗后回到这里记的状态
 class WindowPin {
   WindowPin._();
   static final WindowPin instance = WindowPin._();
@@ -29,6 +31,10 @@ class WindowPin {
       return;
     }
     pinned.value = value;
+    // 小窗开着时一直在最前面，退出小窗时再按这里记的状态
+    if (WindowMemory.instance.inSmallWindow) {
+      return;
+    }
     try {
       await windowManager.setAlwaysOnTop(value);
     } catch (e) {

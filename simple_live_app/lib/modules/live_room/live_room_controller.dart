@@ -43,6 +43,8 @@ import 'package:simple_live_app/services/danmaku_emotes.dart';
 import 'package:simple_live_app/services/db_service.dart';
 import 'package:simple_live_app/services/follow_service.dart';
 import 'package:simple_live_app/services/live_notify_service.dart';
+import 'package:simple_live_app/app/multi_window/multi_window.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/widgets/follow_actions_sheet.dart';
 import 'package:simple_live_app/services/chat_users/room_user_blocks.dart';
 import 'package:simple_live_app/services/ios_pip/ios_pip_session.dart';
@@ -256,6 +258,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   void onInit() {
     WidgetsBinding.instance.addObserver(this);
     _enterRoomContext();
+    _noteWindowRoom();
     if (Platform.isIOS) {
       iosPip = IosPipSession(
         player: player,
@@ -2168,6 +2171,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     // 换直播间后、读到新信息之前不显示上一个直播间的公告
     roomNotice.update(_detailKey == "${site.id}|$roomId" ? detail.value : null);
     _obs?.updateRoom(this);
+    _noteWindowRoom();
     var recorder = _assRecorder;
     if (recorder != null && _detailKey == "${site.id}|$roomId") {
       var info = obsRoomInfo();
@@ -2416,6 +2420,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     rxRoomId.value = roomId;
     // 弹幕设置按平台、直播间记忆时换成新直播间的
     _enterRoomContext();
+    _noteWindowRoom();
     // 录屏接口先换成新直播间（清掉旧的弹幕），读到房间信息后再补上标题
     _obs?.updateRoom(this);
 
@@ -2543,9 +2548,25 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     );
   }
 
+  /// 多开：这个窗口在看哪个直播间（副窗口告诉主窗口，主窗口自己记着），
+  /// “打开上次的窗口”用。读到房间信息之前标题和主播名是空的
+  void _noteWindowRoom() {
+    var room = _detailKey == "${site.id}|$roomId" ? detail.value : null;
+    MultiWindow.noteRoom(
+      this,
+      WindowRoom(
+        siteId: site.id,
+        roomId: roomId,
+        title: room?.title ?? "",
+        userName: room?.userName ?? "",
+      ),
+    );
+  }
+
   @override
   void onClose() {
     _voiceRoomTimer?.cancel();
+    MultiWindow.leaveRoom(this);
     AppSettingsController.instance.leaveRoomContext(_danmuContextId);
     _iosDanmakuWorker?.dispose();
     _danmakuModeWorker?.dispose();

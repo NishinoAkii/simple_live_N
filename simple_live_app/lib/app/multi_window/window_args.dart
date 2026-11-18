@@ -41,7 +41,7 @@ class SecondaryLaunch {
   static const flag = "--sl-secondary";
 
   /// 最多同时开几个副窗口
-  static const maxWindows = 4;
+  static const maxWindows = 6;
 
   /// 副窗口的数据快照放在应用数据目录下的这个文件夹里
   static const snapshotFolder = "multi_window";
@@ -57,7 +57,8 @@ class SecondaryLaunch {
   final String siteId;
   final String roomId;
 
-  /// 窗口位置和大小（物理像素），为空时居中
+  /// 窗口位置和大小（物理像素），为空时居中。平常是这个编号记住的位置（第一次用时错开放），
+  /// “打开上次的窗口”时是上次的位置（显示之前就放好，不会先出现在别处再跳过去）
   final Rect? bounds;
 
   /// 目标屏幕的缩放（1.0 = 96 DPI）
@@ -65,6 +66,9 @@ class SecondaryLaunch {
 
   /// 主窗口的进程号（只写进日志）
   final int mainPid;
+
+  /// 一开始就置顶（主窗口置顶时开的窗口），显示之前就设好
+  final bool pinned;
 
   const SecondaryLaunch({
     required this.port,
@@ -76,6 +80,7 @@ class SecondaryLaunch {
     this.bounds,
     this.scale = 1.0,
     this.mainPid = 0,
+    this.pinned = false,
   });
 
   List<String> toArgs() => [
@@ -91,6 +96,7 @@ class SecondaryLaunch {
               "${bounds!.width.round()},${bounds!.height.round()}",
         "--sl-scale=$scale",
         "--sl-main-pid=$mainPid",
+        if (pinned) "--sl-pinned=1",
       ];
 
   static const _keys = {
@@ -103,6 +109,7 @@ class SecondaryLaunch {
     "bounds",
     "scale",
     "main-pid",
+    "pinned",
   };
 
   /// 没有 [flag] 或者有一项不对时返回 null
@@ -133,6 +140,7 @@ class SecondaryLaunch {
     var roomId = values["room"] ?? "";
     var scale = double.tryParse(values["scale"] ?? "1");
     var mainPid = int.tryParse(values["main-pid"] ?? "0");
+    var pinned = values["pinned"] ?? "0";
     if (port == null ||
         port < 1 ||
         port > 65535 ||
@@ -146,7 +154,8 @@ class SecondaryLaunch {
         !_text(roomId) ||
         scale == null ||
         !(scale >= 0.5 && scale <= 8) ||
-        mainPid == null) {
+        mainPid == null ||
+        (pinned != "0" && pinned != "1")) {
       return null;
     }
     Rect? bounds;
@@ -166,6 +175,7 @@ class SecondaryLaunch {
       bounds: bounds,
       scale: scale,
       mainPid: mainPid,
+      pinned: pinned == "1",
     );
   }
 

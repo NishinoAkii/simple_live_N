@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:simple_live_app/app/multi_window/window_changes.dart';
 import 'package:simple_live_app/app/multi_window/window_server.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 
 /// 改动没交给主窗口：[mainGone] 为 true 是主窗口不在了（关了或崩了），
 /// 否则是主窗口没收（内容不对，或者保存时出错）
@@ -45,25 +46,54 @@ class MainWindowLink {
     return result;
   }
 
+  /// 发一个 POST，返回状态码；连不上时抛错
+  Future<int> _post(String path, Object body) async {
+    var request = await _client
+        .post(InternetAddress.loopbackIPv4.address, port, path)
+        .timeout(timeout);
+    request.headers.set(WindowServer.tokenHeader, token);
+    request.headers.contentType = ContentType.json;
+    request.add(utf8.encode(json.encode(body)));
+    var response = await request.close().timeout(timeout);
+    await response.drain<void>();
+    return response.statusCode;
+  }
+
+  /// 告诉主窗口这个窗口在看的直播间、挪到了哪里，和改动排在一起按顺序发。
+  /// 没送到不提示（连不上时照常算主窗口不在了）
+  Future<bool> report(WindowReport report) {
+    var result = _tail.then((_) => _report(report));
+    _tail = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+
+  Future<bool> _report(WindowReport report) async {
+    if (!_online || _closed) {
+      return false;
+    }
+    try {
+      var status = await _post("/state", report.toJson());
+      if (status == HttpStatus.unauthorized) {
+        _goOffline();
+      }
+      return status == HttpStatus.ok;
+    } catch (_) {
+      _goOffline();
+      return false;
+    }
+  }
+
   Future<bool> _send(WindowChange change) async {
     if (!_online || _closed) {
       onUnsaved?.call(change, true);
       return false;
     }
     try {
-      var request = await _client
-          .post(InternetAddress.loopbackIPv4.address, port, "/op")
-          .timeout(timeout);
-      request.headers.set(WindowServer.tokenHeader, token);
-      request.headers.contentType = ContentType.json;
-      request.add(
-          utf8.encode(json.encode({"op": change.op, "data": change.data})));
-      var response = await request.close().timeout(timeout);
-      await response.drain<void>();
-      if (response.statusCode == HttpStatus.ok) {
+      var status = await _post("/op", {"op": change.op, "data": change.data});
+      if (status == HttpStatus.ok) {
         return true;
       }
-      if (response.statusCode == HttpStatus.unauthorized) {
+      if (status == HttpStatus.unauthorized) {
         // 口令作废了：主窗口已经不认这个窗口
         _goOffline();
         onUnsaved?.call(change, true);
@@ -95,8 +125,12 @@ class MainWindowLink {
     return false;
   }
 
-  /// 一直等主窗口的指令：要这个窗口关掉时调用 [onClose]；连不上时算主窗口不在了
-  Future<void> watch({required void Function() onClose}) async {
+  /// 一直等主窗口的指令：要这个窗口关掉时调用 [onClose]；主窗口的置顶变了时调用
+  /// [onPin]（跟着置顶或取消）；连不上时算主窗口不在了
+  Future<void> watch({
+    required void Function() onClose,
+    void Function(bool pinned)? onPin,
+  }) async {
     while (_online && !_closed) {
       String? command;
       try {
@@ -122,6 +156,9 @@ class MainWindowLink {
       if (command == "close") {
         onClose();
         return;
+      }
+      if (command == "pin" || command == "unpin") {
+        onPin?.call(command == "pin");
       }
     }
   }

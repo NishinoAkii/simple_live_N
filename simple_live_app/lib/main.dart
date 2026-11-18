@@ -92,6 +92,8 @@ void main(List<String> args) async {
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   runApp(const MyApp());
   MultiWindow.startSecondary();
+  // 主窗口：上次开着多开窗口时，问要不要都打开（按设置）
+  scheduleStartupRestore();
 }
 
 /// Windows：第一次运行时搬出和官方版共用的数据文件夹，见 [SharedProfile]
@@ -202,6 +204,8 @@ Future initWindow() async {
         await windowManager.show();
         await windowManager.focus();
         await MultiWindow.fixPlacement();
+        // 之后挪动、改大小时告诉主窗口（“打开上次的窗口”放回这里）
+        MultiWindow.watchPlacement();
       },
     );
     return;

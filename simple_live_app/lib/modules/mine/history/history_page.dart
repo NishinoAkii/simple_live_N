@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/app_style.dart';
+import 'package:simple_live_app/app/multi_window/multi_window.dart';
+import 'package:simple_live_app/app/multi_window/multi_window_widgets.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/sites.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/models/db/history.dart';
@@ -19,11 +22,19 @@ class HistoryPage extends GetView<HistoryController> {
 
   @override
   Widget build(BuildContext context) {
-    // 只有直播的观看记录，不用标签栏
+    // 电脑上的主窗口：记着上次的一组多开窗口时，刷新旁边多一个“打开上次的窗口”
+    return MultiWindow.canOpen
+        ? Obx(() => buildScaffold(context, MultiWindow.restorableSet))
+        : buildScaffold(context, null);
+  }
+
+  /// 只有直播的观看记录，不用标签栏
+  Widget buildScaffold(BuildContext context, WindowSet? lastWindows) {
     return Scaffold(
       appBar: AppBar(
-        // 返回键的位置和默认一样（56 宽的格子居中），刷新按钮排在它右边
-        leadingWidth: 104,
+        // 返回键的位置和默认一样（56 宽的格子居中），刷新按钮排在它右边，
+        // 再右边是“打开上次的窗口”（有的时候）
+        leadingWidth: lastWindows == null ? 104 : 152,
         leading: Row(
           children: [
             const SizedBox(width: 56, child: Center(child: BackButton())),
@@ -32,6 +43,7 @@ class HistoryPage extends GetView<HistoryController> {
               icon: const Icon(Icons.refresh),
               onPressed: controller.refreshData,
             ),
+            if (lastWindows != null) RestoreWindowsButton(windows: lastWindows),
           ],
         ),
         title: Text("观看记录".t),

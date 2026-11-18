@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:ffi'
+    show DynamicLibrary, DynamicLibraryExtension, Int32, IntPtr, Uint32;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -15,8 +17,11 @@ import 'package:simple_live_app/app/multi_window/window_changes.dart';
 import 'package:simple_live_app/app/multi_window/window_layout.dart';
 import 'package:simple_live_app/app/multi_window/window_link.dart';
 import 'package:simple_live_app/app/multi_window/window_server.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/multi_window/window_snapshot.dart';
 import 'package:simple_live_app/app/sites.dart';
+import 'package:simple_live_app/app/window_memory.dart';
+import 'package:simple_live_app/app/window_pin.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 import 'package:simple_live_app/routes/route_path.dart';
 import 'package:window_manager/window_manager.dart';
@@ -45,7 +50,8 @@ enum BackgroundTask {
 /// 电脑上多开：一个直播间一个窗口，每个窗口是单独的进程。
 ///
 /// - 主窗口：平常打开的那个。开副窗口、收副窗口交来的改动（[WindowServer]）、
-///   退出时把副窗口一起关掉。
+///   退出时把副窗口一起关掉。记着开着的副窗口在看什么、放在哪里，定下“上次的一组”，
+///   历史页可以一下全部打开（[WindowSetRecorder]、[restoreLast]）。
 /// - 副窗口：读一份数据快照（[WindowSnapshot]），关注、观看记录、屏蔽、备注、
 ///   记住的清晰度、开播提醒的开关交给主窗口保存（[forward]）；音量、弹幕开关、
 ///   临时换的清晰度、收起侧栏这些只在这个窗口里，不保存。设置只能查看。
@@ -60,7 +66,15 @@ class MultiWindow {
 
   static bool get isSecondary => launch != null;
 
-  static bool get supported => !kIsWeb && Platform.isWindows;
+  /// 主窗口带着链接或参数启动（为了打开某个直播间）
+  static bool startedForRoom = false;
+
+  /// 测试里当作电脑（或手机）
+  @visibleForTesting
+  static bool? debugSupported;
+
+  static bool get supported =>
+      debugSupported ?? (!kIsWeb && Platform.isWindows);
 
   /// 能不能开新窗口（只有主窗口能开）
   static bool get canOpen => supported && !isSecondary;
@@ -97,6 +111,8 @@ class MultiWindow {
     }
     var parsed = SecondaryLaunch.parse(args);
     if (parsed == null) {
+      // 带着链接或别的参数启动（为了打开某个直播间）：启动时不问要不要打开上次的多开窗口
+      startedForRoom = args.any((e) => e.isNotEmpty && !e.startsWith("-"));
       return;
     }
     var support = (await getApplicationSupportDirectory()).path;
@@ -106,13 +122,36 @@ class MultiWindow {
     }
     launch = parsed;
     Log.fileTag = "-w${parsed.slot}";
+    // 先拿着主窗口进程的句柄：之后它不在了（崩了、被结束）能查到，编号也不会被别的进程占用
+    _mainProcess = MainProcess(parsed.mainPid);
     // 启动时各个服务就可能交改动过来（比如清掉到期的屏蔽），先准备好，连接在第一次发时才建
     link = MainWindowLink(
       port: parsed.port,
       token: parsed.token,
       onUnsaved: _onUnsaved,
-      onMainGone: () => mainGone.value = true,
+      onMainGone: _onMainGone,
     );
+  }
+
+  static MainProcess? _mainProcess;
+  static MainGoneWatch? _goneWatch;
+
+  /// 和主窗口断开了：顶上先提示；确认主窗口进程真的没了（崩了、被结束），这个窗口自己关掉。
+  /// 主窗口还在、只是一时没响应时留着提示，等它退出时再关
+  static void _onMainGone() {
+    mainGone.value = true;
+    if (_goneWatch != null) {
+      return;
+    }
+    var process = _mainProcess;
+    _goneWatch = MainGoneWatch(
+      alive: () => process?.alive,
+      onGone: () {
+        Log.i("主窗口进程已经不在了，关闭这个窗口");
+        unawaited(_closeSelf());
+      },
+    );
+    unawaited(_goneWatch!.start());
   }
 
   /// 副窗口的标题
@@ -121,6 +160,10 @@ class MultiWindow {
 
   /// 副窗口：按现在的缩放挪到主窗口算好的位置（到了缩放不同的屏幕上，显示后由 [fixPlacement] 再摆一次）
   static Future<void> placeSelf() async {
+    // 主窗口置顶时开的：一出来就置顶（后开的在上面）
+    if (launch?.pinned ?? false) {
+      await WindowPin.instance.set(true);
+    }
     var bounds = launch?.bounds;
     if (bounds == null) {
       await windowManager.center();
@@ -175,7 +218,11 @@ class MultiWindow {
     }
     unawaited(l.ping().then((ok) {
       if (ok) {
-        unawaited(l.watch(onClose: _closeSelf));
+        unawaited(l.watch(
+          onClose: _closeSelf,
+          // 主窗口置顶或取消置顶：跟着变（之后自己再点只改这个窗口）
+          onPin: (value) => unawaited(WindowPin.instance.set(value)),
+        ));
       }
     }));
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -207,6 +254,59 @@ class MultiWindow {
     } catch (_) {
       // 界面还没起来（启动时），顶上的提示会说明
     }
+  }
+
+  static _PlacementReporter? _placement;
+  static WindowRoom? _reportedRoom;
+
+  /// 副窗口显示以后调用：挪动、改大小停下以后把位置告诉主窗口
+  /// （“打开上次的窗口”时放回这里）
+  static void watchPlacement() {
+    if (!isSecondary || _placement != null) {
+      return;
+    }
+    var reporter = _PlacementReporter();
+    _placement = reporter;
+    windowManager.addListener(reporter);
+    reporter.schedule(Duration.zero);
+  }
+
+  static Object? _mainRoomOwner;
+  static WindowRoom? _mainRoom;
+
+  /// 主窗口现在在看的直播间（不在直播间里时为 null）
+  static WindowRoom? get mainRoom => _mainRoom;
+
+  /// 直播间页面打开、换直播间、读到直播间信息时调用（[owner] 是那个页面的控制器）。
+  /// 副窗口：告诉主窗口这个窗口在看哪个直播间；主窗口：记下自己在看的
+  static void noteRoom(Object owner, WindowRoom room) {
+    if (isSecondary) {
+      if (room == _reportedRoom) {
+        return;
+      }
+      _reportedRoom = room;
+      var l = link;
+      if (l != null) {
+        unawaited(l.report(WindowReport(room: room)));
+      }
+      return;
+    }
+    _mainRoomOwner = owner;
+    if (room == _mainRoom) {
+      return;
+    }
+    _mainRoom = room;
+    recorder.mainRoomChanged();
+  }
+
+  /// 直播间页面关了。副窗口里不管（留着最后看的直播间）
+  static void leaveRoom(Object owner) {
+    if (isSecondary || !identical(owner, _mainRoomOwner)) {
+      return;
+    }
+    _mainRoomOwner = null;
+    _mainRoom = null;
+    recorder.mainRoomChanged();
   }
 
   static Future<void> _closeSelf() async {
@@ -241,23 +341,232 @@ class MultiWindow {
   /// 开着几个副窗口
   static final openCount = 0.obs;
 
-  static WindowHost get host => _host ??= WindowHost(AppWindowChangeSink());
+  /// 开着的副窗口和上次的一组（只在主窗口里用）
+  @visibleForTesting
+  static WindowSetRecorder recorder =
+      WindowSetRecorder(mainRoom: () => mainRoom);
 
-  /// 在新窗口里打开这个直播间
-  static Future<bool> openRoom(Site site, String roomId) async {
+  static WindowHost get host =>
+      _host ??= WindowHost(AppWindowChangeSink(), recorder);
+
+  /// 在新窗口里打开这个直播间。[title]、[userName] 只是先记着显示用，
+  /// 副窗口读到直播间信息后会换成新的
+  static Future<bool> openRoom(Site site, String roomId,
+      {String title = "", String userName = ""}) async {
     if (!canOpen) {
       return false;
     }
-    return host.open(site.id, roomId);
+    return host.open(WindowRoom(
+      siteId: site.id,
+      roomId: roomId,
+      title: title,
+      userName: userName,
+    ));
   }
 
-  /// 关掉全部副窗口：先请它们自己退出，3 秒后还没退的强制结束。返回关了几个
+  /// 关掉全部副窗口：先请它们自己退出，3 秒后还没退的强制结束。返回关了几个。
+  /// 关之前开着的这一组记作“上次的一组”
   static Future<int> closeAll() async {
     var host = _host;
     if (host == null) {
       return 0;
     }
     return host.closeAll();
+  }
+
+  /// 历史页“打开上次的窗口”要打开的那一组：电脑上的主窗口、记着上次的一组时才有。
+  /// 在 Obx 里用（先读上次的一组，有变化时跟着变）
+  static WindowSet? get restorableSet {
+    var set = recorder.last.value;
+    return canOpen && set != null && !set.isEmpty ? set : null;
+  }
+
+  /// 打开上次的一组：放回上次的位置，已经开着的直播间跳过，不超过同时开的上限。
+  /// 正在开别的窗口、没有上次的一组时返回 null
+  static Future<RestoreResult?> restoreLast() async {
+    var set = canOpen ? recorder.last.value : null;
+    if (set == null || set.isEmpty) {
+      return null;
+    }
+    return host.restore(set);
+  }
+}
+
+typedef _OpenProcessNative = IntPtr Function(Uint32, Int32, Uint32);
+typedef _OpenProcessDart = int Function(int, int, int);
+typedef _WaitNative = Uint32 Function(IntPtr, Uint32);
+typedef _WaitDart = int Function(int, int);
+
+/// 副窗口：主窗口的进程还在不在。Windows 上一启动就打开它的进程句柄（只要等待的权限），
+/// 之后不等待地查一下有没有退出
+class MainProcess {
+  MainProcess(int pid) {
+    if (pid <= 0 || !Platform.isWindows) {
+      return;
+    }
+    try {
+      var kernel = DynamicLibrary.open("kernel32.dll");
+      var open = kernel
+          .lookupFunction<_OpenProcessNative, _OpenProcessDart>("OpenProcess");
+      _wait =
+          kernel.lookupFunction<_WaitNative, _WaitDart>("WaitForSingleObject");
+      // SYNCHRONIZE；打不开说明进程已经不在了
+      _handle = open(0x00100000, 0, pid);
+    } catch (e) {
+      Log.logPrint(e);
+      _wait = null;
+    }
+  }
+
+  _WaitDart? _wait;
+  int _handle = 0;
+
+  /// true 还在，false 已经退出，null 查不了
+  bool? get alive {
+    var wait = _wait;
+    if (wait == null) {
+      return null;
+    }
+    if (_handle == 0) {
+      return false;
+    }
+    return switch (wait(_handle, 0)) {
+      0 => false, // WAIT_OBJECT_0：退出了
+      0x102 => true, // WAIT_TIMEOUT：还在
+      _ => null,
+    };
+  }
+}
+
+/// 副窗口和主窗口断开以后：主窗口进程不在了，再隔 [grace] 看两次还是不在，就调用 [onGone]
+/// （一时查不准不会关）。主窗口还在时每 [poll] 看一次，它退出时再关
+class MainGoneWatch {
+  MainGoneWatch({
+    required this.alive,
+    required this.onGone,
+    this.grace = const Duration(milliseconds: 2500),
+    this.poll = const Duration(seconds: 3),
+  });
+
+  final bool? Function() alive;
+  final void Function() onGone;
+  final Duration grace;
+  final Duration poll;
+  bool _stopped = false;
+  bool _started = false;
+
+  Future<void> start() async {
+    if (_started) {
+      return;
+    }
+    _started = true;
+    while (!_stopped) {
+      if (alive() == false && await _confirm()) {
+        _stopped = true;
+        onGone();
+        return;
+      }
+      await Future<void>.delayed(poll);
+    }
+  }
+
+  Future<bool> _confirm() async {
+    for (var i = 0; i < 2; i++) {
+      await Future<void>.delayed(grace ~/ 2);
+      if (_stopped || alive() != false) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void stop() => _stopped = true;
+}
+
+/// 打开上次的一组的结果
+class RestoreResult {
+  final int opened;
+  final int skipped;
+  final int limited;
+  final int failed;
+
+  /// 要在主窗口里打开的直播间（主窗口不在直播间里时）
+  final WindowRoom? mainRoom;
+  const RestoreResult({
+    required this.opened,
+    required this.skipped,
+    required this.limited,
+    required this.failed,
+    this.mainRoom,
+  });
+
+  /// 打开以后的提示
+  String get message {
+    if (opened == 0 && limited == 0 && failed == 0 && skipped > 0) {
+      return "上次的窗口都已经开着".t;
+    }
+    if (limited > 0) {
+      return "已打开 {count} 个窗口，多开窗口最多 {max} 个"
+          .tf({"count": opened, "max": SecondaryLaunch.maxWindows});
+    }
+    if (failed > 0) {
+      return "已打开 {count} 个窗口，{failed} 个没有打开"
+          .tf({"count": opened, "failed": failed});
+    }
+    return "已打开 {count} 个窗口".tf({"count": opened});
+  }
+}
+
+/// 副窗口：挪动、改大小停下 0.6 秒以后，把位置（物理像素）告诉主窗口。
+/// 全屏、最小化、最大化、直播间小窗时不报，主窗口那边留着上次正常的位置
+class _PlacementReporter with WindowListener {
+  Timer? _timer;
+  Rect? _sent;
+  double _sentScale = 0;
+
+  void schedule([Duration delay = const Duration(milliseconds: 600)]) {
+    _timer?.cancel();
+    _timer = Timer(delay, () => unawaited(_report()));
+  }
+
+  @override
+  void onWindowMoved() => schedule();
+  @override
+  void onWindowMove() => schedule();
+  @override
+  void onWindowResized() => schedule();
+  @override
+  void onWindowResize() => schedule();
+  @override
+  void onWindowUnmaximize() => schedule();
+  @override
+  void onWindowLeaveFullScreen() => schedule();
+
+  Future<void> _report() async {
+    var l = MultiWindow.link;
+    if (l == null || !l.online) {
+      return;
+    }
+    try {
+      if (WindowMemory.instance.inSmallWindow ||
+          await windowManager.isFullScreen() ||
+          await windowManager.isMinimized() ||
+          await windowManager.isMaximized()) {
+        return;
+      }
+      var b = await WindowMemory.bounds();
+      var rect = Rect.fromLTWH(b.left.roundToDouble(), b.top.roundToDouble(),
+          b.width.roundToDouble(), b.height.roundToDouble());
+      var scale = WindowMemory.windowScale;
+      if (rect == _sent && scale == _sentScale) {
+        return;
+      }
+      _sent = rect;
+      _sentScale = scale;
+      await l.report(WindowReport(bounds: rect, scale: scale));
+    } catch (e) {
+      Log.logPrint(e);
+    }
   }
 }
 
@@ -270,21 +579,32 @@ class _Secondary {
   bool exited = false;
 }
 
-/// 主窗口这边：开副窗口、记着它们、关掉它们
+/// 主窗口这边：开副窗口、记着它们（[recorder]）、关掉它们
 class WindowHost {
-  WindowHost(WindowChangeSink sink) : server = WindowServer(sink);
+  WindowHost(WindowChangeSink sink, this.recorder)
+      : server = WindowServer(sink) {
+    server.onReport = _onReport;
+    // 主窗口置顶、取消置顶：开着的副窗口都跟着变
+    _pinWorker = ever<bool>(WindowPin.instance.pinned, server.setPin);
+  }
+
+  late final Worker _pinWorker;
+
+  /// 不再跟着主窗口的置顶（测试用）
+  void dispose() => _pinWorker.dispose();
 
   final WindowServer server;
+  final WindowSetRecorder recorder;
   final Map<int, _Secondary> _windows = {};
   bool _opening = false;
 
-  Future<bool> open(String siteId, String roomId) async {
+  Future<bool> open(WindowRoom room) async {
     if (_opening) {
       return false;
     }
     _opening = true;
     try {
-      return await _open(siteId, roomId);
+      return await _open(room);
     } catch (e, stackTrace) {
       Log.e("打开多开窗口失败：$e", stackTrace);
       SmartDialog.showToast("新窗口打开失败：{error}".tf({"error": e}));
@@ -294,13 +614,34 @@ class WindowHost {
     }
   }
 
-  Future<bool> _open(String siteId, String roomId) async {
-    if (_windows.length >= SecondaryLaunch.maxWindows) {
-      SmartDialog.showToast(
-          "多开窗口最多 {count} 个".tf({"count": SecondaryLaunch.maxWindows}));
-      return false;
+  void _onReport(String token, WindowReport report) {
+    for (var w in _windows.values) {
+      if (w.token == token) {
+        recorder.reported(w.slot, report);
+        return;
+      }
     }
-    // 摆放：主窗口所在的屏幕
+  }
+
+  /// 开着的副窗口现在的位置（物理像素），按编号
+  Map<int, Rect> _openRects() => {
+        for (var e in recorder.entries)
+          if (e.bounds != null && _windows.containsKey(e.slot))
+            e.slot: e.bounds!,
+      };
+
+  /// 空着的编号里最小的（1 到 [SecondaryLaunch.maxWindows]）：第几个开的就是第几个
+  int? _freeNumber() {
+    for (var i = 1; i <= SecondaryLaunch.maxWindows; i++) {
+      if (!_windows.containsKey(i)) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  /// 屏幕（可用区域，物理像素）、主窗口的位置（物理像素）和它所在屏幕的缩放
+  Future<({List<ScreenArea> screens, Rect main, double dpr})> _screens() async {
     var dpr = WidgetsBinding
             .instance.platformDispatcher.implicitView?.devicePixelRatio ??
         1.0;
@@ -320,29 +661,107 @@ class WindowHost {
         scale,
       ));
     }
-    var screen = WindowLayout.screenOf(screens, mainPhysical);
-    Rect? bounds;
-    var scale = dpr;
-    int? index;
-    var used = _windows.keys.map((e) => e - 1).toSet();
-    if (screen != null) {
-      var slots = WindowLayout.slots(screen);
-      index = WindowLayout.pickSlot(slots, used, mainPhysical);
-      if (index == null) {
-        SmartDialog.showToast("多开窗口最多 {count} 个".tf({"count": slots.length}));
-        return false;
-      }
-      bounds = slots[index];
-      scale = screen.scale;
-    } else {
-      for (var i = 0; i < SecondaryLaunch.maxWindows; i++) {
-        if (!used.contains(i)) {
-          index = i;
-          break;
+    return (screens: screens, main: mainPhysical, dpr: dpr);
+  }
+
+  Future<bool> _open(WindowRoom room) async {
+    if (_windows.length >= SecondaryLaunch.maxWindows) {
+      SmartDialog.showToast(
+          "多开窗口最多 {count} 个".tf({"count": SecondaryLaunch.maxWindows}));
+      return false;
+    }
+    // 摆放：这个编号记过的位置；第一次用时从前一个窗口（或主窗口）往右下错开
+    var env = await _screens();
+    var slot = _freeNumber()!;
+    var where = WindowRestore.place(
+      slot,
+      screens: env.screens,
+      remembered: recorder.slotPlacements,
+      open: _openRects(),
+      main: env.main,
+    );
+    await _launch(WindowEntry(
+      slot: slot,
+      room: room,
+      bounds: where?.$1,
+      scale: where?.$2 ?? env.dpr,
+    ));
+    SmartDialog.showToast("已在新窗口打开".t);
+    return true;
+  }
+
+  /// 打开上次的一组（[saved]）：按上次打开的顺序开（后开的在上面），每个放回上次的位置
+  /// （缩放改了按逻辑大小换算，整个放进屏幕里），那块屏幕找不到了时按这个编号记的位置或错开放。
+  /// 已经开着的直播间跳过，不超过同时开的上限。正在开别的窗口时返回 null
+  Future<RestoreResult?> restore(WindowSet saved) async {
+    if (_opening) {
+      return null;
+    }
+    _opening = true;
+    try {
+      var env = await _screens();
+      // 平台没装了（删掉的直播源）的打不开
+      var known = [
+        for (var e in saved.windows)
+          if (Sites.allSites.containsKey(e.room.siteId)) e,
+      ];
+      var plan = WindowRestore.plan(
+        WindowSet(known, mainRoom: saved.mainRoom, time: saved.time),
+        screens: env.screens,
+        remembered: recorder.slotPlacements,
+        open: _openRects(),
+        main: env.main,
+        fallbackScale: env.dpr,
+        usedSlots: _windows.keys.toSet(),
+        openRooms: {for (var e in recorder.active) e.room.key},
+        mainRoomNow: MultiWindow.mainRoom,
+      );
+      var opened = 0;
+      var failed = saved.windows.length - known.length;
+      for (var t in plan.windows) {
+        try {
+          await _launch(WindowEntry(
+            slot: t.slot,
+            room: t.saved.room,
+            bounds: t.bounds,
+            scale: t.scale,
+          ));
+          Log.i(
+              "多开窗口 ${t.slot}：${t.atSavedSpot ? "放回上次的位置" : "上次的那块屏幕找不到了，换了个位置"}");
+          opened++;
+        } catch (e, stackTrace) {
+          Log.e("打开上次的窗口失败：$e", stackTrace);
+          failed++;
         }
       }
+      Log.i("多开：打开上次的窗口，开了 $opened 个，已经开着 ${plan.skipped} 个，"
+          "超出上限 ${plan.limited} 个，没打开 $failed 个");
+      var mainRoom = plan.mainRoom;
+      if (mainRoom != null && !Sites.allSites.containsKey(mainRoom.siteId)) {
+        mainRoom = null;
+      }
+      return RestoreResult(
+        opened: opened,
+        skipped: plan.skipped,
+        limited: plan.limited,
+        failed: failed,
+        mainRoom: mainRoom,
+      );
+    } finally {
+      _opening = false;
     }
-    var slot = (index ?? 0) + 1;
+  }
+
+  /// 开一个副窗口：数据快照、口令、启动参数（位置在参数里，显示之前就放好）、日志都走这里
+  Future<void> _launch(WindowEntry entry) async {
+    if (_exiting) {
+      throw StateError("主窗口正在退出");
+    }
+    var slot = entry.slot;
+    var bounds = entry.bounds;
+    var scale = entry.scale;
+    var siteId = entry.room.siteId;
+    var roomId = entry.room.roomId;
 
     // 数据快照
     var support = (await getApplicationSupportDirectory()).path;
@@ -365,6 +784,8 @@ class WindowHost {
       bounds: bounds,
       scale: scale,
       mainPid: pid,
+      // 主窗口置顶时，新开的（包括打开上次的）一出来就置顶
+      pinned: WindowPin.instance.pinned.value,
     ).toArgs();
     Process process;
     try {
@@ -379,16 +800,17 @@ class WindowHost {
     unawaited(process.stderr.drain<void>());
     var window = _Secondary(slot, token, process, dir);
     _windows[slot] = window;
+    recorder.opened(entry);
     _changed();
     unawaited(process.exitCode.then((_) => _onExit(window)));
-    SmartDialog.showToast("已在新窗口打开".t);
-    return true;
   }
 
   void _onExit(_Secondary window) {
     window.exited = true;
     if (identical(_windows[window.slot], window)) {
       _windows.remove(window.slot);
+      // 手动关的从这一组去掉；关全部、主窗口退出时关的留着（见 WindowSetRecorder）
+      recorder.exited(window.slot);
     }
     server.removePeer(window.token);
     _changed();
@@ -424,7 +846,11 @@ class WindowHost {
     }
   }
 
+  /// 主窗口在退出：之后不再开新窗口（正在打开上次的一组时也停下）
+  bool _exiting = false;
+
   Future<void> _closeOnExit() async {
+    _exiting = true;
     await closeAll();
   }
 
@@ -433,6 +859,8 @@ class WindowHost {
     if (list.isEmpty) {
       return 0;
     }
+    // 关之前把开着的这一组定下来，之后它们退出时不再从里面去掉
+    await recorder.closingAll();
     for (var w in list) {
       server.requestClose(w.token);
     }

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Rect;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -11,7 +13,9 @@ import 'package:simple_live_app/app/multi_window/window_args.dart';
 import 'package:simple_live_app/app/multi_window/window_changes.dart';
 import 'package:simple_live_app/app/multi_window/window_link.dart';
 import 'package:simple_live_app/app/multi_window/window_server.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/play_prefs.dart';
+import 'package:simple_live_app/app/window_pin.dart';
 import 'package:simple_live_app/models/db/follow_user.dart';
 import 'package:simple_live_app/models/db/follow_user_tag.dart';
 import 'package:simple_live_app/models/db/history.dart';
@@ -270,6 +274,117 @@ void main() {
     expect((await raw("GET", "/op", token: token)).statusCode, 404);
     expect((await raw("DELETE", "/wait", token: token)).statusCode, 404);
     expect(sink.changes, isEmpty);
+  });
+
+  test("副窗口报告在看的直播间和位置：交给主窗口，口令对的才收", () async {
+    var got = <(String, WindowReport)>[];
+    server.onReport = (t, r) => got.add((t, r));
+    var l = link();
+    expect(
+        await l.report(const WindowReport(
+            room: WindowRoom(siteId: "douyu", roomId: "1", userName: "主播"))),
+        isTrue);
+    expect(
+        await l.report(const WindowReport(
+            bounds: Rect.fromLTWH(-1912, 8, 629, 504), scale: 1.5)),
+        isTrue);
+    expect(got.map((e) => e.$1), [token, token]);
+    expect(got[0].$2.room!.userName, "主播");
+    expect(got[0].$2.bounds, isNull);
+    expect(got[1].$2.bounds, const Rect.fromLTWH(-1912, 8, 629, 504));
+    expect(got[1].$2.scale, 1.5);
+    // 没口令、内容不对、太大的不收
+    var room = {"site": "douyu", "room": "1"};
+    expect((await raw("POST", "/state", body: {"room": room})).statusCode, 401);
+    expect(
+        (await raw("POST", "/state",
+                token: token,
+                body: {"room": room},
+                headers: {"origin": "https://example.com"}))
+            .statusCode,
+        403);
+    expect(
+        (await raw("POST", "/state", token: token, body: {})).statusCode, 400);
+    expect(
+        (await raw("POST", "/state",
+                token: token,
+                body: {"x": 1, "y": 2, "w": 0, "h": 4, "scale": 1}))
+            .statusCode,
+        400);
+    expect(
+        (await raw("POST", "/state", token: token, body: {
+          "room": {"site": "douyu", "room": "1", "title": "x" * 20000}
+        }))
+            .statusCode,
+        413);
+    expect((await raw("GET", "/state", token: token)).statusCode, 404);
+    expect(got, hasLength(2));
+    // 报告不算改动
+    expect(sink.changes, isEmpty);
+    l.dispose();
+
+    // 主窗口不在了：报告没送到，不提示“没保存”，算主窗口不在了
+    var unsaved = <(WindowChange, bool)>[];
+    var l2 = link(unsaved: unsaved);
+    await server.close();
+    expect(
+        await l2.report(const WindowReport(
+            bounds: Rect.fromLTWH(0, 0, 800, 450), scale: 1.0)),
+        isFalse);
+    expect(l2.online, isFalse);
+    expect(unsaved, isEmpty);
+    l2.dispose();
+  });
+
+  test("主窗口置顶、取消置顶：开着的副窗口都跟着变；副窗口自己点只改自己", () async {
+    var host = WindowHost(sink, WindowSetRecorder());
+    addTearDown(() async {
+      host.dispose();
+      WindowPin.instance.pinned.value = false;
+      await host.server.close();
+    });
+    await host.server.start();
+    var tokens = [host.server.addPeer(), host.server.addPeer()];
+    var got = [<bool>[], <bool>[]];
+    var links = [
+      for (var i = 0; i < 2; i++)
+        MainWindowLink(port: host.server.port, token: tokens[i]),
+    ];
+    // 第二个还没开始等指令：之后来取时照样收到
+    unawaited(links[0].watch(onClose: () {}, onPin: got[0].add));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    WindowPin.instance.pinned.value = true;
+    await _until(() => got[0].length == 1);
+    unawaited(links[1].watch(onClose: () {}, onPin: got[1].add));
+    await _until(() => got[1].length == 1);
+    WindowPin.instance.pinned.value = false;
+    await _until(() => got[0].length == 2 && got[1].length == 2);
+    expect(got, [
+      [true, false],
+      [true, false],
+    ]);
+
+    // 副窗口自己点置顶：只在它那个进程里，不往主窗口发任何东西
+    MultiWindow.launch = SecondaryLaunch(
+      port: host.server.port,
+      token: tokens[0],
+      dataDir: "/tmp/multi_window/w1-1",
+      slot: 1,
+      siteId: "douyu",
+      roomId: "1",
+    );
+    var reports = 0;
+    host.server.onReport = (_, __) => reports++;
+    if (WindowPin.supported) {
+      await WindowPin.instance.toggle();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    expect(reports, 0);
+    expect(sink.changes, isEmpty);
+    for (var l in links) {
+      l.dispose();
+    }
   });
 
   test("主窗口不在了：改动算没保存，之后的也不再发", () async {

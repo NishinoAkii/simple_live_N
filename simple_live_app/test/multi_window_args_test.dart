@@ -66,6 +66,71 @@ void main() {
       expect(parsed.mainPid, 4321);
     });
 
+    test("第 5、6 个窗口也能开", () {
+      for (var slot in [5, 6]) {
+        var args = sample()
+            .toArgs()
+            .where((e) => !e.startsWith("--sl-slot="))
+            .toList()
+          ..add("--sl-slot=$slot");
+        expect(SecondaryLaunch.parse(args)?.slot, slot);
+      }
+    });
+
+    test("打开上次的窗口：上次的位置和缩放原样带过去（负坐标的左边副屏、150%）", () {
+      // 主窗口算好的位置都是整数像素；左边副屏的坐标是负的
+      for (var (bounds, scale) in [
+        (const Rect.fromLTWH(-2548, 12, 837, 746), 1.5),
+        (const Rect.fromLTWH(1932, -188, 1200, 700), 1.25),
+        (const Rect.fromLTWH(0, 0, 400, 300), 2.0),
+      ]) {
+        var launch = SecondaryLaunch(
+          port: 50123,
+          token: WindowToken.generate(),
+          dataDir: dataDir,
+          slot: 6,
+          siteId: "bilibili",
+          roomId: "21452505",
+          bounds: bounds,
+          scale: scale,
+        );
+        var parsed = SecondaryLaunch.parse(launch.toArgs())!;
+        expect(parsed.bounds, bounds);
+        expect(parsed.scale, scale);
+        expect(parsed.slot, 6);
+      }
+      // 带小数的位置按整数像素传
+      var fractional =
+          sample(bounds: const Rect.fromLTWH(10.4, 20.6, 300.5, 200));
+      expect(SecondaryLaunch.parse(fractional.toArgs())!.bounds,
+          const Rect.fromLTWH(10, 21, 301, 200));
+    });
+
+    test("主窗口置顶时开的：带着置顶，显示之前就设好；没置顶时不带", () {
+      var plain = sample();
+      expect(plain.toArgs().any((e) => e.startsWith("--sl-pinned")), isFalse);
+      expect(SecondaryLaunch.parse(plain.toArgs())!.pinned, isFalse);
+      var pinned = SecondaryLaunch(
+        port: 50123,
+        token: WindowToken.generate(),
+        dataDir: dataDir,
+        slot: 3,
+        siteId: "douyu",
+        roomId: "1",
+        bounds: const Rect.fromLTWH(-2548, 12, 837, 746),
+        scale: 1.5,
+        pinned: true,
+      );
+      var parsed = SecondaryLaunch.parse(pinned.toArgs())!;
+      expect(parsed.pinned, isTrue);
+      expect(parsed.bounds, const Rect.fromLTWH(-2548, 12, 837, 746));
+      expect(
+          SecondaryLaunch.parse([...plain.toArgs(), "--sl-pinned=0"])!.pinned,
+          isFalse);
+      expect(SecondaryLaunch.parse([...plain.toArgs(), "--sl-pinned=yes"]),
+          isNull);
+    });
+
     test("没有 --sl-secondary 就是普通启动", () {
       var args = sample().toArgs()..remove(SecondaryLaunch.flag);
       expect(SecondaryLaunch.parse(args), isNull);
@@ -106,7 +171,7 @@ void main() {
         replace("data", "relative/dir"),
         replace("data", ""),
         replace("slot", "0"),
-        replace("slot", "5"),
+        replace("slot", "7"),
         replace("site", ""),
         replace("room", ""),
         replace("room", "a" * 300),

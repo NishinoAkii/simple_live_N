@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/desktop_shortcuts.dart';
 import 'package:simple_live_app/app/gpu_preference.dart';
+import 'package:simple_live_app/app/multi_window/multi_window.dart';
+import 'package:simple_live_app/app/multi_window/multi_window_widgets.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 import 'package:simple_live_app/widgets/settings/settings_action.dart';
@@ -11,7 +15,7 @@ import 'package:simple_live_app/widgets/settings/settings_card.dart';
 import 'package:simple_live_app/widgets/settings/settings_menu.dart';
 import 'package:simple_live_app/widgets/settings/settings_switch.dart';
 
-/// 电脑端设置：快捷键、记住窗口、显卡偏好
+/// 电脑端设置：快捷键、记住窗口、多开窗口、显卡偏好
 class DesktopSettingsPage extends StatelessWidget {
   const DesktopSettingsPage({super.key});
 
@@ -24,6 +28,7 @@ class DesktopSettingsPage extends StatelessWidget {
         children: const [
           ShortcutSettingsSection(),
           WindowSettingsSection(),
+          MultiWindowSettingsSection(),
           GpuSettingsSection(),
         ],
       ),
@@ -323,6 +328,70 @@ class WindowSettingsSection extends StatelessWidget {
               onChanged: memory.setEnabled,
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 多开窗口（只有 Windows 的主窗口）：启动时要不要恢复上次的多开窗口、
+/// 打开上次的多开窗口、关闭全部多开窗口
+class MultiWindowSettingsSection extends StatelessWidget {
+  final bool? visible;
+  const MultiWindowSettingsSection({this.visible, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!(visible ?? MultiWindow.canOpen)) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppStyle.vGap12,
+        _SectionTitle("多开窗口".t),
+        SettingsCard(
+          child: Obx(() {
+            var setting = StartupRestoreSetting.value.value;
+            var saved = MultiWindow.restorableSet?.windows.length ?? 0;
+            var open = MultiWindow.openCount.value;
+            return Column(
+              children: [
+                SettingsMenu<StartupRestore>(
+                  title: "启动时恢复上次的多开窗口".t,
+                  value: setting,
+                  valueMap: {
+                    StartupRestore.ask: "询问".t,
+                    StartupRestore.open: "直接打开".t,
+                    StartupRestore.off: "不打开".t,
+                  },
+                  onChanged: StartupRestoreSetting.set,
+                ),
+                AppStyle.divider,
+                SettingsAction(
+                  title: saved > 0
+                      ? "打开上次的多开窗口（{count} 个）".tf({"count": saved})
+                      : "打开上次的多开窗口".t,
+                  enabled: saved > 0,
+                  onTap: saved > 0 ? restoreLastWindows : null,
+                ),
+                AppStyle.divider,
+                SettingsAction(
+                  title: open > 0
+                      ? "关闭全部多开窗口（{count}）".tf({"count": open})
+                      : "关闭全部多开窗口".t,
+                  enabled: open > 0,
+                  onTap: open > 0
+                      ? () async {
+                          var closed = await MultiWindow.closeAll();
+                          SmartDialog.showToast(
+                              "已关闭 {count} 个多开窗口".tf({"count": closed}));
+                        }
+                      : null,
+                ),
+              ],
+            );
+          }),
         ),
       ],
     );

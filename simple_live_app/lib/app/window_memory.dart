@@ -34,6 +34,9 @@ class WindowMemory with WindowListener {
 
   /// 直播间的小窗开着：这时窗口的位置记成小窗的
   bool _small = false;
+
+  /// 直播间的小窗开着（多开的副窗口这时不报位置）
+  bool get inSmallWindow => _small;
   Timer? _saveTimer;
   bool _listening = false;
 

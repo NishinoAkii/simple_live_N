@@ -4,6 +4,7 @@ import 'package:simple_live_app/app/controller/danmaku_filter_settings.dart';
 import 'package:simple_live_app/app/controller/follow_view_settings.dart';
 import 'package:simple_live_app/app/desktop_shortcuts.dart';
 import 'package:simple_live_app/app/gpu_preference.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/models/db/follow_user.dart';
 import 'package:simple_live_app/models/db/follow_user_tag.dart';
@@ -174,6 +175,9 @@ class SyncCompat {
     LocalStorageService.kPlayWithOthers,
     // 记住窗口（开关、主窗口和小窗的位置）、显卡偏好
     ...WindowMemory.storageKeys,
+    // 上次的一组多开窗口（直播间、位置）、启动时要不要打开，各设备屏幕不同
+    ...WindowSetRecorder.storageKeys,
+    StartupRestoreSetting.kKey,
     ...GpuPreferenceSetting.storageKeys,
     // 聊天区顶上的直播间公告卡片：显示、收起（各设备屏幕大小不同）
     LocalStorageService.kChatNoticeCard,

@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/desktop_shortcuts.dart';
 import 'package:simple_live_app/app/gpu_preference.dart';
+import 'package:simple_live_app/app/multi_window/multi_window.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/modules/settings/desktop_settings_page.dart';
 import 'package:simple_live_core/simple_live_core.dart';
@@ -64,10 +66,53 @@ void main() {
         children: const [
           ShortcutSettingsSection(),
           WindowSettingsSection(),
+          MultiWindowSettingsSection(visible: true),
           GpuSettingsSection(visible: true),
         ],
       ),
     );
+  });
+
+  testWidgets("多开窗口：记着上次的一组时能打开，开着窗口时能关，没有时灰掉", (tester) async {
+    MultiWindow.debugSupported = true;
+    MultiWindow.recorder = WindowSetRecorder(saveDelay: Duration.zero);
+    StartupRestoreSetting.reset();
+    addTearDown(() {
+      MultiWindow.debugSupported = null;
+      MultiWindow.recorder = WindowSetRecorder();
+      MultiWindow.openCount.value = 0;
+      StartupRestoreSetting.reset();
+    });
+    await tester.pumpWidget(const GetMaterialApp(
+      home: Scaffold(
+          body: SingleChildScrollView(child: MultiWindowSettingsSection())),
+    ));
+    ListTile tile(String text) => tester.widget<ListTile>(
+        find.ancestor(of: find.text(text), matching: find.byType(ListTile)));
+    expect(find.text("询问"), findsOneWidget);
+    expect(tile("打开上次的多开窗口").enabled, isFalse);
+    expect(tile("关闭全部多开窗口").enabled, isFalse);
+
+    // 开着两个窗口，点了关闭全部：上次的一组有 2 个
+    var recorder = MultiWindow.recorder;
+    for (var slot in [1, 2]) {
+      recorder.opened(WindowEntry(
+        slot: slot,
+        room: WindowRoom(siteId: "douyu", roomId: "$slot"),
+        bounds: Rect.fromLTWH(8.0 + 637 * (slot - 1), 8, 629, 504),
+      ));
+    }
+    await recorder.closingAll();
+    MultiWindow.openCount.value = 3;
+    await tester.pump();
+    expect(tile("打开上次的多开窗口（2 个）").enabled, isTrue);
+    expect(tile("关闭全部多开窗口（3）").enabled, isTrue);
+
+    // 改成“不打开”
+    await StartupRestoreSetting.set(StartupRestore.off);
+    await tester.pump();
+    expect(find.text("不打开"), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets("改键对话框：冲突", (tester) async {
