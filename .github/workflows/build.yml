@@ -389,7 +389,7 @@ jobs:
   ios:
     needs: meta
     if: github.event_name == 'push' || inputs.ios
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 50
     env:
       ARTIFACT: ${{ needs.meta.outputs.prefix }}-ios-arm64-unsigned
@@ -418,7 +418,7 @@ jobs:
   macos:
     needs: meta
     if: github.event_name == 'push' || inputs.macos
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 40
     env:
       PREFIX: ${{ needs.meta.outputs.prefix }}
