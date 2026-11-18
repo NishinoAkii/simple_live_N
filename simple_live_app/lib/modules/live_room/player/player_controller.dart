@@ -24,6 +24,7 @@ import 'package:simple_live_app/app/player_lock.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/app/window_geometry.dart';
 import 'package:simple_live_app/app/window_memory.dart';
+import 'package:simple_live_app/app/window_pin.dart';
 import 'package:simple_live_app/modules/live_room/player/danmaku_pacer.dart';
 import 'package:simple_live_app/modules/live_room/player/fullscreen_orientation.dart';
 import 'package:simple_live_app/services/ios_pip/ios_pip_session.dart';
@@ -434,7 +435,8 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
         await WindowMemory.instance.leaveSmall();
         await windowManager.setTitleBarStyle(TitleBarStyle.normal);
         await WindowMemory.instance.restoreMain(main);
-        await windowManager.setAlwaysOnTop(false);
+        // 小窗总在最前面；回到主窗口后按图钉的状态，没置顶就回到正常层
+        await windowManager.setAlwaysOnTop(WindowPin.instance.pinned.value);
       }();
     }
   }

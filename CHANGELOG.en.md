@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.24.1 (12401)
+
+### New
+
+- On desktop, a pin button at the top right of the live room keeps the window above other windows; click it again to turn it off. The main window and each new window are set separately, and the setting is not kept after the window closes. Leaving the small window restores the previous state. Not included in the Windows 7 package.
+
+### Fixed
+
+- On desktop, the live room's More menu showed a grey area below Screenshot, so Open in new window, Audio only, Sleep timer, Share room and the other items could not be used. Fixed in the Windows 7 package as well.
+
 ## 1.24.0 (12400)
 
 First version, based on upstream Simple Live 1.11.7. The following was added or improved compared with upstream. Some of these features have not yet been tested on real devices or in real live rooms.

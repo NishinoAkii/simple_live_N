@@ -11,6 +11,7 @@ import 'package:simple_live_app/app/controller/app_settings_controller.dart';
 import 'package:simple_live_app/app/multi_window/multi_window_widgets.dart';
 import 'package:simple_live_app/app/player_lock.dart';
 import 'package:simple_live_app/app/utils.dart';
+import 'package:simple_live_app/app/window_pin.dart';
 import 'package:simple_live_app/app/name_color.dart';
 import 'package:simple_live_app/modules/live_room/chat_face.dart';
 import 'package:simple_live_app/modules/live_room/live_chat_search.dart';
@@ -159,6 +160,8 @@ class LiveRoomPage extends GetView<LiveRoomController> {
               () => Text(controller.detail.value?.title ?? "直播间".t),
             ),
             actions: [
+              // 电脑：这个窗口置顶或回到正常层（主窗口、多开窗口各管各的）
+              if (WindowPin.supported) const WindowPinButton(),
               // 宽屏：收起、展开右侧的聊天栏
               if (orientation == Orientation.landscape)
                 LiveChatToggleButton(controller: controller),
@@ -1171,11 +1174,12 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                 controller.saveScreenshot();
               },
             ),
-            // 听直播时不开小窗
-            Obx(
-              () => Visibility(
-                visible:
-                    Platform.isAndroid && !controller.listen.active.value,
+            // 听直播时不开小窗。先读 listen.active：电脑上 && 短路读不到它，
+            // Obx 里没有可监听的值会出错，正式版里整块变成灰色，把下面的项都挤没了
+            Obx(() {
+              var listening = controller.listen.active.value;
+              return Visibility(
+                visible: Platform.isAndroid && !listening,
                 child: ListTile(
                   leading: const Icon(Icons.picture_in_picture),
                   title: Text("小窗播放".t),
@@ -1185,8 +1189,8 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                     controller.enablePIP();
                   },
                 ),
-              ),
-            ),
+              );
+            }),
             // 电脑上的主窗口：在新窗口打开后这里退出直播间，不重复播放
             ...multiWindowTiles(
               controller.site,
