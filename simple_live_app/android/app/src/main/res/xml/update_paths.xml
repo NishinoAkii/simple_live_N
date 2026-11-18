@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只开放缓存目录的两个文件夹：update（下载的 APK，见 AppUpdate.kt）、
+     capture（复制到剪贴板的截图，见 ScreenCapture.kt） -->
+<paths>
+    <cache-path name="update" path="update/" />
+    <cache-path name="capture" path="capture/" />
+</paths>

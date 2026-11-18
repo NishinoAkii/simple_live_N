@@ -63,8 +63,9 @@ class LiveRoomShortcuts extends StatelessWidget {
         c.showDanmakuState.value = show;
         _tip(c, show ? "弹幕已开启".t : "弹幕已关闭".t);
       case ShortcutAction.mute:
-        var muted = PlayerMute.toggle(c.player);
-        _tip(c, muted ? "已静音".t : "已取消静音".t);
+        // 和音量条旁的静音按钮是同一个状态：多开窗口默认静音时，按一下就是取消静音
+        c.setMuted(!c.muted.value);
+        _tip(c, c.muted.value ? "已静音".t : "已取消静音".t);
       case ShortcutAction.refresh:
         c.refreshRoom();
       case ShortcutAction.collapseChat:
@@ -80,10 +81,13 @@ class LiveRoomShortcuts extends StatelessWidget {
         var settings = AppSettingsController.instance;
         var volume = PlayerMute.step(settings.playerVolume.value,
             action == ShortcutAction.volumeUp ? 5 : -5);
-        PlayerMute.clear(c.player);
+        c.muted.value = false;
         settings.setPlayerVolume(volume);
         c.player.setVolume(volume);
         _tip(c, "音量 {volume}%".tf({"volume": volume.round()}));
+      case ShortcutAction.screenshot:
+        // 和顶栏的截图键一样
+        unawaited(c.capture.screenshot());
     }
     return true;
   }

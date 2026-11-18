@@ -9,6 +9,7 @@ import UserNotifications
   private var avPipController: NSObject?
   private var pipPluginRegistry: PipPluginRegistry?
   private var backgroundAudio: BackgroundAudioController?
+  private var screenCapture: ScreenCaptureController?
 
   override func application(
     _ application: UIApplication,
@@ -85,6 +86,10 @@ import UserNotifications
     // 听直播：锁屏卡片、音频中断和拔耳机（BackgroundAudio.swift）
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "BackgroundAudio") {
       backgroundAudio = BackgroundAudioController(messenger: registrar.messenger())
+    }
+    // 录屏、复制截图（ScreenCapture.swift）
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ScreenCapture") {
+      screenCapture = ScreenCaptureController(messenger: registrar.messenger())
     }
   }
 

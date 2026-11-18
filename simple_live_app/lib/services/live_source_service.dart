@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
 import 'package:simple_live_app/app/log.dart';
+import 'package:simple_live_app/app/source_hooks.dart';
 import 'package:simple_live_app/app/multi_window/multi_window.dart';
 import 'package:simple_live_app/app/sites.dart';
 import 'package:simple_live_app/app/utils.dart';
@@ -61,6 +62,8 @@ class LiveSourceService extends GetxService {
       manager = LiveSourceManager(
         directory: p.join(dir.path, "live_sources"),
         appVersion: Utils.packageInfo.version,
+        // 装了 SourceHooks 时，github: 地址由它读，别的照常下载
+        fetchOverride: fetchOverride,
       );
       _changes = manager!.changes.listen((_) => _scheduleRefresh());
       // 自带平台每次调用时查有没有生效的修正（§9）；没有加载好时查不到，照常用内置代码
@@ -286,6 +289,14 @@ class LiveSourceService extends GetxService {
     var u = (url ?? "").trim().toLowerCase();
     return u.startsWith("https://") || u.startsWith("http://");
   }
+
+  /// 能下载的地址：网址，或者装了 SourceHooks 时的 github:用户/仓库/路径
+  static bool isFetchableUrl(String? url) =>
+      isRemoteUrl(url) || SourceHooks.isPrivate(url ?? "");
+
+  /// 交给管理器的下载钩子：github: 地址由 [SourceHooks] 读，别的返回 null 照常下载
+  static Future<List<int>?> fetchOverride(String url) async =>
+      await SourceHooks.fetch?.call(url);
 
   Future<LiveSourceInfo> installFromUrl(String url) async {
     var info = await _requireManager().installFromUrl(url.trim());
@@ -520,7 +531,7 @@ class LiveSourceService extends GetxService {
     var sync = LiveSourceSyncData.fromJson(data);
     var subs = List.of(subscriptions);
     for (var url in sync.subscriptions) {
-      if (!isRemoteUrl(url) || subs.contains(url)) {
+      if (!isFetchableUrl(url) || subs.contains(url)) {
         continue;
       }
       try {
@@ -536,7 +547,7 @@ class LiveSourceService extends GetxService {
       if (siteOf(source.key) != null) {
         continue;
       }
-      if (!isRemoteUrl(source.url)) {
+      if (!isFetchableUrl(source.url)) {
         result.skipped.add(source.name.isEmpty ? source.key : source.name);
         continue;
       }

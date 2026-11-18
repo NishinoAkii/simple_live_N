@@ -9,6 +9,7 @@ import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/log.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/routes/route_path.dart';
+import 'package:simple_live_app/services/app_update/app_update_service.dart';
 import 'package:simple_live_app/services/signalr_service.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
@@ -260,6 +261,19 @@ class MinePage extends StatelessWidget {
             _buildCard(
               context,
               children: [
+                // 打开“更新”页并马上检查一次；启动时检查、下载源也在那里
+                ListTile(
+                  leading: const Icon(Remix.download_cloud_2_line),
+                  title: Text("检查更新".t),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey,
+                  ),
+                  onTap: () {
+                    Get.toNamed(RoutePath.kSettingsUpdate);
+                    AppUpdateService.maybeInstance?.checkNow();
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Remix.error_warning_line),
                   title: Text("免责声明".t),

@@ -65,6 +65,10 @@ class _Connection {
   bool closed = false;
   Timer? killTimer;
 
+  /// isolate 真正退出（或被强制结束）时完成。退出前它还会把设置写回 settings.json，
+  /// 下一个 isolate 要等它完成再启动，不然可能读到旧的设置
+  final Completer<void> gone = Completer();
+
   void send(Map<String, dynamic> message) {
     if (!closed) sendPort?.send(message);
   }
@@ -84,6 +88,7 @@ class _Connection {
     port.close();
     exitPort.close();
     errorPort.close();
+    if (!gone.isCompleted) gone.complete();
   }
 }
 
@@ -304,7 +309,19 @@ class ScriptSourceWorker {
     return _starting ??= _spawn().whenComplete(() => _starting = null);
   }
 
+  /// 上一个 isolate 退出的时候（见 [_Connection.gone]）
+  Future<void>? _lastGone;
+
+  /// 等上一个 isolate 退出，最多 3 秒
+  Future<void> _waitLastGone() async {
+    var gone = _lastGone;
+    if (gone != null) {
+      await gone.timeout(const Duration(seconds: 3), onTimeout: () {});
+    }
+  }
+
   Future<_Connection> _spawn() async {
+    await _waitLastGone();
     var conn = _Connection();
     conn.port.listen((m) => _onMessage(conn, m));
     conn.errorPort.listen((e) {
@@ -428,6 +445,9 @@ class ScriptSourceWorker {
     var conn = _conn;
     _conn = null;
     conn?.close();
+    if (conn != null) {
+      _lastGone = conn.gone.future;
+    }
     _timeouts = 0;
     for (var entry in _calls.entries.toList()) {
       if (entry.value.conn == conn) {
@@ -464,6 +484,8 @@ class ScriptSourceWorker {
     if (_conn != null) {
       _restart("{name} 已关闭".tf({"name": name}));
     }
+    // 等它真的退出（设置写回 settings.json 之后），之后的调用才不会读到旧设置
+    await _waitLastGone();
   }
 
   /// 彻底关闭，之后不能再调用

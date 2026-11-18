@@ -11,7 +11,6 @@ import 'package:simple_live_app/app/sites.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/models/db/history.dart';
 import 'package:simple_live_app/modules/mine/history/history_controller.dart';
-import 'package:simple_live_app/routes/app_navigation.dart';
 import 'package:simple_live_app/widgets/net_image.dart';
 import 'package:simple_live_app/widgets/page_list_view.dart';
 import 'package:simple_live_app/widgets/site_logo.dart';
@@ -153,9 +152,23 @@ class _LiveHistoryItemState extends State<LiveHistoryItem> {
               SmartDialog.showToast("{siteName}，无法打开".tf({"siteName": siteName}));
               return;
             }
-            AppNavigator.toLiveRoomDetail(site: site, roomId: item.roomId);
+            // 上次和几个多开窗口一起关的主窗口直播间：打开后问要不要把那几个也打开
+            openHistoryRoom(site, item.roomId);
           },
           onLongPress: () async {
+            var group = site == null
+                ? null
+                : MultiWindow.groupFor(site.id, item.roomId);
+            if (site != null && group != null) {
+              var open = await showHistoryGroupSheet(context, group);
+              if (open == true) {
+                await openHistoryGroup(site, item.roomId, group);
+                return;
+              }
+              if (open == null) {
+                return;
+              }
+            }
             var result =
                 await Utils.showAlertDialog("确定删除这条记录吗？".t, title: "删除记录".t);
             if (!result) {
@@ -268,6 +281,34 @@ class _LiveHistoryItemState extends State<LiveHistoryItem> {
       ),
     );
   }
+}
+
+/// 长按一组的主窗口直播间：打开上次一起看的直播间，或者删除记录。
+/// 返回 true 打开、false 删除、null 没选
+Future<bool?> showHistoryGroupSheet(BuildContext context, WindowSet group) {
+  return showModalBottomSheet<bool>(
+    context: context,
+    constraints: const BoxConstraints(maxWidth: 600),
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.filter_none),
+            title: Text("打开上次一起看的直播间".t),
+            subtitle: Text(group.labels,
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+            onTap: () => Navigator.of(sheetContext).pop(true),
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline),
+            title: Text("删除记录".t),
+            onTap: () => Navigator.of(sheetContext).pop(false),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// 灰色那行里时间左边的部分：平台图标、平台名和分区（分区是平台的原文，不翻译）

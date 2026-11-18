@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/app_style.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
+import 'package:simple_live_app/widgets/settings/capture_settings_view.dart';
 import 'package:simple_live_app/widgets/settings/catch_up_settings.dart';
 import 'package:simple_live_app/widgets/settings/ios_pip_settings.dart';
 import 'package:simple_live_app/widgets/settings/obs_bridge_settings.dart';
@@ -139,6 +141,9 @@ class PlaySettingsPage extends GetView<AppSettingsController> {
                     },
                   ),
                 ),
+                AppStyle.divider,
+                // 浮层显示哪几行（直播间顶栏的按钮开关浮层）
+                const VideoStatsFieldsSetting(),
               ],
             ),
           ),
@@ -322,6 +327,14 @@ class PlaySettingsPage extends GetView<AppSettingsController> {
               ],
             ),
           ),
+          Padding(
+            padding: AppStyle.edgeInsetsA12.copyWith(top: 24),
+            child: Text(
+              CaptureFeatures.recording ? "截图和录屏".t : "截图".t,
+              style: Get.textTheme.titleSmall,
+            ),
+          ),
+          const SettingsCard(child: CaptureSettingsView()),
           Padding(
             padding: AppStyle.edgeInsetsA12.copyWith(top: 24),
             child: Text(

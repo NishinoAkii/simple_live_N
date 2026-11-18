@@ -70,6 +70,10 @@ class SecondaryLaunch {
   /// 一开始就置顶（主窗口置顶时开的窗口），显示之前就设好
   final bool pinned;
 
+  /// 一开始的音量、静音、弹幕开关、清晰度、声音输出设备（见 WindowSettings 的 JSON），
+  /// 为空时用默认的
+  final Map<String, dynamic>? settings;
+
   const SecondaryLaunch({
     required this.port,
     required this.token,
@@ -81,6 +85,7 @@ class SecondaryLaunch {
     this.scale = 1.0,
     this.mainPid = 0,
     this.pinned = false,
+    this.settings,
   });
 
   List<String> toArgs() => [
@@ -97,6 +102,8 @@ class SecondaryLaunch {
         "--sl-scale=$scale",
         "--sl-main-pid=$mainPid",
         if (pinned) "--sl-pinned=1",
+        if (settings != null && settings!.isNotEmpty)
+          "--sl-settings=${base64Url.encode(utf8.encode(json.encode(settings)))}",
       ];
 
   static const _keys = {
@@ -110,6 +117,7 @@ class SecondaryLaunch {
     "scale",
     "main-pid",
     "pinned",
+    "settings",
   };
 
   /// 没有 [flag] 或者有一项不对时返回 null
@@ -141,6 +149,18 @@ class SecondaryLaunch {
     var scale = double.tryParse(values["scale"] ?? "1");
     var mainPid = int.tryParse(values["main-pid"] ?? "0");
     var pinned = values["pinned"] ?? "0";
+    Map<String, dynamic>? settings;
+    if (values["settings"] case var text?) {
+      try {
+        var decoded = json.decode(utf8.decode(base64Url.decode(text)));
+        if (decoded is! Map || text.length > 4096) {
+          return null;
+        }
+        settings = Map<String, dynamic>.from(decoded);
+      } catch (_) {
+        return null;
+      }
+    }
     if (port == null ||
         port < 1 ||
         port > 65535 ||
@@ -176,6 +196,7 @@ class SecondaryLaunch {
       scale: scale,
       mainPid: mainPid,
       pinned: pinned == "1",
+      settings: settings,
     );
   }
 

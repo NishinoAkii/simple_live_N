@@ -1,5 +1,7 @@
 package com.xycz.simple_live
 
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import io.flutter.embedding.android.FlutterActivity
@@ -16,13 +18,43 @@ class MainActivity : FlutterActivity() {
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         // 引擎没了，Dart 控制不了播放：收起听直播的通知、放掉音频焦点
         BackgroundPlayback.detach()
+        // 正在录屏就停下并写完文件
+        ScreenCapture.detach()
         super.cleanUpFlutterEngine(flutterEngine)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        // 录屏确认框的结果（ScreenCapture.kt）
+        if (ScreenCapture.onActivityResult(requestCode, resultCode, data)) return
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        // 录屏要录 App 声音时的录音权限（ScreenCapture.kt）
+        if (ScreenCapture.onRequestPermissionsResult(requestCode, grantResults)) return
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // 录屏中转屏、进小窗、分屏改大小：停下
+        ScreenCapture.onHostConfigurationChanged(newConfig)
+    }
+
+    override fun onStop() {
+        // 录屏中切到后台：停下
+        ScreenCapture.onHostStopped()
+        super.onStop()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         // 听直播：前台服务、媒体通知、音频焦点（BackgroundPlayback.kt）
         BackgroundPlayback.attach(this, flutterEngine.dartExecutor.binaryMessenger)
+        // 应用内更新：调起系统安装界面（AppUpdate.kt）
+        AppUpdate.attach(this, flutterEngine.dartExecutor.binaryMessenger)
+        // 录屏、复制截图（ScreenCapture.kt）
+        ScreenCapture.attach(this, flutterEngine.dartExecutor.binaryMessenger)
         // 系统网络栈请求：Kick 会按 TLS 指纹拦截 Dart 自带的 HTTP 客户端
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "simple_live/native_http")
             .setMethodCallHandler { call, result ->

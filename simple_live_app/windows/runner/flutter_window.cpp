@@ -84,6 +84,8 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
   SetUpShortcutChannel();
+  capture_channel_ = std::make_unique<CaptureChannel>(
+      flutter_controller_->engine()->messenger(), GetHandle());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -204,6 +206,9 @@ void FlutterWindow::OnDestroy() {
   // Give the IME back before the Flutter view is torn down.
   ResumeIme();
   swallowed_scan_codes_.clear();
+  // A running recording is finished (the MP4 written out) while the engine
+  // can still get the answer; bounded, so closing never hangs.
+  capture_channel_.reset();
   shortcut_channel_.reset();
   if (flutter_controller_) {
     flutter_controller_ = nullptr;

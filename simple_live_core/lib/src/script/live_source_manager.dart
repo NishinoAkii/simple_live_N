@@ -52,7 +52,15 @@ class LiveSourceManager {
   /// App 版本，脚本里 App.version 读到的值
   final String appVersion;
 
-  LiveSourceManager({required this.directory, required this.appVersion});
+  /// 下载前先交给 App 的地址（如要带登录从 GitHub 接口读的文件）。
+  /// 返回 null 时照常下载。只换读文件的方式，签名校验、安装流程不变
+  final Future<List<int>?> Function(String url)? fetchOverride;
+
+  LiveSourceManager({
+    required this.directory,
+    required this.appVersion,
+    this.fetchOverride,
+  });
 
   final _changes = StreamController<void>.broadcast();
 
@@ -930,6 +938,21 @@ class LiveSourceManager {
       utf8.decode(await _downloadBytes(url), allowMalformed: true);
 
   Future<List<int>> _downloadBytes(String url) async {
+    var hook = fetchOverride;
+    if (hook != null) {
+      List<int>? bytes;
+      try {
+        bytes = await hook(url.trim());
+      } catch (e) {
+        throw CoreError("下载失败：{url}（{e}）".tf({"url": url, "e": e}));
+      }
+      if (bytes != null) {
+        if (bytes.length > _maxDownload) {
+          throw CoreError("文件过大：{url}".tf({"url": url}));
+        }
+        return bytes;
+      }
+    }
     var uri = _toUri(url.trim());
     if (uri.scheme == "file") {
       try {

@@ -20,6 +20,7 @@ import 'package:simple_live_app/app/controller/base_controller.dart';
 import 'package:simple_live_app/app/custom_throttle.dart';
 import 'package:simple_live_app/app/player_drag_adjust.dart';
 import 'package:simple_live_app/app/log.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/player_lock.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/app/window_geometry.dart';
@@ -742,6 +743,9 @@ mixin PlayerGestureControlMixin
     } else {
       AppSettingsController.instance.setPlayerVolume(volume.toDouble());
       player.setVolume(volume.toDouble());
+      if (this is PlayerController) {
+        (this as PlayerController).muted.value = false;
+      }
     }
   }
 
@@ -793,6 +797,57 @@ class PlayerController extends BaseController
         PlayerDanmakuMixin,
         PlayerSystemMixin,
         PlayerGestureControlMixin {
+  /// 电脑上的静音（多开窗口默认静音）：不改记住的音量，取消时回到原来的音量
+  final RxBool muted = false.obs;
+
+  void setMuted(bool value) {
+    muted.value = value;
+    player.setVolume(
+        value ? 0 : AppSettingsController.instance.playerVolume.value);
+  }
+
+  /// 现在用的声音输出设备（mpv 的 audio-device 名字，auto 是默认设备）
+  final RxString audioDevice = "auto".obs;
+
+  /// 能选的声音输出设备（播放器刚建好时可能还没列出来，等一会儿）
+  Future<List<AudioDevice>> audioDevices(
+      {Duration wait = const Duration(seconds: 3)}) async {
+    var list = player.state.audioDevices;
+    if (list.isNotEmpty) {
+      return list;
+    }
+    try {
+      return await player.stream.audioDevices
+          .firstWhere((e) => e.isNotEmpty)
+          .timeout(wait);
+    } catch (_) {
+      return player.state.audioDevices;
+    }
+  }
+
+  Future<void> setAudioDevice(AudioDevice device) async {
+    try {
+      await player.setAudioDevice(device);
+      audioDevice.value = device.name;
+    } catch (e) {
+      Log.logPrint(e);
+    }
+  }
+
+  /// 用记下的声音输出设备：还在就用它；不在了用默认设备，返回 false（要提示一下）。
+  /// 设备列表一直读不到时不动
+  Future<bool> restoreAudioDevice(String? saved) async {
+    var list = await audioDevices();
+    if (list.isEmpty) {
+      return true;
+    }
+    var pick = pickAudioDevice(saved, [for (var e in list) e.name]);
+    var device = list.firstWhere((e) => e.name == pick.device,
+        orElse: () => AudioDevice.auto());
+    await setAudioDevice(device);
+    return !pick.missing;
+  }
+
   @override
   void onInit() {
     initSystem();

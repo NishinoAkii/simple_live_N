@@ -2,6 +2,8 @@ import Cocoa
 import FlutterMacOS
 
 class MainFlutterWindow: NSWindow {
+  private var screenCapture: ScreenCaptureChannel?
+
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
@@ -10,6 +12,9 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
     NativeHttp.register(messenger: flutterViewController.engine.binaryMessenger)
+    // 录屏、复制截图（ScreenCapture.swift）
+    screenCapture = ScreenCaptureChannel(
+      messenger: flutterViewController.engine.binaryMessenger, window: self)
 
     super.awakeFromNib()
   }

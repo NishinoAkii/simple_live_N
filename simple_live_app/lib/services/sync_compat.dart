@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
 import 'package:simple_live_app/app/constant.dart';
 import 'package:simple_live_app/app/controller/danmaku_filter_settings.dart';
 import 'package:simple_live_app/app/controller/follow_view_settings.dart';
@@ -9,6 +10,8 @@ import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/models/db/follow_user.dart';
 import 'package:simple_live_app/models/db/follow_user_tag.dart';
 import 'package:simple_live_app/models/db/history.dart';
+import 'package:simple_live_app/services/app_update/installers/ios_installer.dart';
+import 'package:simple_live_app/services/app_update/update_settings.dart';
 import 'package:simple_live_app/services/chat_users/chat_users_service.dart';
 import 'package:simple_live_app/services/db_service.dart';
 import 'package:simple_live_app/services/douyu_account_service.dart';
@@ -76,6 +79,8 @@ class SyncCompat {
 
   /// 其它只有本版本才有的设置（追帧、SC 显示、聊天头像、表情图片、视频信息浮层、分场景弹幕大小、iOS 画中画与投屏）
   static const Set<String> forkSettingKeys = {
+    // 多开时各直播间的设置（音量、静音、弹幕开关、清晰度），位置不在这里
+    WindowSetRecorder.kRoomSettings,
     LocalStorageService.kLiveCatchUp,
     LocalStorageService.kLiveCatchUpMaxRate,
     LocalStorageService.kLiveCatchUpTarget,
@@ -128,6 +133,8 @@ class SyncCompat {
     ChatUsersService.kHidePaid,
     // 直播间的快捷键（开关和按键表）
     ...DesktopShortcuts.storageKeys,
+    // 截图：图层、范围、截图后、图片信息、全屏按键、视频信息显示的内容
+    ...CaptureSettings.syncKeys,
   };
 
   /// 与屏幕大小有关的界面尺寸（宽屏侧栏宽度），各设备不同，恢复时保留本机值
@@ -175,13 +182,20 @@ class SyncCompat {
     LocalStorageService.kPlayWithOthers,
     // 记住窗口（开关、主窗口和小窗的位置）、显卡偏好
     ...WindowMemory.storageKeys,
-    // 上次的一组多开窗口（直播间、位置）、启动时要不要打开，各设备屏幕不同
+    // 多开窗口：上次的一组和各主窗口直播间的那一组（直播间、位置）、每个编号的位置和
+    // 声音输出设备、启动时要不要打开、新开的默认静音、单独选声音输出设备，各设备屏幕不同
     ...WindowSetRecorder.storageKeys,
-    StartupRestoreSetting.kKey,
+    ...MultiWindowPrefs.storageKeys,
+    // iOS 更新的安装方式（TrollStore 等），各设备装的工具不同
+    IosInstallSetting.kKey,
     ...GpuPreferenceSetting.storageKeys,
     // 聊天区顶上的直播间公告卡片：显示、收起（各设备屏幕大小不同）
     LocalStorageService.kChatNoticeCard,
     LocalStorageService.kChatNoticeFolded,
+    // 应用内更新：启动时检查、跳过的版本、下载源
+    ...UpdateSettings.storageKeys,
+    // 截图的保存位置（电脑上的文件夹，各设备不同）
+    ...CaptureSettings.localKeys,
   };
 
   static bool isLocalOnlySetting(String key) =>

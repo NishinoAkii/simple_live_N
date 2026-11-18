@@ -67,31 +67,41 @@ class WindowRoom {
   String toString() => "WindowRoom($key, $label)";
 }
 
-/// 一个副窗口：第几个、在看的直播间、位置和大小（物理像素）和当时屏幕的缩放
+/// 一个副窗口：第几个、在看的直播间、位置和大小（物理像素，看得见的部分，见 FrameInsets）
+/// 和当时屏幕的缩放、选的声音输出设备（只在本机）
 class WindowEntry {
   final int slot;
   final WindowRoom room;
   final Rect? bounds;
   final double scale;
+  final String? audioDevice;
   const WindowEntry({
     required this.slot,
     required this.room,
     this.bounds,
     this.scale = 1.0,
+    this.audioDevice,
   });
 
-  WindowEntry copyWith({WindowRoom? room, Rect? bounds, double? scale}) =>
+  WindowEntry copyWith({
+    WindowRoom? room,
+    Rect? bounds,
+    double? scale,
+    String? audioDevice,
+  }) =>
       WindowEntry(
         slot: slot,
         room: room ?? this.room,
         bounds: bounds ?? this.bounds,
         scale: scale ?? this.scale,
+        audioDevice: audioDevice ?? this.audioDevice,
       );
 
   Map<String, dynamic> toJson() => {
         "slot": slot,
         ...room.toJson(),
         if (bounds != null) ..._geometryJson(bounds!, scale),
+        if (audioDevice != null) "device": audioDevice,
       };
 
   static WindowEntry fromJson(Object? json) {
@@ -103,11 +113,13 @@ class WindowEntry {
       throw const FormatException("slot");
     }
     var bounds = _bounds(json);
+    var device = json["device"];
     return WindowEntry(
       slot: slot,
       room: WindowRoom.fromJson(json),
       bounds: bounds,
       scale: bounds == null ? 1.0 : _scale(json["scale"]),
+      audioDevice: device == null ? null : _text(device, 512),
     );
   }
 
@@ -184,16 +196,18 @@ class WindowSet {
 }
 
 /// 副窗口告诉主窗口的事：在看哪个直播间（[room]）、窗口挪到了哪里（[bounds]，物理像素，
-/// 连同所在屏幕的缩放）。两项至少有一项
+/// 看得见的部分，连同所在屏幕的缩放）、声音和弹幕这些设置（[settings]）。至少有一项
 class WindowReport {
   final WindowRoom? room;
   final Rect? bounds;
   final double scale;
-  const WindowReport({this.room, this.bounds, this.scale = 1.0});
+  final WindowSettings? settings;
+  const WindowReport({this.room, this.bounds, this.scale = 1.0, this.settings});
 
   Map<String, dynamic> toJson() => {
         if (room != null) "room": room!.toJson(),
         if (bounds != null) ..._geometryJson(bounds!, scale),
+        if (settings != null) "settings": settings!.toJson(),
       };
 
   /// 内容不对时抛 [FormatException]（主窗口回 400）
@@ -203,15 +217,166 @@ class WindowReport {
     }
     var room = body["room"] == null ? null : WindowRoom.fromJson(body["room"]);
     var bounds = _bounds(body);
-    if (room == null && bounds == null) {
+    var settings = body["settings"] == null
+        ? null
+        : WindowSettings.fromJson(body["settings"]);
+    if (room == null && bounds == null && settings == null) {
       throw const FormatException("empty");
     }
     return WindowReport(
       room: room,
       bounds: bounds,
       scale: bounds == null ? 1.0 : _scale(body["scale"]),
+      settings: settings,
     );
   }
+}
+
+/// 一个多开窗口里除了位置以外要记住的：音量、静音、弹幕开关、这个窗口里选的清晰度，
+/// 还有声音输出设备。前四项按直播间记（“多开时对应直播间设置”，跟着 WebDAV、局域网同步），
+/// 声音输出设备各台电脑不一样，只记在本机的那一组里。没有的项为 null（用默认的）
+class WindowSettings {
+  /// 0 到 100
+  final double? volume;
+  final bool? muted;
+  final bool? danmaku;
+
+  /// 清晰度的名字（比如“原画”）
+  final String? quality;
+
+  /// mpv 的 audio-device 名字，auto 或 null 是默认设备
+  final String? audioDevice;
+
+  const WindowSettings({
+    this.volume,
+    this.muted,
+    this.danmaku,
+    this.quality,
+    this.audioDevice,
+  });
+
+  static const empty = WindowSettings();
+
+  bool get isEmpty =>
+      volume == null &&
+      muted == null &&
+      danmaku == null &&
+      quality == null &&
+      audioDevice == null;
+
+  /// 按直播间记、可以同步的那部分（不含声音输出设备）
+  WindowSettings get roomPart => WindowSettings(
+      volume: volume, muted: muted, danmaku: danmaku, quality: quality);
+
+  /// [other] 里有的项盖掉这里的
+  WindowSettings merge(WindowSettings? other) => other == null
+      ? this
+      : WindowSettings(
+          volume: other.volume ?? volume,
+          muted: other.muted ?? muted,
+          danmaku: other.danmaku ?? danmaku,
+          quality: other.quality ?? quality,
+          audioDevice: other.audioDevice ?? audioDevice,
+        );
+
+  WindowSettings withMuted(bool? value) => WindowSettings(
+      volume: volume,
+      muted: value,
+      danmaku: danmaku,
+      quality: quality,
+      audioDevice: audioDevice);
+
+  WindowSettings withDevice(String? value) => WindowSettings(
+      volume: volume,
+      muted: muted,
+      danmaku: danmaku,
+      quality: quality,
+      audioDevice: value);
+
+  Map<String, dynamic> toJson() => {
+        if (volume != null) "volume": volume,
+        if (muted != null) "muted": muted,
+        if (danmaku != null) "danmaku": danmaku,
+        if (quality != null) "quality": quality,
+        if (audioDevice != null) "device": audioDevice,
+      };
+
+  /// 内容不对时抛 [FormatException]
+  static WindowSettings fromJson(Object? json) {
+    if (json is! Map) {
+      throw const FormatException("settings");
+    }
+    var volume = json["volume"];
+    if (volume != null && (volume is! num || !(volume >= 0 && volume <= 100))) {
+      throw const FormatException("volume");
+    }
+    bool? flag(String key) {
+      var v = json[key];
+      if (v != null && v is! bool) {
+        throw const FormatException("bool");
+      }
+      return v as bool?;
+    }
+
+    var quality = json["quality"];
+    var device = json["device"];
+    return WindowSettings(
+      volume: (volume as num?)?.toDouble(),
+      muted: flag("muted"),
+      danmaku: flag("danmaku"),
+      quality: quality == null ? null : _text(quality, 256),
+      audioDevice: device == null ? null : _text(device, 512),
+    );
+  }
+
+  /// 副窗口一开始用的：打开上次的窗口（[restored]）时用这个直播间记的（[room]），
+  /// 没记过时按“新开的多开窗口默认静音”；新开的窗口别的项照这个直播间记的，
+  /// 但“默认静音”开着时一定先静音。主窗口不用这些
+  static WindowSettings initial({
+    required bool restored,
+    required bool muteNew,
+    WindowSettings? room,
+    String? audioDevice,
+  }) {
+    var base = room?.roomPart ?? empty;
+    bool muted;
+    if (restored && room?.muted != null) {
+      muted = room!.muted!;
+    } else if (muteNew) {
+      muted = true;
+    } else {
+      muted = room?.muted ?? false;
+    }
+    return base.withMuted(muted).withDevice(audioDevice);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is WindowSettings &&
+      other.volume == volume &&
+      other.muted == muted &&
+      other.danmaku == danmaku &&
+      other.quality == quality &&
+      other.audioDevice == audioDevice;
+
+  @override
+  int get hashCode => Object.hash(volume, muted, danmaku, quality, audioDevice);
+
+  @override
+  String toString() => "WindowSettings(${toJson()})";
+}
+
+/// 选声音输出设备：记下的还在就用它；不在了（拔了耳机、换了电脑）用默认设备，
+/// [missing] 为 true（要提示一下）。没记过、记的是默认时用默认，不提示
+({String device, bool missing}) pickAudioDevice(
+    String? saved, List<String> available) {
+  if (saved == null || saved.isEmpty || saved == "auto") {
+    return (device: "auto", missing: false);
+  }
+  if (available.contains(saved)) {
+    return (device: saved, missing: false);
+  }
+  return (device: "auto", missing: true);
 }
 
 /// 记着开着的副窗口，定下“上次的一组”（历史页“打开上次的窗口”用）。
@@ -231,13 +396,40 @@ class WindowSetRecorder {
     WindowRoom? Function()? mainRoom,
     this.saveDelay = const Duration(milliseconds: 600),
     DateTime Function()? clock,
+    this.onGroupClosed,
   })  : _mainRoom = mainRoom,
         _clock = clock ?? DateTime.now;
 
   static const String kLast = "MultiWindowLastSet";
   static const String kOpen = "MultiWindowOpenSet";
   static const String kSlots = "MultiWindowSlotPlacements";
-  static const List<String> storageKeys = [kLast, kOpen, kSlots];
+
+  /// 每个编号（0 是主窗口）选的声音输出设备
+  static const String kSlotDevices = "MultiWindowSlotDevices";
+
+  /// 每个主窗口直播间最近一次和它一起关的那一组
+  static const String kGroups = "MultiWindowGroups";
+
+  /// 只在本机的（位置、声音输出设备）
+  static const List<String> storageKeys = [
+    kLast,
+    kOpen,
+    kSlots,
+    kSlotDevices,
+    kGroups,
+  ];
+
+  /// 多开时各直播间的设置（音量、静音、弹幕开关、清晰度）。本版本专用，
+  /// 跟着 WebDAV、局域网同步，放在扩展部分（官方版不读）
+  static const String kRoomSettings = "MultiWindowRoomSettings";
+
+  /// 最多记多少个直播间的设置、多少组
+  static const int maxRoomSettings = 200;
+  static const int maxGroups = 50;
+
+  /// 关全部、主窗口退出时，主窗口在一个直播间里：这一组记在这个直播间名下以后调用
+  /// （把这几个直播间的观看记录时间写在一起）
+  Future<void> Function(WindowSet group)? onGroupClosed;
 
   /// 挪窗口时连着来很多次，停下这么久以后再存
   final Duration saveDelay;
@@ -250,6 +442,8 @@ class WindowSetRecorder {
   /// 刚开时放的位置：报上来的还是这里就不算用户挪过
   final Map<int, Rect> _launched = {};
   final Map<int, WindowPlacement> _slots = {};
+  final Map<int, String> _slotDevices = {};
+  final Map<String, WindowSet> _groups = {};
   final Set<int> _closing = {};
   final Rx<WindowSet?> _last = Rx<WindowSet?>(null);
   bool _loaded = false;
@@ -273,6 +467,60 @@ class WindowSetRecorder {
   Map<int, WindowPlacement> get slotPlacements {
     _load();
     return Map.unmodifiable(_slots);
+  }
+
+  /// 这个直播间多开时记的设置（音量、静音、弹幕、清晰度）
+  WindowSettings? roomSettings(WindowRoom room) =>
+      _readRoomSettings()[_roomKey(room)];
+
+  /// 每次现读：同步（WebDAV、局域网）可能刚改过
+  Map<String, WindowSettings> _readRoomSettings() {
+    var result = <String, WindowSettings>{};
+    try {
+      var json =
+          jsonDecode(_storage?.getValue<String>(kRoomSettings, "") ?? "");
+      if (json is Map) {
+        json.forEach((key, value) {
+          try {
+            var settings = WindowSettings.fromJson(value).roomPart;
+            if (!settings.isEmpty) {
+              result[key.toString()] = settings;
+            }
+          } on FormatException {
+            // 坏了的这一项不要
+          }
+        });
+      }
+    } catch (_) {
+      // 没存过、坏了
+    }
+    return result;
+  }
+
+  static String _roomKey(WindowRoom room) => "${room.siteId}_${room.roomId}";
+
+  /// 第 [slot] 个窗口（0 是主窗口）选的声音输出设备
+  String? slotDevice(int slot) {
+    _load();
+    return _slotDevices[slot];
+  }
+
+  void setSlotDevice(int slot, String? device) {
+    _load();
+    if (device == null || device == "auto") {
+      _slotDevices.remove(slot);
+    } else {
+      _slotDevices[slot] = device;
+    }
+    unawaited(_write(kSlotDevices,
+        jsonEncode({for (var e in _slotDevices.entries) "${e.key}": e.value})));
+  }
+
+  /// 这个直播间作为主窗口时，最近一次和它一起关的那一组（没有时为 null）
+  WindowSet? groupFor(String siteId, String roomId) {
+    _load();
+    var group = _groups["$siteId|$roomId"];
+    return group == null || group.isEmpty ? null : group;
   }
 
   /// 开着、不在关的副窗口
@@ -308,6 +556,15 @@ class WindowSetRecorder {
       bounds: report.bounds,
       scale: report.bounds == null ? null : report.scale,
     );
+    var settings = report.settings;
+    if (settings != null) {
+      var current = _entries[slot]!;
+      if (settings.audioDevice != null) {
+        _entries[slot] = current.copyWith(audioDevice: settings.audioDevice);
+        setSlotDevice(slot, settings.audioDevice);
+      }
+      _saveRoomSettings(current.room, settings.roomPart);
+    }
     if (!_closing.contains(slot)) {
       _scheduleSave();
     }
@@ -326,6 +583,27 @@ class WindowSetRecorder {
       (a.top - b.top).abs() <= 2 &&
       (a.width - b.width).abs() <= 2 &&
       (a.height - b.height).abs() <= 2;
+
+  void _saveRoomSettings(WindowRoom room, WindowSettings settings) {
+    if (settings.isEmpty) {
+      return;
+    }
+    var key = _roomKey(room);
+    var all = _readRoomSettings();
+    var old = all[key];
+    var merged = (old ?? WindowSettings.empty).merge(settings).roomPart;
+    if (merged == old) {
+      return;
+    }
+    // 最近改的排在最后，太多时丢掉最早的
+    all.remove(key);
+    all[key] = merged;
+    while (all.length > maxRoomSettings) {
+      all.remove(all.keys.first);
+    }
+    unawaited(_write(kRoomSettings,
+        jsonEncode({for (var e in all.entries) e.key: e.value.toJson()})));
+  }
 
   String _encodeSlots() => jsonEncode({
         for (var e in _slots.entries) "${e.key}": jsonDecode(e.value.encode()),
@@ -366,7 +644,27 @@ class WindowSetRecorder {
       return false;
     }
     _closing.addAll(list.map((e) => e.slot));
-    await _freeze(list);
+    var set = await _freeze(list);
+    // 主窗口在一个直播间里：这一组记在它名下（同一个直播间只留最近的一组）。
+    // 之前手动关掉的不在里面
+    var main = set.mainRoom;
+    if (main != null) {
+      _groups.remove(main.key);
+      _groups[main.key] = set;
+      while (_groups.length > maxGroups) {
+        _groups.remove(_groups.keys.first);
+      }
+      await _write(
+          kGroups,
+          jsonEncode({
+            for (var e in _groups.entries) e.key: jsonDecode(e.value.encode())
+          }));
+      try {
+        await onGroupClosed?.call(set);
+      } catch (e) {
+        Log.logPrint(e);
+      }
+    }
     return true;
   }
 
@@ -417,18 +715,45 @@ class WindowSetRecorder {
     } catch (_) {
       // 没存过、坏了：当作都没记过
     }
+    Map? readMap(String key) {
+      try {
+        var json = jsonDecode(storage.getValue<String>(key, ""));
+        return json is Map ? json : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    readMap(kSlotDevices)?.forEach((key, value) {
+      var slot = int.tryParse(key.toString());
+      if (slot != null &&
+          slot >= 0 &&
+          slot <= SecondaryLaunch.maxWindows &&
+          value is String &&
+          value.isNotEmpty &&
+          value.length <= 512) {
+        _slotDevices[slot] = value;
+      }
+    });
+    readMap(kGroups)?.forEach((key, value) {
+      var set = WindowSet.decode(jsonEncode(value));
+      if (set != null && !set.isEmpty && set.mainRoom?.key == "$key") {
+        _groups[key.toString()] = set;
+      }
+    });
   }
 
   WindowSet _snapshot(List<WindowEntry> list) =>
       WindowSet(list, mainRoom: _mainRoom?.call(), time: _clock());
 
-  Future<void> _freeze(List<WindowEntry> list) async {
+  Future<WindowSet> _freeze(List<WindowEntry> list) async {
     _load();
     _saveTimer?.cancel();
     var set = _snapshot(list);
     _last.value = set;
     Log.i("多开：记下这一组 ${list.length} 个窗口");
     await Future.wait([_write(kLast, set.encode()), _write(kOpen, null)]);
+    return set;
   }
 
   void _scheduleSave() {
@@ -521,6 +846,67 @@ class StartupRestoreSetting {
       StartupRestore.open => StartupAction.open,
       StartupRestore.off => StartupAction.none,
     };
+  }
+}
+
+/// 电脑端设置 → 多开窗口里的开关，只在本机
+class MultiWindowPrefs {
+  MultiWindowPrefs._();
+
+  /// 新开的多开窗口默认静音（默认开；主窗口不受影响）
+  static const String kMuteNew = "MultiWindowMuteNew";
+
+  /// 每个窗口单独选声音输出设备（默认关）
+  static const String kDevicePerWindow = "MultiWindowDevicePerWindow";
+
+  static const List<String> storageKeys = [
+    kMuteNew,
+    kDevicePerWindow,
+    StartupRestoreSetting.kKey,
+  ];
+
+  static final Rx<bool> _muteNew = true.obs;
+  static final Rx<bool> _devicePerWindow = false.obs;
+  static bool _loaded = false;
+
+  static void _load() {
+    if (_loaded) {
+      return;
+    }
+    _loaded = true;
+    var storage = WindowSetRecorder._storage;
+    _muteNew.value = storage?.getValue<bool>(kMuteNew, true) ?? true;
+    _devicePerWindow.value =
+        storage?.getValue<bool>(kDevicePerWindow, false) ?? false;
+  }
+
+  static Rx<bool> get muteNew {
+    _load();
+    return _muteNew;
+  }
+
+  static Rx<bool> get devicePerWindow {
+    _load();
+    return _devicePerWindow;
+  }
+
+  static Future<void> setMuteNew(bool value) async {
+    _load();
+    _muteNew.value = value;
+    await WindowSetRecorder._storage?.setValue<bool>(kMuteNew, value);
+  }
+
+  static Future<void> setDevicePerWindow(bool value) async {
+    _load();
+    _devicePerWindow.value = value;
+    await WindowSetRecorder._storage?.setValue<bool>(kDevicePerWindow, value);
+  }
+
+  /// 测试用：下次重新从存档读
+  static void reset() {
+    _loaded = false;
+    _muteNew.value = true;
+    _devicePerWindow.value = false;
   }
 }
 
@@ -662,19 +1048,25 @@ class WindowRestore {
     );
   }
 
-  /// 记下的位置（[scale] 是当时那块屏幕的缩放）还能不能用：要在某块屏幕上找得到
-  /// （拔了副屏就找不到）。能用时返回应放的位置（缩放改了时按逻辑大小换算，
-  /// 整个放进那块屏幕的可用区域）和那块屏幕的缩放
+  /// 记下的位置（看得见的部分，[scale] 是当时那块屏幕的缩放）还能不能用：
+  /// 要在某块屏幕上找得到（拔了副屏就找不到）。能用时返回应放的位置和那块屏幕的缩放：
+  /// 缩放没变时原样放回（贴靠在边上、角上的还贴着），变了时按逻辑大小换算；
+  /// 超出可用区域的整个挪进来（按看得见的部分算，换算差一两个像素的不动）
   static (Rect, double)? savedSpot(
       Rect saved, double scale, List<ScreenArea> screens) {
     var displays = [for (var s in screens) DisplayArea(s.work, s.scale)];
     if (displays.isEmpty || !WindowGeometry.isReachable(saved, displays)) {
       return null;
     }
-    var fallback = WindowGeometry.displayOf(saved, displays) ?? displays.first;
-    var (rect, display) = WindowGeometry.restore(
-        WindowPlacement(saved, scale), displays, fallback);
-    var clamped = WindowLayout.clampInto(rect, display.work);
+    var display = WindowGeometry.displayOf(saved, displays) ?? displays.first;
+    var rect = (display.scale - scale).abs() < 0.01
+        ? saved
+        : saved.topLeft &
+            WindowGeometry.fit(
+                WindowGeometry.convertSize(saved.size, scale, display.scale),
+                display);
+    var clamped =
+        WindowLayout.clampInto(rect, display.work, slack: 2 * display.scale);
     return clamped == null ? null : (clamped, display.scale);
   }
 }

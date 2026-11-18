@@ -18,6 +18,7 @@
 		5A1EC0DE0000000000000009 /* ExternalDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1EC0DE000000000000000A /* ExternalDisplay.swift */; };
 		5A1EC0DE000000000000000B /* AvPlayerPipController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1EC0DE000000000000000C /* AvPlayerPipController.swift */; };
 		5A1EC0DE00000000000006A1 /* BackgroundAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1EC0DE00000000000006A2 /* BackgroundAudio.swift */; };
+		5A1EC0DE00000000000007A1 /* ScreenCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1EC0DE00000000000007A2 /* ScreenCapture.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -53,6 +54,7 @@
 		5A1EC0DE000000000000000A /* ExternalDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalDisplay.swift; sourceTree = "<group>"; };
 		5A1EC0DE000000000000000C /* AvPlayerPipController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvPlayerPipController.swift; sourceTree = "<group>"; };
 		5A1EC0DE00000000000006A2 /* BackgroundAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundAudio.swift; sourceTree = "<group>"; };
+		5A1EC0DE00000000000007A2 /* ScreenCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCapture.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 				5A1EC0DE000000000000000A /* ExternalDisplay.swift */,
 				5A1EC0DE000000000000000C /* AvPlayerPipController.swift */,
 				5A1EC0DE00000000000006A2 /* BackgroundAudio.swift */,
+				5A1EC0DE00000000000007A2 /* ScreenCapture.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -321,6 +324,7 @@
 				5A1EC0DE0000000000000009 /* ExternalDisplay.swift in Sources */,
 				5A1EC0DE000000000000000B /* AvPlayerPipController.swift in Sources */,
 				5A1EC0DE00000000000006A1 /* BackgroundAudio.swift in Sources */,
+				5A1EC0DE00000000000007A1 /* ScreenCapture.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

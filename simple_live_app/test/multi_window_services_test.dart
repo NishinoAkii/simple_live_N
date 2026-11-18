@@ -43,6 +43,7 @@ void main() {
       BackgroundTask.liveNotify,
       BackgroundTask.accountFollowQueue,
       BackgroundTask.liveSourceUpdateCheck,
+      BackgroundTask.appUpdateCheck,
     });
     // 主窗口什么都不跳过
     for (var task in BackgroundTask.values) {

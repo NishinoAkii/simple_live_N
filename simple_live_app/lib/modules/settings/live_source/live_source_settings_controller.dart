@@ -4,9 +4,11 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/log.dart';
+import 'package:simple_live_app/app/source_hooks.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/modules/settings/live_source/live_source_permission_dialog.dart';
 import 'package:simple_live_app/routes/route_path.dart';
+import 'package:simple_live_app/services/app_update/update_config.dart';
 import 'package:simple_live_app/services/live_source_service.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 
@@ -109,7 +111,8 @@ class LiveSourceSettingsController extends GetxController {
   }
 
   bool _checkUrl(String text) {
-    if (!LiveSourceService.isValidUrl(text)) {
+    if (!LiveSourceService.isValidUrl(text) &&
+        !SourceHooks.isPrivate(SourceHooks.normalizeUrl(text))) {
       SmartDialog.showToast("请输入 https:// 开头的地址（本机测试可用 file:///）".t);
       return false;
     }
@@ -128,9 +131,10 @@ class LiveSourceSettingsController extends GetxController {
     if (url == null || url.trim().isEmpty) {
       return;
     }
+    var address = SourceHooks.normalizeUrl(url.trim());
     await _installWithConfirm(
       "正在下载".t,
-      () => service.prepareInstallFromUrl(url.trim()),
+      () => service.prepareInstallFromUrl(address),
     );
   }
 
@@ -286,7 +290,19 @@ class LiveSourceSettingsController extends GetxController {
     if (url == null || url.trim().isEmpty) {
       return;
     }
-    url = url.trim();
+    await addSubscription(SourceHooks.normalizeUrl(url.trim()));
+  }
+
+  /// 默认的订阅（UpdateConfig.liveSourceSubscription）；没有时为空
+  String get defaultSubscription => UpdateConfig.current.liveSourceSubscription;
+
+  /// 添加默认的订阅（还没有订阅时设置页上有这一项）
+  Future<void> addDefaultSubscription() => addSubscription(defaultSubscription);
+
+  Future<void> addSubscription(String url) async {
+    if (url.isEmpty) {
+      return;
+    }
     if (service.subscriptions.contains(url)) {
       SmartDialog.showToast("已经添加过这个订阅".t);
       return;
@@ -294,7 +310,7 @@ class LiveSourceSettingsController extends GetxController {
     var added = await _run(
       "正在添加订阅".t,
       () async {
-        await service.addSubscription(url!);
+        await service.addSubscription(url);
         return true;
       },
       success: (_) => "已添加订阅".t,

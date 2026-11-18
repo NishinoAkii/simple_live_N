@@ -11,6 +11,8 @@ import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:simple_live_app/app/app_share.dart';
 import 'package:simple_live_app/app/app_style.dart';
+import 'package:simple_live_app/app/capture/capture_controller.dart';
+import 'package:simple_live_app/app/capture/capture_widgets.dart';
 import 'package:simple_live_app/app/constant.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
 import 'package:simple_live_app/app/danmaku_dedupe.dart';
@@ -28,6 +30,7 @@ import 'package:simple_live_app/modules/live_room/catch_up_policy.dart';
 import 'package:simple_live_app/modules/live_room/chat_log.dart';
 import 'package:simple_live_app/modules/live_room/live_gifts.dart';
 import 'package:simple_live_app/modules/live_room/listen_mode.dart';
+import 'package:simple_live_app/modules/live_room/live_room_capture.dart';
 import 'package:simple_live_app/modules/live_room/live_room_playback.dart';
 import 'package:simple_live_app/modules/live_room/live_room_tabs.dart';
 import 'package:simple_live_app/modules/live_room/rank/live_rank_state.dart';
@@ -319,6 +322,119 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     initCatchUp();
 
     super.onInit();
+    // 要在播放器设好音量（super.onInit）以后
+    _initWindowSettings();
+  }
+
+  // ---------------- 多开：这个窗口的音量、静音、弹幕、清晰度、声音输出设备 ----------------
+
+  /// 副窗口里只有第一次进的直播间用主窗口给的设置（之后是用户自己换的）
+  static bool _launchSettingsUsed = false;
+
+  /// 多开窗口打开上次的时，用那个窗口里选的清晰度（用一次）
+  String? _preferredQuality;
+  Worker? _windowSettingsWorker;
+  Timer? _windowSettingsTimer;
+
+  void _initWindowSettings() {
+    if (MultiWindow.isSecondary) {
+      var settings = _launchSettingsUsed ? null : MultiWindow.launchSettings;
+      _launchSettingsUsed = true;
+      if (settings != null) {
+        if (settings.volume case var volume?) {
+          AppSettingsController.instance.setPlayerVolume(volume);
+          player.setVolume(volume);
+        }
+        if (settings.danmaku case var danmaku?) {
+          showDanmakuState.value = danmaku;
+        }
+        if (settings.muted case var muted?) {
+          setMuted(muted);
+        }
+        _preferredQuality = settings.quality;
+        if (settings.audioDevice != null) {
+          unawaited(_restoreAudioDevice(settings.audioDevice));
+        }
+      }
+      // 之后变了告诉主窗口，记成这个直播间多开时的设置
+      _windowSettingsWorker = everAll([
+        AppSettingsController.instance.playerVolume,
+        muted,
+        showDanmakuState,
+        currentQualityInfo,
+        audioDevice,
+      ], (_) => _scheduleWindowSettings());
+      return;
+    }
+    // 主窗口：“每个窗口单独选声音输出设备”开着时用它自己记的
+    if (MultiWindow.canOpen && MultiWindowPrefs.devicePerWindow.value) {
+      var saved = MultiWindow.mainAudioDevice;
+      if (saved != null) {
+        unawaited(_restoreAudioDevice(saved));
+      }
+    }
+  }
+
+  void _scheduleWindowSettings() {
+    _windowSettingsTimer?.cancel();
+    _windowSettingsTimer = Timer(const Duration(milliseconds: 500), () {
+      var quality = currentQualityInfo.value;
+      MultiWindow.reportSettings(WindowSettings(
+        volume: AppSettingsController.instance.playerVolume.value,
+        muted: muted.value,
+        danmaku: showDanmakuState.value,
+        quality: quality.isEmpty ? null : quality,
+        audioDevice:
+            MultiWindowPrefs.devicePerWindow.value ? audioDevice.value : null,
+      ));
+    });
+  }
+
+  Future<void> _restoreAudioDevice(String? saved) async {
+    if (!await restoreAudioDevice(saved)) {
+      SmartDialog.showToast("上次选的声音输出设备不在了，改用默认设备".t);
+    }
+  }
+
+  /// 选声音输出设备（“每个窗口单独选声音输出设备”开着时，在“更多”里）
+  Future<void> showAudioDeviceSheet() async {
+    var list = await audioDevices();
+    if (list.isEmpty) {
+      SmartDialog.showToast("没有找到声音输出设备".t);
+      return;
+    }
+    Utils.showBottomSheet(
+      title: "声音输出设备".t,
+      child: Obx(
+        () => RadioGroup<String>(
+          groupValue: audioDevice.value,
+          onChanged: (name) {
+            Get.back();
+            var device = list.firstWhere((e) => e.name == name,
+                orElse: () => AudioDevice.auto());
+            unawaited(setAudioDevice(device));
+            if (!MultiWindow.isSecondary) {
+              MultiWindow.mainAudioDevice = device.name;
+            }
+          },
+          child: ListView(
+            children: [
+              for (var device in list)
+                RadioListTile<String>(
+                  value: device.name,
+                  title: Text(
+                    device.name == "auto"
+                        ? "默认设备".t
+                        : (device.description.isEmpty
+                            ? device.name
+                            : device.description),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// iOS 系统播放器小窗用的 HLS 地址（平台没有时为 null，改用 mpv 小窗）
@@ -430,6 +546,8 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   Future<void> exitApp() async {
     await WakelockPlus.disable();
+    // 多开窗口：退出前把位置告诉主窗口（和点关闭按钮一样）
+    await MultiWindow.reportPlacementNow();
     // 主窗口：多开的窗口一起关
     await ExitGuard.runBeforeClose();
     await WebDavSyncService.instance.flushBeforeExit();
@@ -503,6 +621,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
         // 录屏接口和弹幕记录（屏蔽检查之后）
         _obs?.publishChat(this, msg);
         _assRecorder?.addChat(msg);
+        // 流录制时和视频同名的弹幕文件
+        for (var sidecar in captureSidecars) {
+          sidecar.addChat(msg);
+        }
       }
       // iOS 画中画和投屏：弹幕画在小窗/电视上，聊天进电视侧栏（后台时也要）
       iosPip?.addMessage(
@@ -1046,6 +1168,15 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
       currentQuality = PlayPrefs.instance.pickQuality(
           site.id, playQualites, currentQuality,
           cellular: qualityOnCellular);
+      // 多开窗口打开上次的：用那个窗口里选的清晰度
+      var preferred = _preferredQuality;
+      _preferredQuality = null;
+      if (preferred != null) {
+        var index = playQualites.indexWhere((e) => e.quality == preferred);
+        if (index >= 0) {
+          currentQuality = index;
+        }
+      }
 
       getPlayUrl();
     } catch (e) {
@@ -1392,6 +1523,9 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     _obs?.publishSuperChats(this, added, live: live);
     if (live) {
       _assRecorder?.addSuperChats(added);
+      for (var sidecar in captureSidecars) {
+        sidecar.addSuperChats(added);
+      }
     }
     _superChatHistory.addAll(added);
     if (_superChatHistory.length > kMaxSuperChats) {
@@ -1723,17 +1857,29 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
           ),
           padding: AppStyle.edgeInsetsA4,
           child: Obx(
-            () => SizedBox(
-              width: 200,
-              child: Slider(
-                min: 0,
-                max: 100,
-                value: AppSettingsController.instance.playerVolume.value,
-                onChanged: (newValue) {
-                  player.setVolume(newValue);
-                  AppSettingsController.instance.setPlayerVolume(newValue);
-                },
-              ),
+            () => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 静音：不改音量，再点回到原来的音量
+                IconButton(
+                  tooltip: muted.value ? "取消静音".t : "静音".t,
+                  onPressed: () => setMuted(!muted.value),
+                  icon: Icon(muted.value ? Icons.volume_off : Icons.volume_up),
+                ),
+                SizedBox(
+                  width: 200,
+                  child: Slider(
+                    min: 0,
+                    max: 100,
+                    value: AppSettingsController.instance.playerVolume.value,
+                    onChanged: (newValue) {
+                      muted.value = false;
+                      player.setVolume(newValue);
+                      AppSettingsController.instance.setPlayerVolume(newValue);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -2181,6 +2327,17 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   DanmakuAssRecorder? _assRecorder;
   bool _assStarting = false;
+
+  /// 截图和录屏（顶栏、全屏时右边的按钮，见 app/capture）
+  late final CaptureController capture =
+      createCaptureController(LiveCaptureHost(this));
+
+  /// 流录制时和视频同名的弹幕文件（见 LiveCaptureHost.startSidecar）
+  final List<DanmakuAssRecorder> captureSidecars = [];
+
+  /// ⋯ 菜单和全屏顶栏里的截图也走截图和录屏的流程（图层、保存位置、图片信息）
+  @override
+  Future saveScreenshot() => capture.screenshot();
   Timer? _assRecordTimer;
 
   /// 正在记录弹幕（ASS）
@@ -2415,6 +2572,8 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     if (this.site == site && this.roomId == roomId) {
       return;
     }
+    // 正在录的是原来的直播间：先停下保存
+    capture.stopForLeave();
 
     rxSite.value = site;
     rxRoomId.value = roomId;
@@ -2565,6 +2724,8 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   @override
   void onClose() {
+    _windowSettingsWorker?.dispose();
+    _windowSettingsTimer?.cancel();
     _voiceRoomTimer?.cancel();
     MultiWindow.leaveRoom(this);
     AppSettingsController.instance.leaveRoomContext(_danmuContextId);
@@ -2575,6 +2736,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     _obs?.detach(this);
     disposeListenMode();
     stopAssRecording(closing: true);
+    capture.dispose();
     iosPip?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     autoExitTimer?.cancel();

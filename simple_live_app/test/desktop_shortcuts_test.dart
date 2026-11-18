@@ -10,7 +10,7 @@ import 'fakes/memory_storage.dart';
 /// 快捷键：按键表的规则、按键匹配、交给原生端的状态
 void main() {
   group("按键表", () {
-    test("默认：F 全屏、D 弹幕、M 静音、R 刷新、C 收起聊天、空格暂停、↑↓ 音量", () {
+    test("默认：F 全屏、D 弹幕、M 静音、R 刷新、C 收起聊天、空格暂停、↑↓ 音量、S 截图", () {
       var map = ShortcutKeys.defaultMap;
       expect(map[ShortcutAction.fullscreen], LogicalKeyboardKey.keyF);
       expect(map[ShortcutAction.danmaku], LogicalKeyboardKey.keyD);
@@ -20,7 +20,16 @@ void main() {
       expect(map[ShortcutAction.pause], LogicalKeyboardKey.space);
       expect(map[ShortcutAction.volumeUp], LogicalKeyboardKey.arrowUp);
       expect(map[ShortcutAction.volumeDown], LogicalKeyboardKey.arrowDown);
+      expect(map[ShortcutAction.screenshot], LogicalKeyboardKey.keyS);
       expect(map.values.toSet().length, ShortcutAction.values.length);
+      expect(ShortcutKeys.reservedReason(LogicalKeyboardKey.keyS), isNull);
+    });
+
+    test("以前把 S 设给了别的动作：S 还归那个动作，截图没有快捷键", () {
+      var map =
+          ShortcutKeys.decode('{"refresh": ${LogicalKeyboardKey.keyS.keyId}}');
+      expect(map[ShortcutAction.refresh], LogicalKeyboardKey.keyS);
+      expect(map[ShortcutAction.screenshot], isNull);
     });
 
     test("存了再读回来一样；关掉的存成 0，读回来还是关着", () {
@@ -236,7 +245,8 @@ void main() {
       shortcuts.attach(target);
       var state = shortcuts.captureState();
       expect(state["imeOff"], isTrue);
-      expect(state["keys"], [0x20, 0x26, 0x28, 0x43, 0x44, 0x46, 0x4D, 0x52]);
+      expect(state["keys"],
+          [0x20, 0x26, 0x28, 0x43, 0x44, 0x46, 0x4D, 0x52, 0x53]);
       // 关掉一个键，那个键就不截了
       shortcuts.setKey(ShortcutAction.mute, null);
       expect(shortcuts.captureState()["keys"], isNot(contains(0x4D)));

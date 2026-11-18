@@ -9,6 +9,7 @@
 #include <memory>
 #include <set>
 
+#include "capture_channel.h"
 #include "win32_window.h"
 
 // A window that does nothing but host a Flutter view.
@@ -62,6 +63,9 @@ class FlutterWindow : public Win32Window {
   // Scan codes (with the extended-key bit) whose key-down was taken, so the
   // matching key-up is taken too and Flutter never sees an unpaired event.
   std::set<UINT> swallowed_scan_codes_;
+
+  // simple_live/capture: clipboard image/files and recording this window.
+  std::unique_ptr<CaptureChannel> capture_channel_;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

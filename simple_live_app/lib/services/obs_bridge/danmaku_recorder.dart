@@ -39,7 +39,8 @@ class DanmakuAssRecorder {
 
   Duration get elapsed => DateTime.now().difference(startedAt);
 
-  /// 在 [dir] 里新建文件开始记录。[roomKey]、[roomLabel] 为当前直播间，写一行备注
+  /// 在 [dir] 里新建文件开始记录。[roomKey]、[roomLabel] 为当前直播间，写一行备注。
+  /// 给了 [file] 时就写到它（录屏时和视频同名的弹幕文件）
   static Future<DanmakuAssRecorder> start({
     required Directory dir,
     required AssOptions options,
@@ -48,21 +49,29 @@ class DanmakuAssRecorder {
     String? roomKey,
     String? roomLabel,
     DateTime? now,
+    File? file,
   }) async {
     var time = now ?? DateTime.now();
     await dir.create(recursive: true);
-    var name = assFileName(site: site, roomId: roomId, time: time);
-    var file = File(p.join(dir.path, name));
-    // 同一秒再次开始时加序号，不覆盖
-    for (var i = 2; await file.exists(); i++) {
-      file = File(p.join(dir.path, name.replaceFirst(".ass", "_$i.ass")));
+    File target;
+    if (file != null) {
+      target = file;
+    } else {
+      var name = assFileName(site: site, roomId: roomId, time: time);
+      var candidate = File(p.join(dir.path, name));
+      // 同一秒再次开始时加序号，不覆盖
+      for (var i = 2; await candidate.exists(); i++) {
+        candidate =
+            File(p.join(dir.path, name.replaceFirst(".ass", "_$i.ass")));
+      }
+      target = candidate;
     }
-    var handle = await file.open(mode: FileMode.write);
+    var handle = await target.open(mode: FileMode.write);
     var writer = AssDanmakuWriter(options);
     var title = roomLabel == null || roomLabel.isEmpty
         ? "SimpleLive 弹幕".t
         : "SimpleLive 弹幕 - {roomLabel}".tf({"roomLabel": roomLabel});
-    var recorder = DanmakuAssRecorder._(file, handle, writer, time, roomKey);
+    var recorder = DanmakuAssRecorder._(target, handle, writer, time, roomKey);
     recorder._pending.write("\uFEFF${writer.header(title: title)}");
     if (roomLabel != null && roomLabel.isNotEmpty) {
       recorder._writeLine(

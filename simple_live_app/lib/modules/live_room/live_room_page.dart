@@ -7,8 +7,13 @@ import 'package:get/get.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:simple_live_app/app/app_style.dart';
+import 'package:simple_live_app/app/capture/capture_scope.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
+import 'package:simple_live_app/app/capture/capture_widgets.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
+import 'package:simple_live_app/app/multi_window/multi_window.dart';
 import 'package:simple_live_app/app/multi_window/multi_window_widgets.dart';
+import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/player_lock.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/app/window_pin.dart';
@@ -154,23 +159,34 @@ class LiveRoomPage extends GetView<LiveRoomController> {
         // 弹出键盘时收起主播信息、标签栏和底栏：聊天区多留些空间，
         // 点空白处收起键盘时也不会误点到“取消关注”
         var typing = MediaQuery.viewInsetsOf(context).bottom > 0;
-        return Scaffold(
-          appBar: AppBar(
-            title: Obx(
-              () => Text(controller.detail.value?.title ?? "直播间".t),
+        // 截图范围选“完整窗口”时截整个页面
+        return CaptureLayerBox(
+          scope: controller.capture.scope,
+          layer: CaptureLayer.page,
+          child: Scaffold(
+            appBar: AppBar(
+              // 返回键右边：显示、隐藏视频信息
+              leadingWidth: CaptureLeading.widthOf(context),
+              leading: CaptureLeading(controller: controller.capture),
+              title: Obx(
+                () => Text(controller.detail.value?.title ?? "直播间".t),
+              ),
+              actions: [
+                // 截图、录屏（点一下开始，再点一下停止）
+                CaptureScreenshotButton(controller: controller.capture),
+                CaptureRecordButton(controller: controller.capture),
+                // 电脑：这个窗口置顶或回到正常层（主窗口、多开窗口各管各的）
+                if (WindowPin.supported) const WindowPinButton(),
+                // 宽屏：收起、展开右侧的聊天栏
+                if (orientation == Orientation.landscape)
+                  LiveChatToggleButton(controller: controller),
+                ...buildAppbarActions(context),
+              ],
             ),
-            actions: [
-              // 电脑：这个窗口置顶或回到正常层（主窗口、多开窗口各管各的）
-              if (WindowPin.supported) const WindowPinButton(),
-              // 宽屏：收起、展开右侧的聊天栏
-              if (orientation == Orientation.landscape)
-                LiveChatToggleButton(controller: controller),
-              ...buildAppbarActions(context),
-            ],
+            body: orientation == Orientation.portrait
+                ? buildPhoneUI(context, typing)
+                : buildTabletUI(context, typing),
           ),
-          body: orientation == Orientation.portrait
-              ? buildPhoneUI(context, typing)
-              : buildTabletUI(context, typing),
         );
       },
     );
@@ -188,7 +204,8 @@ class LiveRoomPage extends GetView<LiveRoomController> {
           visible: !typing,
           child: buildUserProfile(context),
         ),
-        buildMessageArea(showTabs: !typing),
+        // 手机竖屏时聊天区在播放器下面，截图选了侧栏时截它
+        buildMessageArea(showTabs: !typing, captureBox: true),
         Visibility(
           visible: !typing,
           child: buildBottomActions(context),
@@ -199,17 +216,21 @@ class LiveRoomPage extends GetView<LiveRoomController> {
 
   Widget buildTabletUI(BuildContext context, bool typing) {
     // 侧栏可拖动左边缘调整宽度
-    var sidePanel = ResizableSidePanel(
-      storageKey: "LiveSidePanelWidth",
-      defaultWidth: 300,
-      child: Column(
-        children: [
-          Visibility(
-            visible: !typing,
-            child: buildUserProfile(context),
-          ),
-          buildMessageArea(showTabs: !typing),
-        ],
+    var sidePanel = CaptureLayerBox(
+      scope: controller.capture.scope,
+      layer: CaptureLayer.sidePanel,
+      child: ResizableSidePanel(
+        storageKey: "LiveSidePanelWidth",
+        defaultWidth: 300,
+        child: Column(
+          children: [
+            Visibility(
+              visible: !typing,
+              child: buildUserProfile(context),
+            ),
+            buildMessageArea(showTabs: !typing),
+          ],
+        ),
       ),
     );
     return Column(
@@ -337,19 +358,24 @@ class LiveRoomPage extends GetView<LiveRoomController> {
     }
     return Stack(
       children: [
-        Video(
-          key: controller.globalPlayerKey,
-          controller: controller.videoController,
-          // 进入后台自动暂停、回来时重新拉流由直播间自己做（onLifecycleForPause）
-          pauseUponEnteringBackgroundMode: false,
-          resumeUponEnteringForegroundMode: false,
-          controls: (state) {
-            return playerControls(state, controller);
-          },
-          aspectRatio: aspectRatio,
+        // 截完整窗口时视频换成截到的那一帧（纹理截不了）
+        CaptureVideoMask(
+          scope: controller.capture.scope,
           fit: boxFit,
-          // 自己实现
-          wakelock: false,
+          child: Video(
+            key: controller.globalPlayerKey,
+            controller: controller.videoController,
+            // 进入后台自动暂停、回来时重新拉流由直播间自己做（onLifecycleForPause）
+            pauseUponEnteringBackgroundMode: false,
+            resumeUponEnteringForegroundMode: false,
+            controls: (state) {
+              return playerControls(state, controller);
+            },
+            aspectRatio: aspectRatio,
+            fit: boxFit,
+            // 自己实现
+            wakelock: false,
+          ),
         ),
         Obx(
           () => Visibility(
@@ -532,72 +558,76 @@ class LiveRoomPage extends GetView<LiveRoomController> {
     );
   }
 
-  Widget buildMessageArea({bool showTabs = true}) {
+  Widget buildMessageArea({bool showTabs = true, bool captureBox = false}) {
     // 切换直播间时整组标签页重建，避免沿用上一个直播间的内容
     return Expanded(
-      child: Obx(
-        () {
-          var tabs = liveRoomTabs(
-            superChat: controller.supportsSuperChat,
-            gifts: controller.supportsGifts,
-          );
-          return DefaultTabController(
-            key: ValueKey("tabs_${controller.site.id}_${controller.roomId}"),
-            length: tabs.length,
-            child: Column(
-              children: [
-                // 点在线人数时切到礼物页（看榜单）；不占地方
-                LiveRoomTabJumper(
-                  tabs: tabs,
-                  jumps: controller.tabJumps,
-                  child: const SizedBox.shrink(),
-                ),
-                // 平均分布占满整栏，侧栏很宽时靠左，太窄时横向滚动
-                Visibility(
-                  visible: showTabs,
-                  child: AdaptiveTabBar(
-                    tabs: [
-                      for (var tab in tabs)
-                        liveRoomTabLabel(
-                          tab,
-                          superChat: Obx(
-                            () {
-                              // 标题显示直播间里仍在显示的 SC 数量，随时间刷新
-                              controller.scNow.value;
-                              var active = controller.superChats
-                                  .where(controller.isSuperChatActive)
-                                  .length;
-                              return Text(active > 0 ? "SC($active)" : "SC");
-                            },
+      child: CaptureLayerBox(
+        scope: captureBox ? controller.capture.scope : null,
+        layer: CaptureLayer.sidePanel,
+        child: Obx(
+          () {
+            var tabs = liveRoomTabs(
+              superChat: controller.supportsSuperChat,
+              gifts: controller.supportsGifts,
+            );
+            return DefaultTabController(
+              key: ValueKey("tabs_${controller.site.id}_${controller.roomId}"),
+              length: tabs.length,
+              child: Column(
+                children: [
+                  // 点在线人数时切到礼物页（看榜单）；不占地方
+                  LiveRoomTabJumper(
+                    tabs: tabs,
+                    jumps: controller.tabJumps,
+                    child: const SizedBox.shrink(),
+                  ),
+                  // 平均分布占满整栏，侧栏很宽时靠左，太窄时横向滚动
+                  Visibility(
+                    visible: showTabs,
+                    child: AdaptiveTabBar(
+                      tabs: [
+                        for (var tab in tabs)
+                          liveRoomTabLabel(
+                            tab,
+                            superChat: Obx(
+                              () {
+                                // 标题显示直播间里仍在显示的 SC 数量，随时间刷新
+                                controller.scNow.value;
+                                var active = controller.superChats
+                                    .where(controller.isSuperChatActive)
+                                    .length;
+                                return Text(active > 0 ? "SC($active)" : "SC");
+                              },
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      for (var tab in tabs)
-                        switch (tab) {
-                          LiveRoomTab.chat => LiveChatSearchView(
-                              controller: controller,
-                              chatList: buildChatList(),
-                            ),
-                          LiveRoomTab.superChat => buildSuperChats(),
-                          LiveRoomTab.gifts =>
-                            LiveGiftList(controller: controller),
-                          LiveRoomTab.follow => buildFollowList(
-                              tabIndex: tabs.indexOf(LiveRoomTab.follow),
-                            ),
-                          LiveRoomTab.settings => buildSettings(),
-                        },
-                    ],
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        for (var tab in tabs)
+                          switch (tab) {
+                            LiveRoomTab.chat => LiveChatSearchView(
+                                controller: controller,
+                                chatList: buildChatList(),
+                              ),
+                            LiveRoomTab.superChat => buildSuperChats(),
+                            LiveRoomTab.gifts =>
+                              LiveGiftList(controller: controller),
+                            LiveRoomTab.follow => buildFollowList(
+                                tabIndex: tabs.indexOf(LiveRoomTab.follow),
+                              ),
+                            LiveRoomTab.settings => buildSettings(),
+                          },
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -1171,7 +1201,9 @@ class LiveRoomPage extends GetView<LiveRoomController> {
               title: Text("截图".t),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                controller.saveScreenshot();
+                // 和顶栏的截图键一样（图层、保存位置、图片信息按“截图和录屏”的设置）
+                Get.back();
+                controller.capture.screenshot();
               },
             ),
             // 听直播时不开小窗。先读 listen.active：电脑上 && 短路读不到它，
@@ -1200,6 +1232,17 @@ class LiveRoomPage extends GetView<LiveRoomController> {
               userName: controller.detail.value?.userName ?? "",
               title: controller.detail.value?.title ?? "",
             ),
+            // 每个窗口单独选声音输出设备（电脑端设置 → 多开窗口里打开）
+            if (MultiWindow.supported && MultiWindowPrefs.devicePerWindow.value)
+              ListTile(
+                leading: const Icon(Icons.speaker_outlined),
+                title: Text("声音输出设备".t),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Get.back();
+                  controller.showAudioDeviceSheet();
+                },
+              ),
             Obx(
               () => ListTile(
                 leading: Icon(

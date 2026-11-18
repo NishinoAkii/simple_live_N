@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 
@@ -134,24 +135,59 @@ class VideoStats {
     return "${(a ?? 0) + (b ?? 0)}";
   }
 
-  /// 浮层上的各行（名称, 值）
-  static List<(String, String)> lines(Map<String, String> v) {
+  /// 各行的编号，设置里“视频信息显示的内容”按它记
+  static const List<String> fieldIds = [
+    "resolution",
+    "fps",
+    "videoBitrate",
+    "audioBitrate",
+    "codec",
+    "drops",
+    "buffer",
+    "speed",
+  ];
+
+  /// 一行的名称
+  static String fieldLabel(String id) => switch (id) {
+        "resolution" => "分辨率".t,
+        "fps" => "帧率".t,
+        "videoBitrate" => "视频码率".t,
+        "audioBitrate" => "音频码率".t,
+        "codec" => "编解码".t,
+        "drops" => "丢帧".t,
+        "buffer" => "缓冲".t,
+        "speed" => "下载速度".t,
+        _ => id,
+      };
+
+  /// 浮层上的各行（名称, 值）。[only] 不为空时只要这些行（[fieldIds] 里的编号）
+  static List<(String, String)> lines(
+    Map<String, String> v, {
+    Iterable<String>? only,
+  }) {
+    var values = <String, String>{
+      "resolution": resolution(v["video-params/w"], v["video-params/h"]),
+      "fps": fps(v["estimated-vf-fps"], v["container-fps"]),
+      "videoBitrate": bitrate(v["video-bitrate"]),
+      "audioBitrate": bitrate(v["audio-bitrate"]),
+      "codec": codec(v["video-format"], v["video-codec"], v["hwdec-current"]),
+      "drops": drops(v["frame-drop-count"], v["decoder-frame-drop-count"]),
+      "buffer": seconds(v["demuxer-cache-duration"]),
+      "speed": speed(v["cache-speed"]),
+    };
+    var wanted = only?.toSet() ?? const <String>{};
     return [
-      ("分辨率".t, resolution(v["video-params/w"], v["video-params/h"])),
-      ("帧率".t, fps(v["estimated-vf-fps"], v["container-fps"])),
-      ("视频码率".t, bitrate(v["video-bitrate"])),
-      ("音频码率".t, bitrate(v["audio-bitrate"])),
-      ("编解码".t, codec(v["video-format"], v["video-codec"], v["hwdec-current"])),
-      ("丢帧".t, drops(v["frame-drop-count"], v["decoder-frame-drop-count"])),
-      ("缓冲".t, seconds(v["demuxer-cache-duration"])),
-      ("下载速度".t, speed(v["cache-speed"])),
+      for (var id in fieldIds)
+        if (wanted.isEmpty || wanted.contains(id))
+          (fieldLabel(id), values[id]!),
     ];
   }
 }
 
-/// 播放器左上角的视频信息（帧率、码率等），在设置中开关。
+/// 播放器左上角的视频信息（帧率、码率等），顶栏的按钮或设置里开关，
+/// 显示哪几行在直播间设置里选（CaptureSettings.videoStatsFields）。
 /// 只在显示时每秒读取一次；页面被盖住时暂停读取。
-/// 不拦截手势，位置由外层 Positioned 决定
+/// 不拦截手势（双击浮层隐藏由播放器的手势层按位置判断），位置由外层 Positioned 决定
 class VideoStatsOverlay extends StatefulWidget {
   final Player player;
   const VideoStatsOverlay({required this.player, super.key});
@@ -243,6 +279,19 @@ class _VideoStatsOverlayState extends State<VideoStatsOverlay> {
     }
   }
 
+  /// 设置里选了的行（没选时全部）
+  List<(String, String)> _visibleLines() {
+    var wanted = CaptureSettings.instance.videoStatsFields.toSet();
+    if (wanted.isEmpty) {
+      return _lines;
+    }
+    var labels = {
+      for (var id in VideoStats.fieldIds)
+        if (wanted.contains(id)) VideoStats.fieldLabel(id),
+    };
+    return _lines.where((e) => labels.contains(e.$1)).toList();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -269,7 +318,7 @@ class _VideoStatsOverlayState extends State<VideoStatsOverlay> {
             child: Table(
               defaultColumnWidth: const IntrinsicColumnWidth(),
               children: [
-                for (var (label, value) in _lines)
+                for (var (label, value) in _visibleLines())
                   TableRow(
                     children: [
                       Padding(

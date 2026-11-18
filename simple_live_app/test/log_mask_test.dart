@@ -40,6 +40,7 @@ void main() {
       expect(line, contains("Host: h"));
     });
 
+
     test("同样的值校验码相同，可以对比；普通内容不变", () {
       expect(LogMask.hide("value"), LogMask.hide("value"));
       expect(LogMask.hide("value"), isNot(LogMask.hide("value2")));

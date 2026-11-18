@@ -355,6 +355,42 @@ Future<void> runStartupRestore() async {
   }
 }
 
+/// 观看记录里点了一个直播间：照常打开；它是一组的主窗口直播间时（上次和几个多开窗口一起关的），
+/// 再问要不要把那几个也打开（应用里的对话框）
+Future<void> openHistoryRoom(Site site, String roomId) async {
+  var group = MultiWindow.groupFor(site.id, roomId);
+  AppNavigator.toLiveRoomDetail(site: site, roomId: roomId);
+  if (group == null) {
+    return;
+  }
+  // 等直播间页面出来再问
+  await Future<void>.delayed(const Duration(milliseconds: 400));
+  var yes = await Utils.showAlertDialog(
+    "也打开上次一起看的 {count} 个直播间吗？".tf({"count": group.windows.length}),
+    title: "多开窗口".t,
+    confirm: "都打开".t,
+    cancel: "只打开这个".t,
+  );
+  if (yes) {
+    await openGroupWindows(group);
+  }
+}
+
+/// 长按观看记录里一组的主窗口直播间：这个在主窗口打开，上次一起看的在多开窗口里打开
+Future<void> openHistoryGroup(Site site, String roomId, WindowSet group) async {
+  AppNavigator.toLiveRoomDetail(site: site, roomId: roomId);
+  await Future<void>.delayed(const Duration(milliseconds: 400));
+  await openGroupWindows(group);
+}
+
+/// 打开一组里的多开窗口，提示开了几个
+Future<void> openGroupWindows(WindowSet group) async {
+  var result = await MultiWindow.restoreGroup(group);
+  if (result != null) {
+    SmartDialog.showToast(result.message);
+  }
+}
+
 /// 打开上次的一组，提示开了几个；主窗口不在直播间里时，在主窗口打开它上次在看的直播间
 Future<void> restoreLastWindows() async {
   var result = await MultiWindow.restoreLast();

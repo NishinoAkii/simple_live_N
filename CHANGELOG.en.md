@@ -1,20 +1,22 @@
 # Changelog
 
-## 1.24.2 (12402)
+## 1.26.0 (12600)
 
 ### New
 
-- On desktop, a pin button at the top right of the live room keeps the window above other windows; click it again to turn it off. Pinning or unpinning the main window applies to every open extra window, while the pin in an extra window affects only that window. The setting is not kept after the window closes, and leaving the small window restores the previous state. Not included in the Windows 7 package.
-- On desktop, up to 6 extra windows can be open (previously 4). Each window remembers where you moved it and its size, and opens there next time.
-- The app remembers the last set of extra windows (rooms, positions and opening order). Reopen them with the button next to Refresh on the watch history page or under Me → Desktop settings → Extra windows; rooms that are already open are not opened twice. At startup the app asks whether to reopen them by default, and Desktop settings can change this to always or never.
-
-### Improved
-
-- Closing the main window also closes the extra windows. If the main window quits unexpectedly, the extra windows close by themselves after a few seconds.
+- Screenshots and recording in the live room, at the right of the top bar and next to the lock button in fullscreen. For screenshots you choose which layers and which area to capture. Recording saves the stream as it is, up to 2 minutes, or as a GIF. You can save, copy or delete the result (videos can't be copied on phones).
+- A button next to Back shows or hides the video info; pick what it shows under Room settings.
+- In-app updates: the app checks for a new version at startup, or when you tap Me → Check for updates, and verifies the SHA-256 of the download before installing.
+- The Check for updates page can set a translation source for downloading and updating interface translations.
+- A keep-on-top button in the live room on desktop.
+- Up to 6 extra windows. Each remembers its own position, size and sound settings, and the last set can be reopened in one go. New extra windows start muted, each can use its own audio output, and they close together with the main window.
 
 ### Fixed
 
-- On desktop, the live room's More menu showed a grey area below Screenshot, so Open in new window, Audio only, Sleep timer, Share room and the other items could not be used.
+- On desktop, the lower half of the live room's More menu turned into a grey area that could not be used.
+- On Windows, a window snapped to a screen edge reopened slightly off.
+
+The Windows 7 package does not include in-app updates or keep on top.
 
 ## 1.24.0 (12400)
 

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:simple_live_app/app/source_hooks.dart';
 import 'package:simple_live_core/simple_live_core.dart'
     show CoreText, I18nText;
 
@@ -253,11 +254,13 @@ class I18n {
   );
 
   /// 导入翻译文件的内容。文件里没写 @@code 时用 [fallbackCode]；
-  /// [source] 是下载的网址，记在文件里，之后可以再下载一次更新
+  /// [source] 是下载的网址，记在文件里，之后可以再下载一次更新；
+  /// [meta] 是翻译源清单里这一项的版本、校验值（@@version、@@sha256），检查更新时用
   static Future<AppLanguage> importText(
     String text, {
     String fallbackCode = "",
     String source = "",
+    Map<String, String> meta = const {},
   }) async {
     var parsed = parseTable(text);
     var code = parsed.code.isEmpty ? fallbackCode : parsed.code;
@@ -270,15 +273,22 @@ class I18n {
     if (parsed.table.isEmpty) {
       throw FormatException("文件里没有译文".t);
     }
-    if (source.isNotEmpty && parsed.source != source) {
+    var extra = {
+      for (var entry in meta.entries)
+        if (entry.value.isNotEmpty) "@@${entry.key}": entry.value,
+    };
+    if ((source.isNotEmpty && parsed.source != source) || extra.isNotEmpty) {
       var json = Map<String, dynamic>.from(jsonDecode(text) as Map)
         ..remove("@@code")
         ..remove("@@name")
-        ..remove("@@source");
+        ..remove("@@source")
+        ..removeWhere((key, _) => extra.containsKey(key));
       text = const JsonEncoder.withIndent("  ").convert({
         "@@code": code,
         "@@name": parsed.name.isEmpty ? code : parsed.name,
-        "@@source": source,
+        if (source.isNotEmpty || parsed.source.isNotEmpty)
+          "@@source": source.isNotEmpty ? source : parsed.source,
+        ...extra,
         ...json,
       });
     }
@@ -330,6 +340,14 @@ class I18n {
   }
 
   static Future<String> _download(String url) async {
+    // 装了 SourceHooks 时，github: 地址由它读
+    var hook = SourceHooks.fetch;
+    if (hook != null) {
+      var bytes = await hook(url.trim());
+      if (bytes != null) {
+        return utf8.decode(bytes, allowMalformed: true);
+      }
+    }
     var uri = Uri.tryParse(rawUrl(url));
     if (uri == null || !(uri.isScheme("https") || uri.isScheme("http"))) {
       throw FormatException("请填 http 或 https 开头的网址".t);
@@ -361,7 +379,7 @@ class I18n {
   /// 让用户挑了以后再用其中的 url 调一次
   static Future<({AppLanguage? added, List<RemoteLanguage> choices})>
   addFromUrl(String url) async {
-    var address = rawUrl(url);
+    var address = rawUrl(SourceHooks.normalizeUrl(url.trim()));
     var text = await _download(address);
     dynamic json;
     try {

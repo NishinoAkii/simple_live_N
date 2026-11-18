@@ -7,6 +7,9 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:simple_live_app/app/app_style.dart';
+import 'package:simple_live_app/app/capture/capture_scope.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
+import 'package:simple_live_app/app/capture/capture_widgets.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
@@ -29,19 +32,32 @@ Widget playerControls(
   VideoState videoState,
   LiveRoomController controller,
 ) {
-  return Obx(() {
-    if (controller.fullScreenState.value) {
-      return buildFullControls(
+  // 截图和录屏量播放器的位置用（控制层铺满整个播放器）
+  return CaptureLayerBox(
+    scope: controller.capture.scope,
+    layer: CaptureLayer.player,
+    child: Obx(() {
+      if (controller.fullScreenState.value) {
+        return buildFullControls(
+          videoState,
+          controller,
+        );
+      }
+      return buildControls(
+        videoState.context.orientation == Orientation.portrait,
         videoState,
         controller,
       );
-    }
-    return buildControls(
-      videoState.context.orientation == Orientation.portrait,
-      videoState,
-      controller,
-    );
-  });
+    }),
+  );
+}
+
+/// 双击：落在视频信息浮层上时只隐藏浮层，别处照常（全屏/退出全屏）
+void _onDoubleTapDown(LiveRoomController controller, TapDownDetails details) {
+  if (controller.capture.hideVideoStatsAt(details.globalPosition)) {
+    return;
+  }
+  controller.onDoubleTap(details);
 }
 
 Widget buildFullControls(
@@ -75,7 +91,7 @@ Widget buildFullControls(
         Positioned.fill(
           child: GestureDetector(
             onTap: controller.onTap,
-            onDoubleTapDown: controller.onDoubleTap,
+            onDoubleTapDown: (d) => _onDoubleTapDown(controller, d),
             onLongPress: () {
               if (controller.lockControlsState.value) {
                 return;
@@ -171,7 +187,12 @@ Widget buildFullControls(
                       size: 24,
                     ),
                   ),
-                  AppStyle.hGap12,
+                  // 返回键右边：显示、隐藏视频信息
+                  VideoStatsToggleButton(
+                    controller: controller.capture,
+                    color: Colors.white,
+                  ),
+                  AppStyle.hGap4,
                   Expanded(
                     child: Text(
                       "${controller.detail.value?.title} - ${controller.detail.value?.userName}",
@@ -181,14 +202,18 @@ Widget buildFullControls(
                     ),
                   ),
                   AppStyle.hGap12,
-                  IconButton(
-                    onPressed: () {
-                      controller.saveScreenshot();
-                    },
-                    icon: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.white,
-                      size: 24,
+                  // 截图键不进画面录制
+                  CaptureButtonVisibility(
+                    scope: controller.capture.scope,
+                    child: IconButton(
+                      onPressed: () {
+                        controller.saveScreenshot();
+                      },
+                      icon: const Icon(
+                        Icons.camera_alt_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                   ),
                   // 榜单（设置里关掉“显示榜单”时没有）
@@ -264,6 +289,15 @@ Widget buildFullControls(
                 : -(64 + padding.right),
             duration: const Duration(milliseconds: 200),
             child: buildLockButton(controller),
+          ),
+        ),
+        // 右边锁形键上下：截图、录屏（设置里可以让它们一直显示）
+        Obx(
+          () => FullscreenCaptureButtons(
+            controller: controller.capture,
+            shown: controller.showControlsState.value &&
+                !controller.lockControlsState.value,
+            right: padding.right + 12,
           ),
         ),
         // 左侧锁定
@@ -384,7 +418,7 @@ Widget buildControls(
       Positioned.fill(
         child: GestureDetector(
           onTap: controller.onTap,
-          onDoubleTapDown: controller.onDoubleTap,
+          onDoubleTapDown: (d) => _onDoubleTapDown(controller, d),
           onVerticalDragStart: (details) => controller.onVerticalDragStart(
             details,
             area: videoState.context.size,
@@ -570,10 +604,13 @@ Widget buildFullBottomBar(
             onPressed: () {
               controller.showVolumeSlider(volumeButtonkey.currentContext!);
             },
-            icon: const Icon(
-              Icons.volume_down,
-              size: 24,
-              color: Colors.white,
+            // 静音时（多开窗口默认静音）图标换成静音的
+            icon: Obx(
+              () => Icon(
+                controller.muted.value ? Icons.volume_off : Icons.volume_down,
+                size: 24,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -702,10 +739,13 @@ Widget buildBottomBar(
                 volumeButtonkey.currentContext!,
               );
             },
-            icon: const Icon(
-              Icons.volume_down,
-              size: 24,
-              color: Colors.white,
+            // 静音时（多开窗口默认静音）图标换成静音的
+            icon: Obx(
+              () => Icon(
+                controller.muted.value ? Icons.volume_off : Icons.volume_down,
+                size: 24,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -792,7 +832,11 @@ Widget buildVideoStats(
       duration: const Duration(milliseconds: 200),
       left: padding.left + 8,
       top: fullScreen && barShown ? padding.top + 48 + 4 : padding.top + 8,
-      child: VideoStatsOverlay(player: controller.player),
+      child: CaptureLayerBox(
+        scope: controller.capture.scope,
+        layer: CaptureLayer.videoStats,
+        child: VideoStatsOverlay(player: controller.player),
+      ),
     );
   });
 }
@@ -821,18 +865,22 @@ Widget buildDanmuView(VideoState videoState, LiveRoomController controller) {
   return Positioned.fill(
     top: padding.top,
     bottom: padding.bottom,
-    child: Obx(
-      () => Offstage(
-        offstage: !controller.showDanmakuState.value,
-        child: Padding(
-          padding: controller.fullScreenState.value
-              ? EdgeInsets.only(
-                  top: AppSettingsController.instance.danmuTopMargin.value,
-                  bottom:
-                      AppSettingsController.instance.danmuBottomMargin.value,
-                )
-              : EdgeInsets.zero,
-          child: controller.danmakuView!,
+    child: CaptureLayerBox(
+      scope: controller.capture.scope,
+      layer: CaptureLayer.danmaku,
+      child: Obx(
+        () => Offstage(
+          offstage: !controller.showDanmakuState.value,
+          child: Padding(
+            padding: controller.fullScreenState.value
+                ? EdgeInsets.only(
+                    top: AppSettingsController.instance.danmuTopMargin.value,
+                    bottom:
+                        AppSettingsController.instance.danmuBottomMargin.value,
+                  )
+                : EdgeInsets.zero,
+            child: controller.danmakuView!,
+          ),
         ),
       ),
     ),

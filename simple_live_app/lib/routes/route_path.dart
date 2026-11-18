@@ -57,6 +57,9 @@ class RoutePath {
   /// 电脑端设置：快捷键、记住窗口、显卡偏好
   static const kSettingsDesktop = "/settings/desktop";
 
+  /// 更新：检查更新、启动时检查、下载源、翻译源
+  static const kSettingsUpdate = "/settings/update";
+
   /// 一个直播源的详情（权限、签名、设置项），参数为源的 key
   static const kSettingsLiveSourceDetail = "/settings/live_source/detail";
 

@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:simple_live_app/app/capture/capture_scope.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
 import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
 import 'package:simple_live_app/widgets/net_image.dart';
 import 'package:simple_live_core/simple_live_core.dart';
@@ -16,16 +18,21 @@ class VoiceRoomLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: Obx(() {
-        var room = controller.voiceRoom.value;
-        if (room == null || !controller.voiceView.value) {
-          return const SizedBox.shrink();
-        }
-        return VoiceRoomView(
-          room: room,
-          caption: controller.voiceCaption.value,
-        );
-      }),
+      // 截图和录屏里单独选（默认不要，用平台合成的画面）
+      child: CaptureLayerBox(
+        scope: controller.capture.scope,
+        layer: CaptureLayer.voiceRoom,
+        child: Obx(() {
+          var room = controller.voiceRoom.value;
+          if (room == null || !controller.voiceView.value) {
+            return const SizedBox.shrink();
+          }
+          return VoiceRoomView(
+            room: room,
+            caption: controller.voiceCaption.value,
+          );
+        }),
+      ),
     );
   }
 }

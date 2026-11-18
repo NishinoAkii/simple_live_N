@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/app_style.dart';
+import 'package:simple_live_app/app/capture/capture_scope.dart';
+import 'package:simple_live_app/app/capture/capture_settings.dart';
 import 'package:simple_live_app/app/controller/app_settings_controller.dart';
 import 'package:simple_live_app/modules/live_room/live_gifts.dart';
 import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
@@ -104,37 +106,46 @@ class _PlayerNoticeOverlayState extends State<PlayerNoticeOverlay> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 连麦标签：有人连麦时一直在最上面，可以点
-        LinkMicTag(
-          state: c.linkMic,
-          hidden: c.linkMicHidden,
-          onHide: c.hideLinkMic,
+        // 连麦标签：有人连麦时一直在最上面，可以点。
+        // 截图和录屏里连麦标签、SC、礼物各自单独选（见 CaptureSettings）
+        CaptureLayerBox(
+          scope: c.capture.scope,
+          layer: CaptureLayer.linkMic,
+          child: LinkMicTag(
+            state: c.linkMic,
+            hidden: c.linkMicHidden,
+            onHide: c.hideLinkMic,
+          ),
         ),
         // SC 和礼物卡片只是看的，点击照样落到视频上
         for (var entry in _queue.shown)
           Padding(
             key: ValueKey(entry.key),
             padding: const EdgeInsets.only(top: 8),
-            child: IgnorePointer(
-              child: _SlideIn(
-                child: SizedBox(
-                  // 礼物卡片比 SC 窄一些，少挡画面
-                  width: entry.isGift ? 200 : 240,
-                  child: entry.isGift
-                      ? GiftNoticeCard(entry.gift!.gift)
-                      : Opacity(
-                          opacity: 0.65,
-                          child: SuperChatCard(
-                            entry.superChat!,
-                            remaining: c.superChatRemaining(entry.superChat!),
-                            showStatus: false,
-                            remark: ChatUsersService.remarkFor(
-                              c.site.id,
-                              userId: entry.superChat!.userId,
-                              name: entry.superChat!.userName,
+            child: CaptureLayerBox(
+              scope: c.capture.scope,
+              layer: entry.isGift ? CaptureLayer.gifts : CaptureLayer.superChat,
+              child: IgnorePointer(
+                child: _SlideIn(
+                  child: SizedBox(
+                    // 礼物卡片比 SC 窄一些，少挡画面
+                    width: entry.isGift ? 200 : 240,
+                    child: entry.isGift
+                        ? GiftNoticeCard(entry.gift!.gift)
+                        : Opacity(
+                            opacity: 0.65,
+                            child: SuperChatCard(
+                              entry.superChat!,
+                              remaining: c.superChatRemaining(entry.superChat!),
+                              showStatus: false,
+                              remark: ChatUsersService.remarkFor(
+                                c.site.id,
+                                userId: entry.superChat!.userId,
+                                name: entry.superChat!.userName,
+                              ),
                             ),
                           ),
-                        ),
+                  ),
                 ),
               ),
             ),

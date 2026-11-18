@@ -58,6 +58,7 @@ import 'package:simple_live_app/modules/settings/live_source/live_source_setting
 import 'package:simple_live_app/modules/settings/other/other_settings_controller.dart';
 import 'package:simple_live_app/modules/settings/other/other_settings_page.dart';
 import 'package:simple_live_app/modules/settings/play_settings_page.dart';
+import 'package:simple_live_app/modules/settings/update/update_settings_page.dart';
 
 import '../modules/indexed/indexed_page.dart';
 import 'route_path.dart';
@@ -314,6 +315,11 @@ class AppPages {
     GetPage(
       name: RoutePath.kSettingsDesktop,
       page: () => const DesktopSettingsPage(),
+    ),
+    // 更新
+    GetPage(
+      name: RoutePath.kSettingsUpdate,
+      page: () => const UpdateSettingsPage(),
     ),
     //直播源订阅
     GetPage(

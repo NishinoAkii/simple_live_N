@@ -368,6 +368,19 @@ class MultiWindowSettingsSection extends StatelessWidget {
                   onChanged: StartupRestoreSetting.set,
                 ),
                 AppStyle.divider,
+                SettingsSwitch(
+                  value: MultiWindowPrefs.muteNew.value,
+                  title: "新开的多开窗口默认静音".t,
+                  onChanged: MultiWindowPrefs.setMuteNew,
+                ),
+                AppStyle.divider,
+                SettingsSwitch(
+                  value: MultiWindowPrefs.devicePerWindow.value,
+                  title: "每个窗口单独选声音输出设备".t,
+                  subtitle: "在直播间的“更多”里选，每个窗口记住自己的".t,
+                  onChanged: MultiWindowPrefs.setDevicePerWindow,
+                ),
+                AppStyle.divider,
                 SettingsAction(
                   title: saved > 0
                       ? "打开上次的多开窗口（{count} 个）".tf({"count": saved})

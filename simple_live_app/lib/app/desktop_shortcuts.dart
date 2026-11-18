@@ -18,7 +18,10 @@ enum ShortcutAction {
   collapseChat,
   pause,
   volumeUp,
-  volumeDown;
+  volumeDown,
+
+  /// 放在最后：以前把 S 设给别的动作的，按键表里 S 还归那个动作（见 _dropDuplicates）
+  screenshot;
 
   String get label => switch (this) {
         ShortcutAction.fullscreen => "全屏".t,
@@ -29,6 +32,7 @@ enum ShortcutAction {
         ShortcutAction.pause => "暂停和继续".t,
         ShortcutAction.volumeUp => "音量加".t,
         ShortcutAction.volumeDown => "音量减".t,
+        ShortcutAction.screenshot => "截图".t,
       };
 
   /// 按住不放时连续触发（只有音量）；别的按住只算一次
@@ -47,6 +51,7 @@ class ShortcutKeys {
     ShortcutAction.pause: LogicalKeyboardKey.space,
     ShortcutAction.volumeUp: LogicalKeyboardKey.arrowUp,
     ShortcutAction.volumeDown: LogicalKeyboardKey.arrowDown,
+    ShortcutAction.screenshot: LogicalKeyboardKey.keyS,
   };
 
   static Map<ShortcutAction, LogicalKeyboardKey?> get defaultMap =>

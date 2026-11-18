@@ -70,8 +70,20 @@ class WindowLayout {
     return rect == null ? null : (rect, s);
   }
 
-  /// 整个放进 [work] 里（取整像素，大了先缩小），放不下时为 null
-  static Rect? clampInto(Rect rect, Rect work) {
+  /// 整个放进 [work] 里（取整像素，大了先缩小），放不下时为 null。
+  /// 超出不到 [slack] 的（屏幕信息换算时差了一两个像素）原样不动：
+  /// 贴靠在屏幕边上的窗口放回去还贴着边
+  static Rect? clampInto(Rect rect, Rect work, {double slack = 0}) {
+    if (slack > 0 &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        rect.left >= work.left - slack &&
+        rect.top >= work.top - slack &&
+        rect.right <= work.right + slack &&
+        rect.bottom <= work.bottom + slack) {
+      return Rect.fromLTWH(rect.left.roundToDouble(), rect.top.roundToDouble(),
+          rect.width.roundToDouble(), rect.height.roundToDouble());
+    }
     var left = work.left.ceil(), top = work.top.ceil();
     var right = work.right.floor(), bottom = work.bottom.floor();
     if (right <= left || bottom <= top) {

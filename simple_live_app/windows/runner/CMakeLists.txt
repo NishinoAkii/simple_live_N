@@ -7,9 +7,16 @@ project(runner LANGUAGES CXX)
 #
 # Any new source files that you add to the application should be added here.
 add_executable(${BINARY_NAME} WIN32
+  "audio_loopback.cpp"
+  "capture_channel.cpp"
+  "capture_clipboard.cpp"
+  "capture_util.cpp"
   "d3d_guard.cpp"
   "flutter_window.cpp"
   "main.cpp"
+  "mp4_writer.cpp"
+  "process_launch.cpp"
+  "screen_recorder.cpp"
   "utils.cpp"
   "win32_window.cpp"
   "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
@@ -38,6 +45,15 @@ target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 # imm32: detach the IME in the player (shortcuts); version: read the product
 # name in main.cpp to find the settings folder (GPU preference).
 target_link_libraries(${BINARY_NAME} PRIVATE "imm32.lib" "version.lib")
+# Capture (capture_channel.cpp): Direct3D 11, Media Foundation (H.264/AAC in
+# MP4), process loopback audio and WIC for the clipboard image. The Media
+# Foundation and audio DLLs are delay-loaded: they load on the first
+# recording, not at startup.
+target_link_libraries(${BINARY_NAME} PRIVATE "d3d11.lib" "dxgi.lib"
+  "mfplat.lib" "mfreadwrite.lib" "mfuuid.lib" "mmdevapi.lib"
+  "windowscodecs.lib" "delayimp.lib")
+target_link_options(${BINARY_NAME} PRIVATE "/DELAYLOAD:mfplat.dll"
+  "/DELAYLOAD:mfreadwrite.dll" "/DELAYLOAD:mmdevapi.dll")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.

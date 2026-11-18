@@ -49,6 +49,11 @@ android {
                 def store = keystoreProperties.getProperty("storeFile")
                 storeFile = store ? file(store) : null
                 storePassword = keystoreProperties.getProperty("storePassword")
+                // CI 的正式签名是 PKCS12（keyPassword 和 storePassword 相同）；不写时按 JDK 默认类型读
+                def type = keystoreProperties.getProperty("storeType")
+                if (type) {
+                    storeType = type
+                }
                 enableV1Signing = true
                 enableV2Signing = true
             }
@@ -78,4 +83,6 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
+    // 应用内更新的 FileProvider（AppUpdate.kt）。share_plus 已经带着同一个版本，这里只是让 App 自己的代码能用
+    implementation "androidx.core:core:1.16.0"
 }

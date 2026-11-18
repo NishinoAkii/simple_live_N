@@ -7,6 +7,13 @@
    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
    <uses-permission android:name="android.permission.WAKE_LOCK" />
+   <!-- 应用内更新：下载后调起系统安装界面（AppUpdate.kt） -->
+   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+   <!-- 录屏：mediaProjection 类型的前台服务；录 App 自己的声音要录音权限（ScreenCapture.kt）。
+        1.26.0 画面录制还关着（CaptureFeatures.screenRecording），这两项和下面的服务等它上线时再打开：
+   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+   <uses-permission android:name="android.permission.RECORD_AUDIO" />
+   -->
     <application
         android:label="Simple Live N"
         android:name="${applicationName}"
@@ -42,6 +49,24 @@
             android:name=".PlaybackService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+        <!-- 录屏的前台服务（ScreenCapture.kt），录屏上线时再打开：
+        <service
+            android:name=".ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+        -->
+        <!-- 应用内更新：把缓存目录里下载的 APK 交给系统安装器（AppUpdate.kt）；
+             复制截图时也经它把图片放进剪贴板（ScreenCapture.kt）。
+             用自己的类名和 authority，不和插件的 FileProvider 冲突 -->
+        <provider
+            android:name=".UpdateFileProvider"
+            android:authorities="${applicationId}.update_provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_paths" />
+        </provider>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

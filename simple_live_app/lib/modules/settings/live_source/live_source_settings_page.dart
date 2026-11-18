@@ -248,10 +248,23 @@ class LiveSourceSettingsPage extends GetView<LiveSourceSettingsController> {
   List<Widget> _buildSubscriptions(BuildContext context) {
     var subs = controller.service.subscriptions;
     if (subs.isEmpty) {
+      var fallback = controller.defaultSubscription;
       return [
         SettingsCard(
-          child: ListTile(
-            title: Text("还没有添加订阅".t, style: _grey),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text("还没有添加订阅".t, style: _grey),
+              ),
+              // 默认的订阅（UpdateConfig.liveSourceSubscription），点一下添加
+              if (fallback.isNotEmpty)
+                SettingsAction(
+                  title: "添加默认订阅".t,
+                  subtitle: fallback,
+                  onTap: controller.addDefaultSubscription,
+                ),
+            ],
           ),
         ),
       ];

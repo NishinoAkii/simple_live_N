@@ -249,7 +249,7 @@ void main() {
     });
 
     test("存档只在本机，不进备份和同步", () {
-      expect(WindowSetRecorder.storageKeys, hasLength(3));
+      expect(WindowSetRecorder.storageKeys, hasLength(5));
       for (var key in [
         ...WindowSetRecorder.storageKeys,
         StartupRestoreSetting.kKey,

@@ -33,6 +33,7 @@ import 'package:simple_live_app/modules/other/debug_log_page.dart';
 import 'package:simple_live_app/routes/app_pages.dart';
 import 'package:simple_live_app/routes/route_path.dart';
 import 'package:simple_live_app/services/account_follow_service.dart';
+import 'package:simple_live_app/services/app_update/app_update_service.dart';
 import 'package:simple_live_app/services/bilibili_account_service.dart';
 import 'package:simple_live_app/services/douyin_account_service.dart';
 import 'package:simple_live_app/services/douyu_account_service.dart';
@@ -94,6 +95,8 @@ void main(List<String> args) async {
   MultiWindow.startSecondary();
   // 主窗口：上次开着多开窗口时，问要不要都打开（按设置）
   scheduleStartupRestore();
+  // 主窗口启动约 10 秒后检查新版本（一天最多一次）
+  AppUpdateService.instance.scheduleStartupCheck();
 }
 
 /// Windows：第一次运行时搬出和官方版共用的数据文件夹，见 [SharedProfile]
@@ -290,6 +293,9 @@ Future initServices() async {
 
   // WebDAV 自动同步，默认关闭
   Get.put(WebDavSyncService());
+
+  // 应用内更新（检查、下载）
+  Get.put(AppUpdateService());
 
   initCoreLog();
   logD3DGuard();
