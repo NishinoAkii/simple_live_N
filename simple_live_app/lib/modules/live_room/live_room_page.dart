@@ -27,6 +27,7 @@ import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
 import 'package:simple_live_app/modules/live_room/live_room_shortcuts.dart';
 import 'package:simple_live_app/modules/live_room/live_room_tabs.dart';
 import 'package:simple_live_app/modules/live_room/player/player_controls.dart';
+import 'package:simple_live_app/modules/live_room/player/window_full_frame.dart';
 import 'package:simple_live_app/modules/live_room/room_notice_card.dart';
 import 'package:simple_live_app/modules/live_room/room_stats_line.dart';
 import 'package:simple_live_app/modules/live_room/user_card/live_user_card.dart';
@@ -133,7 +134,11 @@ class LiveRoomPage extends GetView<LiveRoomController> {
               controller.exitFull();
             },
             child: Scaffold(
-              body: buildMediaPlayer(),
+              // 窗口全屏时上面多一条透明的标题栏
+              body: WindowFullFrame(
+                controller: controller,
+                child: buildMediaPlayer(),
+              ),
             ),
           );
         } else {

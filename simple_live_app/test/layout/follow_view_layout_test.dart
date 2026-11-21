@@ -121,6 +121,36 @@ void main() {
     );
   });
 
+  testWidgets("名字很长、列表很窄时，直播中留在名字这一行，名字省略", (tester) async {
+    for (var width in [260.0, 320.0, 400.0]) {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: width,
+            child: ListView(children: [
+              FollowUserItem(item: follow("bilibili", "1"), onToggleNotify: () {}),
+              FollowUserItem(
+                  item: follow("bilibili", "2", name: "EdmundDZhang"),
+                  onToggleNotify: () {}),
+            ]),
+          ),
+        ),
+      ));
+      await tester.pump();
+      expect(tester.takeException(), isNull, reason: "$width");
+      var status = find.text("直播中");
+      expect(status, findsNWidgets(2), reason: "$width");
+      for (var i = 0; i < 2; i++) {
+        var row = tester.getRect(find.byType(ListTile).at(i));
+        var mark = tester.getRect(status.at(i));
+        // 和名字同一行：在这一条的上半部分，不在平台那一行
+        expect(mark.center.dy, lessThan(row.top + row.height * 0.45),
+            reason: "$width #$i");
+        expect(mark.right, lessThanOrEqualTo(row.right), reason: "$width #$i");
+      }
+    }
+  });
+
   testWidgets("顶栏的搜索框", (tester) async {
     await check(
       tester,

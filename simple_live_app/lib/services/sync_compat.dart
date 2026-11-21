@@ -16,6 +16,7 @@ import 'package:simple_live_app/services/chat_users/chat_users_service.dart';
 import 'package:simple_live_app/services/db_service.dart';
 import 'package:simple_live_app/services/douyu_account_service.dart';
 import 'package:simple_live_app/services/kick_account_service.dart';
+import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/twitch_account_service.dart';
 import 'package:simple_live_app/services/youtube_account_service.dart';
@@ -523,7 +524,7 @@ class SyncCompat {
   }) async {
     var box = LocalStorageService.instance.settingsBox;
     var merged = mergeRestoredSettings(
-      box.toMap(),
+      LocalStorageService.instance.plainSettings(),
       main,
       ext,
       syncAccounts: syncAccounts,
@@ -536,6 +537,8 @@ class SyncCompat {
     Box box,
     Map<String, dynamic> merged,
   ) async {
+    // 存档里解出来的账号、令牌是明文，用这台设备的密钥加密后再写（DeviceSecrets）
+    merged = DeviceSecrets.instance.protectSettings(merged);
     await box.putAll(merged);
     await box.deleteAll(
       box.keys.where((key) => !merged.containsKey(key)).toList(),
@@ -613,7 +616,7 @@ class SyncCompat {
     required bool syncBilibili,
   }) async {
     var box = LocalStorageService.instance.settingsBox;
-    var local = box.toMap();
+    var local = LocalStorageService.instance.plainSettings();
     var merged = mergeAutoSettings(
       local,
       main,

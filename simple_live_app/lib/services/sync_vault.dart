@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:pointycastle/export.dart';
+import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/sync_backup_format.dart';
 import 'package:simple_live_app/services/sync_compat.dart';
@@ -154,6 +155,9 @@ class SyncVault {
     SyncVaultKey key,
     String context,
   ) {
+    // 设置里加密保存的项先用本机密钥解开（一般已经是明文），再一起用 WebDAV 账号算出的
+    // 密钥加密：别的设备没有这台设备的密钥
+    accounts = DeviceSecrets.instance.revealSettings(accounts);
     var nonce = _random(12);
     var cipher = GCMBlockCipher(AESEngine())
       ..init(

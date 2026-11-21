@@ -68,19 +68,27 @@ class WindowRoom {
 }
 
 /// 一个副窗口：第几个、在看的直播间、位置和大小（物理像素，看得见的部分，见 FrameInsets）
-/// 和当时屏幕的缩放、选的声音输出设备（只在本机）
+/// 和当时屏幕的缩放、选的声音输出设备、是不是窗口全屏和置顶（只在本机）
 class WindowEntry {
   final int slot;
   final WindowRoom room;
   final Rect? bounds;
   final double scale;
   final String? audioDevice;
+
+  /// 直播间是窗口全屏（以前存的没有这项，当作 false）
+  final bool windowFull;
+
+  /// 窗口置顶（以前存的没有这项，当作 false）
+  final bool pinned;
   const WindowEntry({
     required this.slot,
     required this.room,
     this.bounds,
     this.scale = 1.0,
     this.audioDevice,
+    this.windowFull = false,
+    this.pinned = false,
   });
 
   WindowEntry copyWith({
@@ -88,6 +96,8 @@ class WindowEntry {
     Rect? bounds,
     double? scale,
     String? audioDevice,
+    bool? windowFull,
+    bool? pinned,
   }) =>
       WindowEntry(
         slot: slot,
@@ -95,6 +105,31 @@ class WindowEntry {
         bounds: bounds ?? this.bounds,
         scale: scale ?? this.scale,
         audioDevice: audioDevice ?? this.audioDevice,
+        windowFull: windowFull ?? this.windowFull,
+        pinned: pinned ?? this.pinned,
+      );
+
+  /// 开这个窗口的启动参数：位置、置顶在显示之前就设好，窗口全屏进直播间时进
+  SecondaryLaunch toLaunch({
+    required int port,
+    required String token,
+    required String dataDir,
+    int mainPid = 0,
+    Map<String, dynamic>? settings,
+  }) =>
+      SecondaryLaunch(
+        port: port,
+        token: token,
+        dataDir: dataDir,
+        slot: slot,
+        siteId: room.siteId,
+        roomId: room.roomId,
+        bounds: bounds,
+        scale: scale,
+        mainPid: mainPid,
+        pinned: pinned,
+        windowFull: windowFull,
+        settings: settings,
       );
 
   Map<String, dynamic> toJson() => {
@@ -102,6 +137,8 @@ class WindowEntry {
         ...room.toJson(),
         if (bounds != null) ..._geometryJson(bounds!, scale),
         if (audioDevice != null) "device": audioDevice,
+        if (windowFull) "full": true,
+        if (pinned) "pinned": true,
       };
 
   static WindowEntry fromJson(Object? json) {
@@ -120,23 +157,36 @@ class WindowEntry {
       bounds: bounds,
       scale: bounds == null ? 1.0 : _scale(json["scale"]),
       audioDevice: device == null ? null : _text(device, 512),
+      windowFull: _flag(json["full"]) ?? false,
+      pinned: _flag(json["pinned"]) ?? false,
     );
   }
 
   @override
-  String toString() => "WindowEntry($slot, $room, $bounds, x$scale)";
+  String toString() => "WindowEntry($slot, $room, $bounds, x$scale"
+      "${windowFull ? ", 窗口全屏" : ""}${pinned ? ", 置顶" : ""})";
 }
 
 /// 记下来的一组副窗口（按打开的顺序，后开的在后面），连同当时主窗口在看的直播间
-/// （[mainRoom]，不在直播间时为空）
+/// （[mainRoom]，不在直播间时为空）、主窗口是不是窗口全屏（[mainFull]）和置顶（[mainPinned]）
 class WindowSet {
   /// 存档的格式。读到别的版本（以后改了格式）时当作没有
   static const version = 1;
 
   final List<WindowEntry> windows;
   final WindowRoom? mainRoom;
+
+  /// 主窗口的直播间是窗口全屏（没有 [mainRoom] 时一定是 false）
+  final bool mainFull;
+  final bool mainPinned;
   final DateTime time;
-  const WindowSet(this.windows, {this.mainRoom, required this.time});
+  const WindowSet(
+    this.windows, {
+    this.mainRoom,
+    this.mainFull = false,
+    this.mainPinned = false,
+    required this.time,
+  });
 
   bool get isEmpty => windows.isEmpty;
 
@@ -147,6 +197,8 @@ class WindowSet {
         "v": version,
         "time": time.millisecondsSinceEpoch,
         if (mainRoom != null) "main": mainRoom!.toJson(),
+        if (mainRoom != null && mainFull) "mainFull": true,
+        if (mainPinned) "mainPinned": true,
         "windows": [for (var e in windows) e.toJson()],
       });
 
@@ -187,6 +239,9 @@ class WindowSet {
       return WindowSet(
         windows,
         mainRoom: mainRoom,
+        // 以前存的没有这两项：都当作 false
+        mainFull: mainRoom != null && json["mainFull"] == true,
+        mainPinned: json["mainPinned"] == true,
         time: DateTime.fromMillisecondsSinceEpoch(time is int ? time : 0),
       );
     } catch (_) {
@@ -196,18 +251,30 @@ class WindowSet {
 }
 
 /// 副窗口告诉主窗口的事：在看哪个直播间（[room]）、窗口挪到了哪里（[bounds]，物理像素，
-/// 看得见的部分，连同所在屏幕的缩放）、声音和弹幕这些设置（[settings]）。至少有一项
+/// 看得见的部分，连同所在屏幕的缩放）、声音和弹幕这些设置（[settings]）、
+/// 进出窗口全屏（[windowFull]）、置顶变了（[pinned]）。至少有一项
 class WindowReport {
   final WindowRoom? room;
   final Rect? bounds;
   final double scale;
   final WindowSettings? settings;
-  const WindowReport({this.room, this.bounds, this.scale = 1.0, this.settings});
+  final bool? windowFull;
+  final bool? pinned;
+  const WindowReport({
+    this.room,
+    this.bounds,
+    this.scale = 1.0,
+    this.settings,
+    this.windowFull,
+    this.pinned,
+  });
 
   Map<String, dynamic> toJson() => {
         if (room != null) "room": room!.toJson(),
         if (bounds != null) ..._geometryJson(bounds!, scale),
         if (settings != null) "settings": settings!.toJson(),
+        if (windowFull != null) "full": windowFull,
+        if (pinned != null) "pinned": pinned,
       };
 
   /// 内容不对时抛 [FormatException]（主窗口回 400）
@@ -220,7 +287,13 @@ class WindowReport {
     var settings = body["settings"] == null
         ? null
         : WindowSettings.fromJson(body["settings"]);
-    if (room == null && bounds == null && settings == null) {
+    var windowFull = _flag(body["full"]);
+    var pinned = _flag(body["pinned"]);
+    if (room == null &&
+        bounds == null &&
+        settings == null &&
+        windowFull == null &&
+        pinned == null) {
       throw const FormatException("empty");
     }
     return WindowReport(
@@ -228,6 +301,8 @@ class WindowReport {
       bounds: bounds,
       scale: bounds == null ? 1.0 : _scale(body["scale"]),
       settings: settings,
+      windowFull: windowFull,
+      pinned: pinned,
     );
   }
 }
@@ -388,16 +463,19 @@ class WindowSettings {
 /// - 别的窗口还开着时手动关掉一个，它从这一组里去掉；手动关掉最后一个时，
 ///   这一组到此为止，连同它一起定下来；
 /// - 同时记下当时主窗口在看的直播间，打开时主窗口不在直播间里就在主窗口打开它；
+/// - 每个窗口（连同主窗口）是不是窗口全屏、置顶也记在这一组里，打开时照样恢复；
 /// - 每个编号（第几个窗口）记住用户拖到的位置和大小（[kSlots]），下次开到这个编号时放回去。
 ///
 /// 都只存在本机（SyncCompat.localOnlySettingKeys），旧版本不认识这几项，不读也不用
 class WindowSetRecorder {
   WindowSetRecorder({
     WindowRoom? Function()? mainRoom,
+    ({bool windowFull, bool pinned}) Function()? mainLayout,
     this.saveDelay = const Duration(milliseconds: 600),
     DateTime Function()? clock,
     this.onGroupClosed,
   })  : _mainRoom = mainRoom,
+        _mainLayout = mainLayout,
         _clock = clock ?? DateTime.now;
 
   static const String kLast = "MultiWindowLastSet";
@@ -434,6 +512,9 @@ class WindowSetRecorder {
   /// 挪窗口时连着来很多次，停下这么久以后再存
   final Duration saveDelay;
   final WindowRoom? Function()? _mainRoom;
+
+  /// 主窗口现在是不是窗口全屏、置顶
+  final ({bool windowFull, bool pinned}) Function()? _mainLayout;
   final DateTime Function() _clock;
 
   /// 按打开的顺序（重新开到同一个编号的排到最后）
@@ -545,7 +626,7 @@ class WindowSetRecorder {
     _saveOpen();
   }
 
-  /// 副窗口报告了位置或直播间
+  /// 副窗口报告了位置、直播间、窗口全屏或置顶
   void reported(int slot, WindowReport report) {
     var entry = _entries[slot];
     if (entry == null) {
@@ -555,6 +636,8 @@ class WindowSetRecorder {
       room: report.room,
       bounds: report.bounds,
       scale: report.bounds == null ? null : report.scale,
+      windowFull: report.windowFull,
+      pinned: report.pinned,
     );
     var settings = report.settings;
     if (settings != null) {
@@ -609,7 +692,7 @@ class WindowSetRecorder {
         for (var e in _slots.entries) "${e.key}": jsonDecode(e.value.encode()),
       });
 
-  /// 主窗口换了直播间
+  /// 主窗口换了直播间，或者窗口全屏、置顶变了
   void mainRoomChanged() {
     if (active.isNotEmpty) {
       _scheduleSave();
@@ -743,8 +826,17 @@ class WindowSetRecorder {
     });
   }
 
-  WindowSet _snapshot(List<WindowEntry> list) =>
-      WindowSet(list, mainRoom: _mainRoom?.call(), time: _clock());
+  WindowSet _snapshot(List<WindowEntry> list) {
+    var mainRoom = _mainRoom?.call();
+    var layout = _mainLayout?.call();
+    return WindowSet(
+      list,
+      mainRoom: mainRoom,
+      mainFull: mainRoom != null && (layout?.windowFull ?? false),
+      mainPinned: layout?.pinned ?? false,
+      time: _clock(),
+    );
+  }
 
   Future<WindowSet> _freeze(List<WindowEntry> list) async {
     _load();
@@ -926,6 +1018,17 @@ class RestoreTarget {
     required this.scale,
     required this.atSavedSpot,
   });
+
+  /// 开这个窗口用的：放在 [bounds]，窗口全屏、置顶照上次的。[followPin]：主窗口没有按这一组
+  /// 恢复、现在置顶着，这个窗口也一出来就置顶（后开的在上面）
+  WindowEntry reopen({bool followPin = false}) => WindowEntry(
+        slot: slot,
+        room: saved.room,
+        bounds: bounds,
+        scale: scale,
+        windowFull: saved.windowFull,
+        pinned: saved.pinned || followPin,
+      );
 }
 
 class RestorePlan {
@@ -1078,6 +1181,14 @@ String _text(Object? value, int max) {
     throw const FormatException("text");
   }
   return value;
+}
+
+/// 开关项：没有时为 null，不是 true、false 时抛 [FormatException]
+bool? _flag(Object? value) {
+  if (value != null && value is! bool) {
+    throw const FormatException("flag");
+  }
+  return value as bool?;
 }
 
 /// 平台、房间号：不能空，不能换行（要放进启动参数）

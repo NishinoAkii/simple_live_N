@@ -41,9 +41,10 @@ mixin PlayerMixin {
   late final player = Player(
     configuration: PlayerConfiguration(
       title: "Simple Live Player",
+      // 至少要 warn：HLS 换初始化段、跳过分段都是警告，花屏检测（PictureGuard）要用
       logLevel: AppSettingsController.instance.logEnable.value
           ? MPVLogLevel.info
-          : MPVLogLevel.error,
+          : MPVLogLevel.warn,
     ),
   );
 
@@ -101,6 +102,10 @@ mixin PlayerStateMixin on PlayerMixin {
 
   /// 是否进入桌面端小窗
   RxBool smallWindowState = false.obs;
+
+  /// 是否在桌面端窗口全屏：画面占满当前窗口，不是系统全屏。
+  /// 这时 [fullScreenState] 也是 true（页面只有播放器）
+  RxBool windowFullState = false.obs;
 
   /// 是否显示弹幕
   RxBool showDanmakuState = false.obs;
@@ -364,6 +369,13 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
       //全屏
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
       orienter.apply();
+    } else if (windowFullState.value) {
+      // 从窗口全屏进系统全屏：先换回系统标题栏，退出全屏时回到普通页面
+      windowFullState.value = false;
+      () async {
+        await _setTitleBar(TitleBarStyle.normal);
+        await windowManager.setFullScreen(true);
+      }();
     } else {
       windowManager.setFullScreen(true);
     }
@@ -377,6 +389,10 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
           overlays: SystemUiOverlay.values);
       orienter.reset();
       setPortraitOrientation();
+    } else if (windowFullState.value) {
+      // 窗口全屏：换回系统标题栏，窗口的位置和大小不变
+      windowFullState.value = false;
+      _setTitleBar(TitleBarStyle.normal);
     } else {
       windowManager.setFullScreen(false);
     }
@@ -399,6 +415,8 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
     if (!(Platform.isAndroid || Platform.isIOS)) {
       fullScreenState.value = true;
       smallWindowState.value = true;
+      // 从窗口全屏进小窗：退出小窗时回到普通页面
+      windowFullState.value = false;
 
       // 记下主窗口
       _mainBeforeSmall = await WindowMemory.instance.enterSmall();
@@ -439,6 +457,49 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
         // 小窗总在最前面；回到主窗口后按图钉的状态，没置顶就回到正常层
         await windowManager.setAlwaysOnTop(WindowPin.instance.pinned.value);
       }();
+    }
+  }
+
+  /// 窗口全屏（电脑）：画面占满当前窗口，窗口的位置和大小不变。系统标题栏换成画面上
+  /// 透明的一条（WindowFullFrame），能拖动窗口，置顶、最小化、最大化、关闭还在。
+  /// 再点一下、点返回键或双击画面退出（[exitFull]）
+  void enterWindowFull() {
+    if (!WindowPin.supported || fullScreenState.value) {
+      return;
+    }
+    windowFullState.value = true;
+    fullScreenState.value = true;
+    _setTitleBar(TitleBarStyle.hidden);
+  }
+
+  /// 底栏的窗口全屏键：普通页面时进入，窗口全屏时退出，系统全屏时换成窗口全屏
+  Future<void> toggleWindowFull() async {
+    if (windowFullState.value) {
+      exitFull();
+      return;
+    }
+    if (!WindowPin.supported || smallWindowState.value) {
+      return;
+    }
+    if (!fullScreenState.value) {
+      enterWindowFull();
+      return;
+    }
+    windowFullState.value = true;
+    try {
+      await windowManager.setFullScreen(false);
+    } catch (e) {
+      Log.logPrint(e);
+    }
+    await _setTitleBar(TitleBarStyle.hidden);
+  }
+
+  Future<void> _setTitleBar(TitleBarStyle style) async {
+    try {
+      await windowManager.setTitleBarStyle(style);
+    } catch (e) {
+      // 测试里没有窗口插件
+      Log.logPrint(e);
     }
   }
 
@@ -893,6 +954,7 @@ class PlayerController extends BaseController
     });
     _logSubscription = player.stream.log.listen((event) {
       Log.d("播放器日志：$event");
+      onPlayerLog(event);
     });
     _widthSubscription = player.stream.width.listen((event) {
       Log.d(
@@ -923,6 +985,9 @@ class PlayerController extends BaseController
   void mediaEnd() {
     WakelockPlus.disable();
   }
+
+  /// mpv 的每一行日志（直播间用来检测花屏）
+  void onPlayerLog(PlayerLog event) {}
 
   void mediaError(String error) {
     WakelockPlus.disable();
@@ -1035,6 +1100,9 @@ class PlayerController extends BaseController
     }
     if (smallWindowState.value) {
       exitSmallWindow();
+    } else if (windowFullState.value) {
+      // 窗口全屏时关掉直播间：换回系统标题栏
+      exitFull();
     }
     disposeStream();
     disposeDanmakuController();

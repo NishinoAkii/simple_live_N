@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.27.0 (12700)
+
+### New
+
+- Fill window on desktop: the picture fills the current window without changing its size. The button is between PiP and Full screen in the bottom bar.
+- Reopening the last set of extra windows restores each window's Fill window and keep-on-top state.
+- Accounts, tokens, cookies and the WebDAV password are now stored encrypted. Plain values left by the original app or older versions are still read and are encrypted at the next start.
+- A Hardware decoding switch in the player settings, which applies to the current window for this session only.
+- The video info has a Format line, and the server list shows each server's CDN node.
+
+### Fixed
+
+- Bilibili HLS streams broke up after a while, and refreshing did not help. Segments now download through a local relay, and the stream reopens by itself when the streamer restarts it.
+- When the picture keeps failing to decode, the app retries the stream, then switches servers, then falls back to software decoding, and says so in the chat.
+- Bilibili servers now list FLV first.
+- In the follows list, "Live" no longer wraps to the next line when the name is long.
+
 ## 1.26.0 (12600)
 
 ### New

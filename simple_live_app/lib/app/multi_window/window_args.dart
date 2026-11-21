@@ -67,8 +67,11 @@ class SecondaryLaunch {
   /// 主窗口的进程号（只写进日志）
   final int mainPid;
 
-  /// 一开始就置顶（主窗口置顶时开的窗口），显示之前就设好
+  /// 一开始就置顶（主窗口置顶时开的窗口、打开上次的窗口时上次置顶的），显示之前就设好
   final bool pinned;
+
+  /// 一开始就窗口全屏（打开上次的窗口时上次是窗口全屏的），进直播间时进
+  final bool windowFull;
 
   /// 一开始的音量、静音、弹幕开关、清晰度、声音输出设备（见 WindowSettings 的 JSON），
   /// 为空时用默认的
@@ -85,6 +88,7 @@ class SecondaryLaunch {
     this.scale = 1.0,
     this.mainPid = 0,
     this.pinned = false,
+    this.windowFull = false,
     this.settings,
   });
 
@@ -102,6 +106,7 @@ class SecondaryLaunch {
         "--sl-scale=$scale",
         "--sl-main-pid=$mainPid",
         if (pinned) "--sl-pinned=1",
+        if (windowFull) "--sl-full=1",
         if (settings != null && settings!.isNotEmpty)
           "--sl-settings=${base64Url.encode(utf8.encode(json.encode(settings)))}",
       ];
@@ -117,6 +122,7 @@ class SecondaryLaunch {
     "scale",
     "main-pid",
     "pinned",
+    "full",
     "settings",
   };
 
@@ -149,6 +155,7 @@ class SecondaryLaunch {
     var scale = double.tryParse(values["scale"] ?? "1");
     var mainPid = int.tryParse(values["main-pid"] ?? "0");
     var pinned = values["pinned"] ?? "0";
+    var full = values["full"] ?? "0";
     Map<String, dynamic>? settings;
     if (values["settings"] case var text?) {
       try {
@@ -175,7 +182,8 @@ class SecondaryLaunch {
         scale == null ||
         !(scale >= 0.5 && scale <= 8) ||
         mainPid == null ||
-        (pinned != "0" && pinned != "1")) {
+        (pinned != "0" && pinned != "1") ||
+        (full != "0" && full != "1")) {
       return null;
     }
     Rect? bounds;
@@ -196,6 +204,7 @@ class SecondaryLaunch {
       scale: scale,
       mainPid: mainPid,
       pinned: pinned == "1",
+      windowFull: full == "1",
       settings: settings,
     );
   }

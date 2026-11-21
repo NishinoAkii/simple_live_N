@@ -27,6 +27,8 @@ import 'package:simple_live_app/widgets/video_stats_overlay.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 import 'package:simple_live_app/modules/live_room/player/voice_room_view.dart';
+import 'package:simple_live_app/modules/live_room/player/stream_tuning.dart';
+import 'package:simple_live_app/modules/live_room/player/window_full_frame.dart';
 
 Widget playerControls(
   VideoState videoState,
@@ -634,20 +636,56 @@ Widget buildFullBottomBar(
             style: const TextStyle(color: Colors.white, fontSize: 15),
           ),
         ),
-      ],
-      last: IconButton(
-        onPressed: () {
-          if (controller.smallWindowState.value) {
-            controller.exitSmallWindow();
-          } else {
-            controller.exitFull();
-          }
-        },
-        icon: const Icon(
-          Remix.fullscreen_exit_fill,
-          color: Colors.white,
+        // 电脑：窗口全屏时有小窗键；窗口全屏键在全屏和窗口全屏时都有（小窗里没有）
+        Obx(
+          () => Visibility(
+            visible: controller.windowFullState.value,
+            child: IconButton(
+              onPressed: () {
+                controller.enterSmallWindow();
+              },
+              icon: const Icon(
+                Icons.picture_in_picture,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
         ),
-      ),
+        Obx(
+          () => Visibility(
+            visible: !controller.smallWindowState.value,
+            child: WindowFullButton(controller: controller),
+          ),
+        ),
+      ],
+      last: Obx(() {
+        // 窗口全屏时最右边是全屏键
+        if (controller.windowFullState.value) {
+          return IconButton(
+            onPressed: () {
+              controller.enterFullScreen();
+            },
+            icon: const Icon(
+              Remix.fullscreen_line,
+              color: Colors.white,
+            ),
+          );
+        }
+        return IconButton(
+          onPressed: () {
+            if (controller.smallWindowState.value) {
+              controller.exitSmallWindow();
+            } else {
+              controller.exitFull();
+            }
+          },
+          icon: const Icon(
+            Remix.fullscreen_exit_fill,
+            color: Colors.white,
+          ),
+        );
+      }),
     ),
   );
 }
@@ -788,6 +826,8 @@ Widget buildBottomBar(
             ),
           ),
         ),
+        // 电脑：窗口全屏（小窗键右边、全屏键左边）
+        WindowFullButton(controller: controller),
         // iOS 投屏时切换电视聊天栏
         const ExternalDisplayButton(),
         // iOS 画中画
@@ -922,6 +962,12 @@ void showLinesInfo(LiveRoomController controller) {
                     ),
                   ),
                 )),
+                // CDN 节点，几条线路都是 HLS 时也能分清
+                if (StreamTuning.lineNode(controller.playUrls[i]).isNotEmpty)
+                  TextSpan(
+                    text: "  ${StreamTuning.lineNode(controller.playUrls[i])}",
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
               ],
             ),
             style: const TextStyle(fontSize: 14),
@@ -1024,6 +1070,18 @@ Widget _buildPlayerSettings(LiveRoomController controller) {
             value: settings.playerVideoStats.value,
             onChanged: settings.setPlayerVideoStats,
           ),
+          // 只改这个窗口这次观看；花屏一直不好时也会自动关掉
+          if (controller.canToggleDecoder &&
+              (settings.hardwareDecode.value ||
+                  settings.customPlayerOutput.value ||
+                  controller.softwareDecode.value))
+            SwitchListTile(
+              contentPadding: AppStyle.edgeInsetsH16,
+              title: Text("硬件解码".t),
+              subtitle: Text("只对这个窗口这次观看有效，画面花屏时可以关掉试试".t),
+              value: !controller.softwareDecode.value,
+              onChanged: (value) => controller.setSoftwareDecode(!value),
+            ),
           AppStyle.vGap8,
           Padding(
             padding: AppStyle.edgeInsetsH16,

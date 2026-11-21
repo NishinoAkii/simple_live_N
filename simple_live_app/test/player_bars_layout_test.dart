@@ -9,6 +9,7 @@ import 'package:simple_live_app/app/sites.dart';
 import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
 import 'package:simple_live_app/modules/live_room/live_room_playback.dart';
 import 'package:simple_live_app/modules/live_room/player/player_controls.dart';
+import 'package:simple_live_app/modules/live_room/player/window_full_frame.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 
 import 'fakes/fake_player.dart';
@@ -126,5 +127,69 @@ void main() {
     await tester.pump();
     expect(find.byIcon(Remix.pause_fill), findsNothing);
     expect(find.byIcon(Remix.play_fill), findsNothing);
+  });
+
+  testWidgets("窗口全屏的底栏：小窗、窗口全屏、全屏键都放得下", (tester) async {
+    room.windowFullState.value = true;
+    room.fullScreenState.value = true;
+    await checkBar(tester, "窗口全屏",
+        () => buildFullBottomBar(room, EdgeInsets.zero, GlobalKey()));
+  });
+
+  testWidgets("窗口全屏键：点一下进入，窗口全屏的底栏里再点一下退出", (tester) async {
+    await tester.pumpWidget(GetMaterialApp(
+      home: Scaffold(body: host(buildBottomBar(room, false, GlobalKey()))),
+    ));
+    await tester.tap(find.byIcon(Remix.aspect_ratio_line));
+    await tester.pump();
+    expect(room.windowFullState.value, isTrue);
+    expect(room.fullScreenState.value, isTrue);
+
+    await tester.pumpWidget(GetMaterialApp(
+      home: Scaffold(
+        body: host(buildFullBottomBar(room, EdgeInsets.zero, GlobalKey())),
+      ),
+    ));
+    // 最右边是全屏键，前面是小窗键和退出窗口全屏
+    expect(find.byIcon(Remix.fullscreen_line), findsOneWidget);
+    expect(find.byIcon(Remix.fullscreen_exit_fill), findsNothing);
+    expect(find.byIcon(Icons.picture_in_picture), findsOneWidget);
+    await tester.tap(find.byIcon(Remix.aspect_ratio_fill));
+    await tester.pump();
+    expect(room.windowFullState.value, isFalse);
+    expect(room.fullScreenState.value, isFalse);
+  });
+
+  testWidgets("窗口全屏：上面多一条标题栏，播放器的顶部边距让出它的高度", (tester) async {
+    double? top;
+    await tester.pumpWidget(GetMaterialApp(
+      home: Scaffold(
+        body: WindowFullFrame(
+          controller: room,
+          child: Builder(builder: (context) {
+            top = MediaQuery.paddingOf(context).top;
+            return const SizedBox.expand();
+          }),
+        ),
+      ),
+    ));
+    expect(find.byType(WindowFullCaption), findsNothing);
+    expect(top, 0);
+
+    room.enterWindowFull();
+    await tester.pump();
+    expect(find.byType(WindowFullCaption), findsOneWidget);
+    expect(top, WindowFullFrame.height);
+
+    // 按键跟着控制栏出现
+    room.showControlsState.value = true;
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byIcon(Icons.push_pin_outlined), findsOneWidget);
+
+    room.exitFull();
+    await tester.pump();
+    expect(find.byType(WindowFullCaption), findsNothing);
+    expect(top, 0);
+    room.hideControls();
   });
 }

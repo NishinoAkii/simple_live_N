@@ -42,6 +42,7 @@ import 'package:simple_live_app/services/follow_service.dart';
 import 'package:simple_live_app/services/live_notify_service.dart';
 import 'package:simple_live_app/services/kick_account_service.dart';
 import 'package:simple_live_app/services/live_source_service.dart';
+import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/native_http.dart';
 import 'package:simple_live_app/services/obs_bridge/obs_bridge_service.dart';
@@ -232,6 +233,8 @@ Future initServices() async {
   //本地存储
   Log.d("Init LocalStorage Service");
   await Get.put(LocalStorageService()).init();
+  // 加密保存的设置（GitHub 令牌）用的设备密钥；旧版本存的明文这时加密
+  await DeviceSecrets.instance.init(migrate: !MultiWindow.isSecondary);
   // 电脑端：窗口放回上次的位置再显示，快捷键，显卡偏好
   await WindowMemory.instance.restoreOnStart();
   DesktopShortcuts.instance.init();

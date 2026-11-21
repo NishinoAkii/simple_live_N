@@ -16,6 +16,24 @@ class StreamTuning {
     return path.endsWith('.m3u8') || url.toLowerCase().contains('.m3u8?');
   }
 
+  /// 线路列表里显示的 CDN 节点名：主机名的第一段（d1--ov-gotcha03 → ov-gotcha03），
+  /// B 站的 mcdn（PCDN）节点名是随机串，统一写 mcdn
+  static String lineNode(String url) {
+    var host = Uri.tryParse(url)?.host ?? "";
+    if (host.isEmpty || host == "127.0.0.1") {
+      return "";
+    }
+    if (host.contains(".mcdn.")) {
+      return "mcdn";
+    }
+    var label = host.split(".").first;
+    var dash = label.indexOf("--");
+    if (dash >= 0 && dash < label.length - 2) {
+      label = label.substring(dash + 2);
+    }
+    return label.length > 20 ? label.substring(0, 20) : label;
+  }
+
   /// 网络直播的协议白名单（ffmpeg 打开 HLS 分段、子列表、密钥时只能用这些协议）。
   ///
   /// media_kit 默认是 udp,rtp,tcp,tls,data,file,http,https,crypto。直播只需要 http(s)

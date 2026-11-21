@@ -1,3 +1,4 @@
+import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:simple_live_app/app/log.dart';
@@ -467,9 +468,16 @@ class LocalStorageService extends GetxService {
     );
   }
 
+  /// 账号、令牌、Cookie 和 WebDAV 密码在设置里是密文（DeviceSecrets），这里解开；
+  /// 原版和旧版本留下的明文原样读出。解不开时返回 [defaultValue]
   T getValue<T>(dynamic key, T defaultValue) {
     try {
-      var value = settingsBox.get(key, defaultValue: defaultValue) as T;
+      var raw = settingsBox.get(key, defaultValue: defaultValue);
+      if (DeviceSecrets.isProtected(raw)) {
+        var plain = DeviceSecrets.instance.reveal(raw);
+        raw = plain ?? defaultValue;
+      }
+      var value = raw as T;
       Log.d("Get LocalStorage：$key\r\n${_logValue(key, value)}");
       return value;
     } catch (e) {
@@ -478,15 +486,33 @@ class LocalStorageService extends GetxService {
     }
   }
 
+  /// 账号、令牌、Cookie 和 WebDAV 密码加密后再存（DeviceSecrets），不写明文；
+  /// 设备密钥不可用时不保存
   Future setValue<T>(dynamic key, T value) async {
     Log.d("Set LocalStorage：$key\r\n${_logValue(key, value)}");
-    var changed = settingsBox.get(key) != value;
-    var result = await settingsBox.put(key, value);
+    var old = settingsBox.get(key);
+    if (DeviceSecrets.isProtected(old)) {
+      old = DeviceSecrets.instance.reveal(old);
+    }
+    var changed = old != value;
+    Object? stored = value;
+    if (DeviceSecrets.needsProtect(key.toString(), value)) {
+      if (!DeviceSecrets.instance.ready) {
+        Log.e("设备密钥不可用，没有保存 $key", StackTrace.current);
+        return;
+      }
+      stored = DeviceSecrets.instance.protect(value as String);
+    }
+    var result = await settingsBox.put(key, stored);
     if (changed) {
       onSettingChanged?.call(key.toString());
     }
     return result;
   }
+
+  /// 整份设置，密文都解开（同步、导出配置、合并时用；账号随后由 SyncVault 加密）
+  Map<String, dynamic> plainSettings() =>
+      DeviceSecrets.instance.revealSettings(settingsBox.toMap());
 
   Future removeValue<T>(dynamic key) async {
     Log.d("Remove LocalStorage：$key");

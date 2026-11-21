@@ -131,6 +131,36 @@ void main() {
           isNull);
     });
 
+    test("打开上次的窗口：上次是窗口全屏的带着窗口全屏；不是时不带（以前的参数照样认）", () {
+      var plain = sample();
+      expect(plain.toArgs().any((e) => e.startsWith("--sl-full")), isFalse);
+      expect(SecondaryLaunch.parse(plain.toArgs())!.windowFull, isFalse);
+      var full = SecondaryLaunch(
+        port: 50123,
+        token: WindowToken.generate(),
+        dataDir: dataDir,
+        slot: 4,
+        siteId: "bilibili",
+        roomId: "21452505",
+        bounds: const Rect.fromLTWH(-2548, 12, 837, 746),
+        scale: 1.5,
+        pinned: true,
+        windowFull: true,
+      );
+      expect(full.toArgs(), contains("--sl-full=1"));
+      var parsed = SecondaryLaunch.parse(full.toArgs())!;
+      expect(parsed.windowFull, isTrue);
+      expect(parsed.pinned, isTrue);
+      expect(parsed.bounds, const Rect.fromLTWH(-2548, 12, 837, 746));
+      expect(parsed.slot, 4);
+      expect(
+          SecondaryLaunch.parse([...plain.toArgs(), "--sl-full=0"])!.windowFull,
+          isFalse);
+      expect(
+          SecondaryLaunch.parse([...plain.toArgs(), "--sl-full=true"]), isNull);
+      expect(SecondaryLaunch.parse([...full.toArgs(), "--sl-full=1"]), isNull);
+    });
+
     test("没有 --sl-secondary 就是普通启动", () {
       var args = sample().toArgs()..remove(SecondaryLaunch.flag);
       expect(SecondaryLaunch.parse(args), isNull);

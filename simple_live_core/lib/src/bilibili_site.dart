@@ -215,7 +215,10 @@ class BiliBiliSite
     var data = cached != null && biliPlayInfoHasQn(cached, quality.data)
         ? cached
         : await _roomPlayInfo(detail.roomId, qn: quality.data);
-    return LivePlayUrl(urls: parseBiliPlayUrls(data), headers: kPlayHeaders);
+    return LivePlayUrl(
+      urls: orderBiliLiveUrls(parseBiliPlayUrls(data)),
+      headers: kPlayHeaders,
+    );
   }
 
   /// 播放直播流时带的请求头（mpv 和 AVPlayer 一样），与接口请求同一个浏览器身份
@@ -803,6 +806,23 @@ List<String> parseBiliPlayUrls(dynamic data) {
 bool biliPlayInfoHasQn(dynamic data, Object? qn) => _biliCodecs(data).any(
   (e) => e.$3["codec_name"] == "avc" && "${e.$3["current_qn"]}" == "$qn",
 );
+
+/// 直播线路的顺序：FLV 在前、HLS（fMP4）在后，同一种里 mcdn 排在后面，其余保持接口给的顺序。
+///
+/// 原来的排序比较函数前后不一致（两个都不含 mcdn 时也返回 -1），结果要看排序算法。
+/// FLV 放前面：主播重新推流时 FLV 会带上新的编码参数，ffmpeg 能接着正常解码；
+/// HLS（fMP4）换了初始化段时 ffmpeg 会跳过它，之后一直按旧参数解码，画面花到重新打开为止
+List<String> orderBiliLiveUrls(List<String> urls) {
+  bool flv(String url) =>
+      (Uri.tryParse(url)?.path ?? url).toLowerCase().endsWith(".flv");
+  bool mcdn(String url) => url.contains("mcdn");
+  return [
+    ...urls.where((e) => flv(e) && !mcdn(e)),
+    ...urls.where((e) => flv(e) && mcdn(e)),
+    ...urls.where((e) => !flv(e) && !mcdn(e)),
+    ...urls.where((e) => !flv(e) && mcdn(e)),
+  ];
+}
 
 /// 从直播间 getRoomPlayInfo 返回的 data 里取出 AVPlayer 能播的 HLS 地址
 ///

@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 import 'package:archive/archive.dart';
 import 'package:intl/intl.dart';
 import 'package:simple_live_app/app/utils.dart';
+import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/sync_vault.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
@@ -209,7 +210,7 @@ class OtherSettingsController extends BaseController {
       var storage = LocalStorageService.instance;
       var time = DateTime.now().millisecondsSinceEpoch;
       var (config, accounts) = SyncVault.split(
-        storage.settingsBox.toMap(),
+        storage.plainSettings(),
         includeLocalOnly: true,
       );
       var key = await SyncVault.keyFor(
@@ -291,7 +292,9 @@ class OtherSettingsController extends BaseController {
       }
       LocalStorageService.instance.settingsBox.clear();
       LocalStorageService.instance.shieldBox.clear();
-      LocalStorageService.instance.settingsBox.putAll(config);
+      // 配置里解出来的账号、令牌是明文，用这台设备的密钥加密后再写
+      LocalStorageService.instance.settingsBox
+          .putAll(DeviceSecrets.instance.protectSettings(config));
       LocalStorageService.instance.shieldBox
           .putAll(data["shield"].cast<String, String>());
       SmartDialog.showToast(
@@ -308,7 +311,7 @@ class OtherSettingsController extends BaseController {
   Future<String?> _restoreAccounts(
       Map<String, dynamic> config, Map data) async {
     var storage = LocalStorageService.instance;
-    var local = storage.settingsBox.toMap();
+    var local = storage.plainSettings();
     config.removeWhere(
       (key, _) =>
           SyncVault.connectionKeys.contains(key) ||

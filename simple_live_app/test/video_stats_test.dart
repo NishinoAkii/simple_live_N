@@ -96,7 +96,7 @@ void main() {
   test('lines: one item per line, "-" for everything unreadable', () {
     var empty = VideoStats.lines(const {});
     expect(empty.map((e) => e.$1),
-        ["分辨率", "帧率", "视频码率", "音频码率", "编解码", "丢帧", "缓冲", "下载速度"]);
+        ["分辨率", "帧率", "视频码率", "音频码率", "编解码", "格式", "丢帧", "缓冲", "下载速度"]);
     expect(empty.every((e) => e.$2 == "-"), isTrue);
 
     var lines = Map.fromEntries(VideoStats.lines({
@@ -108,6 +108,7 @@ void main() {
       "audio-bitrate": "128000",
       "video-format": "h264",
       "hwdec-current": "mediacodec",
+      "file-format": "flv",
       "frame-drop-count": "1",
       "decoder-frame-drop-count": "0",
       "demuxer-cache-duration": "4.5",
@@ -118,6 +119,9 @@ void main() {
     expect(lines["视频码率"], "2.50 Mbps");
     expect(lines["音频码率"], "128 kbps");
     expect(lines["编解码"], "h264 · mediacodec");
+    expect(lines["格式"], "FLV");
+    expect(VideoStats.format("hls"), "HLS");
+    expect(VideoStats.format("mov,mp4,m4a,3gp,3g2,mj2"), "MP4");
     expect(lines["丢帧"], "1");
     expect(lines["缓冲"], "4.5s");
     expect(lines["下载速度"], "400 KB/s");

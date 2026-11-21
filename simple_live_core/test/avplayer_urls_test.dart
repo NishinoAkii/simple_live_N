@@ -77,6 +77,19 @@ void main() {
     });
   });
 
+  group('orderBiliLiveUrls', () {
+    test('FLV first, then HLS; mcdn last within each; otherwise API order', () {
+      const a = 'https://d1--ov-gotcha03.bilivideo.com/live-bvc/1/live_1.flv?expires=1';
+      const b = 'https://xy1x2x3x4xy.mcdn.bilivideo.cn:486/live-bvc/1/live_1.flv?expires=1';
+      const c = 'https://d1--ov-gotcha07.bilivideo.com/live-bvc/1/live_1.flv?expires=1';
+      const d = 'https://d1--ov-gotcha03.bilivideo.com/live-bvc/1/live_1/index.m3u8?expires=1';
+      const e = 'https://xy5x6x7x8xy.mcdn.bilivideo.cn:486/live-bvc/1/live_1/index.m3u8?expires=1';
+      expect(orderBiliLiveUrls([e, d, b, a, c]), [a, c, b, d, e]);
+      expect(orderBiliLiveUrls([d, a]), [a, d]);
+      expect(orderBiliLiveUrls([]), isEmpty);
+    });
+  });
+
   group('parseBiliLiveHlsUrls', () {
     Map codec(
       String name,

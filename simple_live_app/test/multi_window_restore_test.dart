@@ -1,9 +1,11 @@
-import 'dart:io' show pid;
+import 'dart:io' show Directory, pid;
 import 'dart:ui' show Rect;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:path/path.dart' as p;
 import 'package:simple_live_app/app/multi_window/multi_window.dart';
+import 'package:simple_live_app/app/multi_window/window_args.dart';
 import 'package:simple_live_app/app/multi_window/window_layout.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/window_geometry.dart';
@@ -351,6 +353,173 @@ void main() {
             reason: "$bad");
       }
     });
+
+    test("每个窗口的窗口全屏、置顶记在这一组里，主窗口的也记下", () async {
+      var layout = (windowFull: false, pinned: false);
+      recorder = WindowSetRecorder(
+        mainRoom: () => mainRoom,
+        mainLayout: () => layout,
+        saveDelay: Duration.zero,
+        clock: () => time,
+      );
+      recorder.opened(entry(1, "1", cells[0]));
+      // 主窗口置顶时开的
+      recorder.opened(WindowEntry(
+          slot: 2, room: room("2"), bounds: cells[1], pinned: true));
+      var open = stored(WindowSetRecorder.kOpen)!;
+      expect(open.windows.map((e) => e.windowFull), [false, false]);
+      expect(open.windows.map((e) => e.pinned), [false, true]);
+      // 第一个进了窗口全屏、点了置顶；第二个自己取消置顶
+      recorder.reported(1, const WindowReport(windowFull: true));
+      recorder.reported(1, const WindowReport(pinned: true));
+      recorder.reported(2, const WindowReport(pinned: false));
+      open = stored(WindowSetRecorder.kOpen)!;
+      expect(open.windows.map((e) => e.windowFull), [true, false]);
+      expect(open.windows.map((e) => e.pinned), [true, false]);
+      expect(open.windows.first.room, room("1"));
+      expect(open.windows.first.bounds, cells[0]);
+      // 之后挪了位置、读到主播名：窗口全屏、置顶还在
+      const moved = Rect.fromLTWH(100, 120, 800, 450);
+      recorder.reported(1, const WindowReport(bounds: moved, scale: 1.0));
+      recorder.reported(1, WindowReport(room: room("1", name: "甲")));
+      var first = stored(WindowSetRecorder.kOpen)!.windows.first;
+      expect(first.bounds, moved);
+      expect(first.windowFull, isTrue);
+      expect(first.pinned, isTrue);
+      // 主窗口在直播间里，窗口全屏、置顶
+      mainRoom = room("9");
+      layout = (windowFull: true, pinned: true);
+      recorder.mainRoomChanged();
+      open = stored(WindowSetRecorder.kOpen)!;
+      expect(open.mainFull, isTrue);
+      expect(open.mainPinned, isTrue);
+
+      await recorder.closingAll();
+      // 下次启动：上次的一组、记在主窗口直播间名下的那组都有
+      var next = create();
+      for (var set in [next.last.value!, next.groupFor("douyu", "9")!]) {
+        expect(set.windows.map((e) => e.windowFull), [true, false]);
+        expect(set.windows.map((e) => e.pinned), [true, false]);
+        expect(set.mainRoom, room("9"));
+        expect(set.mainFull, isTrue);
+        expect(set.mainPinned, isTrue);
+      }
+
+      // 主窗口不在直播间里：没有窗口全屏，置顶照记
+      mainRoom = null;
+      recorder.opened(entry(3, "3", cells[2]));
+      open = stored(WindowSetRecorder.kOpen)!;
+      expect(open.mainFull, isFalse);
+      expect(open.mainPinned, isTrue);
+    });
+
+    test("窗口全屏、置顶的存档：读回来一样；以前存的没有这两项当作没有", () {
+      var set = WindowSet(
+        [
+          WindowEntry(
+              slot: 1, room: room("1"), bounds: cells[0], windowFull: true),
+          WindowEntry(slot: 2, room: room("2"), pinned: true),
+          WindowEntry(
+              slot: 3,
+              room: room("3"),
+              bounds: const Rect.fromLTWH(-2548, 12, 837, 746),
+              scale: 1.5,
+              windowFull: true,
+              pinned: true),
+          entry(4, "4", cells[3]),
+        ],
+        mainRoom: room("9"),
+        mainFull: true,
+        mainPinned: true,
+        time: time,
+      );
+      var back = WindowSet.decode(set.encode())!;
+      expect(back.windows.map((e) => e.slot), [1, 2, 3, 4]);
+      expect(back.windows.map((e) => e.windowFull), [true, false, true, false]);
+      expect(back.windows.map((e) => e.pinned), [false, true, true, false]);
+      expect(back.windows[2].bounds, const Rect.fromLTWH(-2548, 12, 837, 746));
+      expect(back.windows[2].scale, 1.5);
+      expect(back.mainRoom, room("9"));
+      expect(back.mainFull, isTrue);
+      expect(back.mainPinned, isTrue);
+      // 都没有时不写（和以前的格式一样）
+      expect(entry(4, "4", cells[3]).toJson().keys,
+          isNot(anyOf(contains("full"), contains("pinned"))));
+      var plain =
+          WindowSet([entry(1, "1", cells[0])], mainRoom: room("9"), time: time)
+              .encode();
+      expect(plain, isNot(contains("mainFull")));
+      expect(plain, isNot(contains("mainPinned")));
+
+      // 1.26.0 存的
+      var old = WindowSet.decode(
+        '{"v":1,"time":0,"main":{"site":"douyu","room":"9"},"windows":['
+        '{"slot":1,"site":"douyu","room":"1",'
+        '"x":8,"y":8,"w":629,"h":504,"scale":1.0,"device":"耳机"}'
+        ']}',
+      )!;
+      expect(old.windows.single.bounds, cells[0]);
+      expect(old.windows.single.audioDevice, "耳机");
+      expect(old.windows.single.windowFull, isFalse);
+      expect(old.windows.single.pinned, isFalse);
+      expect(old.mainRoom, room("9"));
+      expect(old.mainFull, isFalse);
+      expect(old.mainPinned, isFalse);
+
+      // 不是 true、false 的：那一个窗口丢掉；主窗口的当作没有。
+      // 主窗口不在直播间里时没有窗口全屏
+      var bad = WindowSet.decode(
+        '{"v":1,"main":{"site":"douyu","room":"9"},'
+        '"mainFull":"yes","mainPinned":1,"windows":['
+        '{"slot":1,"site":"douyu","room":"1","full":"1"},'
+        '{"slot":2,"site":"douyu","room":"2","pinned":1},'
+        '{"slot":3,"site":"douyu","room":"3","full":false,"pinned":true}'
+        ']}',
+      )!;
+      expect(bad.windows.map((e) => e.slot), [3]);
+      expect(bad.windows.single.windowFull, isFalse);
+      expect(bad.windows.single.pinned, isTrue);
+      expect(bad.mainFull, isFalse);
+      expect(bad.mainPinned, isFalse);
+      var noMain = WindowSet.decode('{"v":1,"mainFull":true,"mainPinned":true,'
+          '"windows":[{"slot":1,"site":"douyu","room":"1"}]}')!;
+      expect(noMain.mainRoom, isNull);
+      expect(noMain.mainFull, isFalse);
+      expect(noMain.mainPinned, isTrue);
+    });
+
+    test("副窗口的报告：进出窗口全屏、置顶变了", () {
+      var r = WindowReport.decode({"full": true});
+      expect(r.windowFull, isTrue);
+      expect(r.pinned, isNull);
+      expect(r.room, isNull);
+      expect(r.bounds, isNull);
+      expect(r.settings, isNull);
+      r = WindowReport.decode({"pinned": false});
+      expect(r.pinned, isFalse);
+      expect(r.windowFull, isNull);
+      var back = WindowReport.decode(
+          const WindowReport(windowFull: false, pinned: true).toJson());
+      expect(back.windowFull, isFalse);
+      expect(back.pinned, isTrue);
+      // 别的报告不带这两项
+      var json = WindowReport(bounds: cells[0]).toJson();
+      expect(json.containsKey("full"), isFalse);
+      expect(json.containsKey("pinned"), isFalse);
+      for (var bad in <Object?>[
+        {"full": "true"},
+        {"full": 1},
+        {"pinned": "false"},
+        {"full": null, "pinned": null},
+        {
+          "full": true,
+          "room": {"site": "douyu", "room": ""}
+        },
+      ]) {
+        expect(() => WindowReport.decode(bad), throwsFormatException,
+            reason: "$bad");
+      }
+    });
   });
 
   group("主窗口关了，副窗口跟着关", () {
@@ -577,6 +746,77 @@ void main() {
       expect(plan.windows.map((e) => e.slot), [5, 6]);
       expect(plan.windows.map((e) => e.bounds), [cells[4], cells[5]]);
       expect(plan.limited, 1);
+    });
+
+    test("窗口全屏、置顶照上次的，带进启动参数；主窗口不按这一组来、现在置顶着时都置顶", () {
+      var dataDir = p.join(
+          Directory.systemTemp.path, "sl_support", "multi_window", "w1-1");
+      var plan = WindowRestore.plan(
+        saved([
+          WindowEntry(
+              slot: 1, room: room("1"), bounds: cells[0], windowFull: true),
+          WindowEntry(slot: 2, room: room("2"), bounds: cells[1], pinned: true),
+          entry(3, "3", cells[2]),
+          WindowEntry(
+              slot: 4,
+              room: room("4"),
+              bounds: const Rect.fromLTWH(2000, 100, 1200, 700),
+              scale: 1.5,
+              windowFull: true,
+              pinned: true),
+        ]),
+        screens: [left, right],
+        main: left.work,
+      );
+      // 副窗口的启动参数：主窗口开窗口时照这样写（WindowEntry.toLaunch）
+      List<SecondaryLaunch> launches({bool followPin = false}) => [
+            for (var t in plan.windows)
+              SecondaryLaunch.parse(t
+                  .reopen(followPin: followPin)
+                  .toLaunch(
+                      port: 50123,
+                      token: WindowToken.generate(),
+                      dataDir: dataDir,
+                      mainPid: 4321)
+                  .toArgs())!,
+          ];
+      var args = launches();
+      expect(args.map((e) => e.slot), [1, 2, 3, 4]);
+      expect(args.map((e) => e.roomId), ["1", "2", "3", "4"]);
+      expect(args.map((e) => e.windowFull), [true, false, false, true]);
+      expect(args.map((e) => e.pinned), [false, true, false, true]);
+      expect(args.map((e) => e.bounds), [
+        cells[0],
+        cells[1],
+        cells[2],
+        const Rect.fromLTWH(2000, 100, 1200, 700)
+      ]);
+      expect(args.last.scale, 1.5);
+      // 主窗口在看别的直播间、置顶着：都一出来就置顶，窗口全屏照上次的
+      args = launches(followPin: true);
+      expect(args.map((e) => e.pinned), [true, true, true, true]);
+      expect(args.map((e) => e.windowFull), [true, false, false, true]);
+      // 开着的这一组记下的也是这样
+      var reopened = plan.windows.first.reopen();
+      expect(reopened.slot, 1);
+      expect(reopened.room, room("1"));
+      expect(reopened.bounds, cells[0]);
+      expect(reopened.windowFull, isTrue);
+      expect(reopened.pinned, isFalse);
+      // 以前存的一组（没有这两项）：都不是窗口全屏、不置顶
+      var old = WindowSet.decode('{"v":1,"windows":['
+          '{"slot":1,"site":"douyu","room":"1","x":8,"y":8,"w":629,"h":504,"scale":1}'
+          ']}')!;
+      var oldArgs = WindowRestore.plan(old, screens: [left], main: left.work)
+          .windows
+          .single
+          .reopen()
+          .toLaunch(
+              port: 50123, token: WindowToken.generate(), dataDir: dataDir)
+          .toArgs();
+      expect(oldArgs.any((e) => e.startsWith("--sl-full")), isFalse);
+      expect(oldArgs.any((e) => e.startsWith("--sl-pinned")), isFalse);
+      expect(SecondaryLaunch.parse(oldArgs)!.bounds, cells[0]);
     });
 
     test("打开以后的提示", () {

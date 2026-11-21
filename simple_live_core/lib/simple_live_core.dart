@@ -57,6 +57,7 @@ export 'src/common/kick_http.dart';
 export 'src/common/douyu_login.dart';
 export 'src/common/core_log.dart';
 export 'src/common/hls_fix_relay.dart' show HlsFixRelay, rewriteHlsPlaylist;
+export 'src/common/hls_segment_relay.dart' show HlsSegmentRelay;
 export 'src/model/live_message.dart';
 export 'src/danmaku/bilibili_danmaku.dart';
 export 'src/danmaku/douyu_danmaku.dart';

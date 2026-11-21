@@ -45,53 +45,7 @@ class FollowUserItem extends StatelessWidget {
         height: 48,
         borderRadius: 24,
       ),
-      title: Text.rich(
-        TextSpan(
-          text: item.userName,
-          children: [
-            WidgetSpan(
-              alignment: ui.PlaceholderAlignment.middle,
-              child: Obx(
-                () => Offstage(
-                  offstage: item.liveStatus.value == 0,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppStyle.hGap12,
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: item.liveStatus.value == 2
-                              ? Colors.green
-                              : Colors.grey,
-                          borderRadius: AppStyle.radius12,
-                        ),
-                      ),
-                      AppStyle.hGap4,
-                      // 名字很长、状态单独换到一行还放不下时（英文、字体放大）省略，不超出
-                      Flexible(
-                        child: Text(
-                          getStatus(item.liveStatus.value),
-                          maxLines: 1,
-                          softWrap: false,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                            color:
-                                item.liveStatus.value == 2 ? null : Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      title: _buildTitle(),
       subtitle: Wrap(
         runSpacing: 1.0,
         children: [
@@ -144,6 +98,101 @@ class FollowUserItem extends StatelessWidget {
   static bool get _showAllBells =>
       Get.isRegistered<AppSettingsController>() &&
       AppSettingsController.instance.liveNotifyShowBell.value;
+
+  /// 状态（● 直播中）的样式
+  TextStyle _statusStyle(int status) => TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        color: status == 2 ? null : Colors.grey,
+      );
+
+  /// 名字后面的 ● 直播中。名字很长时也留在名字这一行
+  Widget _buildStatus() {
+    return Obx(
+      () => Offstage(
+        offstage: item.liveStatus.value == 0,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppStyle.hGap12,
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: item.liveStatus.value == 2 ? Colors.green : Colors.grey,
+                borderRadius: AppStyle.radius12,
+              ),
+            ),
+            AppStyle.hGap4,
+            // 窄到连状态都放不下时（英文、字体放大）省略，不超出
+            Flexible(
+              child: Text(
+                getStatus(item.liveStatus.value),
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: _statusStyle(item.liveStatus.value),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 名字和状态放得下一行时和原来一样；放不下时名字省略，状态留在名字后面，
+  /// 不再把状态挤到下一行（侧栏、全屏的关注列表这些窄的地方）
+  Widget _buildTitle() {
+    return LayoutBuilder(
+      builder: (context, constraints) => Obx(() {
+        var status = item.liveStatus.value;
+        var scaler = MediaQuery.textScalerOf(context);
+        var nameStyle = DefaultTextStyle.of(context).style;
+        double measure(String text, TextStyle style) => (TextPainter(
+              text: TextSpan(text: text, style: style),
+              textDirection: TextDirection.ltr,
+              textScaler: scaler,
+              maxLines: 1,
+            )..layout())
+                .width;
+        var statusWidth = status == 0
+            ? 0.0
+            : 12 + 8 + 4 + measure(getStatus(status), _statusStyle(status));
+        var fits = measure(item.userName, nameStyle) + statusWidth <=
+            constraints.maxWidth + 0.5;
+        if (fits || !constraints.hasBoundedWidth) {
+          return Text.rich(
+            TextSpan(
+              text: item.userName,
+              children: [
+                WidgetSpan(
+                  alignment: ui.PlaceholderAlignment.middle,
+                  child: _buildStatus(),
+                ),
+              ],
+            ),
+          );
+        }
+        return Row(
+          children: [
+            Flexible(
+              child: Text(
+                item.userName,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // 状态里的文字可以省略，要给它一个有限的最大宽度
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+              child: _buildStatus(),
+            ),
+          ],
+        );
+      }),
+    );
+  }
 
   Widget? _buildTrailing(BuildContext context) {
     Widget? end = playing

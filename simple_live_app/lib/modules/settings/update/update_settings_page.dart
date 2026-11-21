@@ -22,7 +22,7 @@ class UpdateSettingsPage extends StatelessWidget {
   UpdateSettings get settings => service.settings;
 
   Map<String, String> get _sources => {
-        UpdateSettings.sourceAuto: "自动（测速后选最快的）".t,
+        UpdateSettings.sourceAuto: "自动选择".t,
         UpdateSettings.sourceDirect: "直连 GitHub".t,
         for (var mirror in service.config.mirrors) mirror.id: mirror.name,
         UpdateSettings.sourceCustom: "自定义镜像".t,

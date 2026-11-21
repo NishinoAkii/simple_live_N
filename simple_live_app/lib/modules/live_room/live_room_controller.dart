@@ -37,6 +37,7 @@ import 'package:simple_live_app/modules/live_room/rank/live_rank_state.dart';
 import 'package:simple_live_app/modules/live_room/room_notice.dart';
 import 'package:simple_live_app/modules/live_room/player/danmaku_pacer.dart';
 import 'package:simple_live_app/modules/live_room/player/player_controller.dart';
+import 'package:simple_live_app/modules/live_room/player/picture_guard.dart';
 import 'package:simple_live_app/modules/live_room/player/stream_tuning.dart';
 import 'package:simple_live_app/modules/settings/danmu_settings_page.dart';
 import 'package:simple_live_app/routes/route_path.dart';
@@ -335,11 +336,23 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   String? _preferredQuality;
   Worker? _windowSettingsWorker;
   Timer? _windowSettingsTimer;
+  Worker? _windowFullWorker;
+  Worker? _mainFullWorker;
 
   void _initWindowSettings() {
+    if (MultiWindow.supported) {
+      // 进出窗口全屏：副窗口告诉主窗口，主窗口自己记着（打开上次的窗口时照样恢复）
+      _windowFullWorker = ever<bool>(
+          windowFullState, (value) => MultiWindow.noteWindowFull(this, value));
+    }
     if (MultiWindow.isSecondary) {
-      var settings = _launchSettingsUsed ? null : MultiWindow.launchSettings;
+      var first = !_launchSettingsUsed;
+      var settings = first ? MultiWindow.launchSettings : null;
       _launchSettingsUsed = true;
+      // 打开上次的窗口：上次是窗口全屏的照样进
+      if (first && (MultiWindow.launch?.windowFull ?? false)) {
+        _enterWindowFullOnOpen();
+      }
       if (settings != null) {
         if (settings.volume case var volume?) {
           AppSettingsController.instance.setPlayerVolume(volume);
@@ -366,12 +379,31 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
       ], (_) => _scheduleWindowSettings());
       return;
     }
+    if (MultiWindow.canOpen) {
+      // 打开上次的一组：主窗口的这个直播间上次是窗口全屏的照样进（页面已经开着时也是）
+      _mainFullWorker =
+          ever<String?>(MultiWindow.mainFullRequest, (_) => _takeMainFull());
+      _takeMainFull();
+    }
     // 主窗口：“每个窗口单独选声音输出设备”开着时用它自己记的
     if (MultiWindow.canOpen && MultiWindowPrefs.devicePerWindow.value) {
       var saved = MultiWindow.mainAudioDevice;
       if (saved != null) {
         unawaited(_restoreAudioDevice(saved));
       }
+    }
+  }
+
+  void _takeMainFull() {
+    if (MultiWindow.takeMainFull(WindowRoom(siteId: site.id, roomId: roomId))) {
+      _enterWindowFullOnOpen();
+    }
+  }
+
+  /// 打开上次的窗口时进窗口全屏（“进入直播间自动全屏”开着时从全屏换成窗口全屏）
+  void _enterWindowFullOnOpen() {
+    if (!windowFullState.value) {
+      unawaited(toggleWindowFull());
     }
   }
 
@@ -557,6 +589,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   void refreshRoom() {
     resetPlaybackRecovery();
+    _resetPictureFixes();
     //messages.clear();
     clearSuperChats();
     clearGifts();
@@ -1237,33 +1270,75 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     await openPlaylist(startIndex: currentLineIndex < 0 ? 0 : currentLineIndex);
   }
 
+  /// B 站的 HLS 线路交给本机中转播放
+  bool _useHlsRelay(String url) =>
+      site.id == Constant.kBiliBili && StreamTuning.isHls(url);
+
+  DateTime? _lastStreamRestart;
+
+  /// 中转发现初始化分段换了（主播重新推流）：ffmpeg 会一直按旧参数解码，重新打开
+  void _onStreamRestarted() {
+    if (isClosed || _recovering || livePause.paused.value || !liveStatus.value) {
+      return;
+    }
+    var now = DateTime.now();
+    var last = _lastStreamRestart;
+    if (last != null && now.difference(last) < const Duration(seconds: 10)) {
+      return;
+    }
+    _lastStreamRestart = now;
+    addSysMsg("主播重新推流了，正在重新打开".t);
+    unawaited(
+      openPlaylist(startIndex: currentLineIndex < 0 ? 0 : currentLineIndex),
+    );
+  }
+
   /// 打开当前线路列表，从 [startIndex] 开始播放
   Future<void> openPlaylist({int startIndex = 0}) async {
     currentLineInfo.value = "线路{p}".tf({"p": startIndex + 1});
     errorMsg.value = "";
 
-    final mediaList = playUrls.map((url) {
+    final mediaList = <Media>[];
+    for (var url in playUrls) {
       var finalUrl = url;
       if (AppSettingsController.instance.playerForceHttps.value) {
         finalUrl = finalUrl.replaceAll("http://", "https://");
       }
-      return Media(finalUrl, httpHeaders: playHeaders);
-    }).toList();
+      if (_useHlsRelay(url)) {
+        // B 站的 HLS 线路走本机中转：长连接、并行下载、多留几段，见 HlsSegmentRelay
+        finalUrl = await HlsSegmentRelay.instance.register(
+          finalUrl,
+          headers: playHeaders,
+          onRestart: _onStreamRestarted,
+        );
+      }
+      mediaList.add(Media(finalUrl, httpHeaders: playHeaders));
+    }
 
     // 初始化播放器并设置 ao 参数
     await initializePlayer();
-    // HLS（Twitch、Kick 等）与 FLV 用不同的网络参数
-    await StreamTuning.apply(player, mediaList.map((e) => e.uri).toList());
+    // HLS（Twitch、Kick 等）与 FLV 用不同的网络参数；B 站两种都有，按要打开的那条线路
+    var start = min(max(startIndex, 0), max(0, mediaList.length - 1));
+    await StreamTuning.apply(
+      player,
+      mediaList.isEmpty ? [] : [mediaList[start].uri],
+    );
     _bufferFloor.clear();
 
     await player.open(Playlist(mediaList, index: startIndex));
+    _pictureGuard.opened();
   }
 
   void setPlayer() async {
     currentLineInfo.value = "线路{p}".tf({"p": currentLineIndex + 1});
     errorMsg.value = "";
+    // 换线路时按新线路的类型（FLV、HLS）设置网络参数
+    if (currentLineIndex >= 0 && currentLineIndex < playUrls.length) {
+      await StreamTuning.apply(player, [playUrls[currentLineIndex]]);
+    }
 
     await player.jump(currentLineIndex);
+    _pictureGuard.opened();
   }
 
   @override
@@ -1471,6 +1546,102 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     }
   }
 
+  // ---- 画面花屏 ----
+
+  final _pictureGuard = PictureGuard();
+  int _pictureStep = 0;
+  DateTime? _pictureLastFix;
+
+  /// 两次花屏隔了这么久，下次又从重新拉流开始试
+  static const Duration kPictureCalm = Duration(minutes: 3);
+
+  void _resetPictureFixes() {
+    _pictureStep = 0;
+    _pictureLastFix = null;
+  }
+
+  /// 这个窗口在本次观看中改用了软件解码（花屏时自动改，也可以在播放器设置里切换）
+  final softwareDecode = false.obs;
+  String? _hwdecBefore;
+
+  /// 能不能在这里切换软件解码。iOS 的画中画要用硬件解码，不动它
+  bool get canToggleDecoder =>
+      !Platform.isIOS && player.platform is NativePlayer;
+
+  Future<void> setSoftwareDecode(bool on) async {
+    var native = player.platform;
+    if (native is! NativePlayer || Platform.isIOS) {
+      return;
+    }
+    try {
+      if (on) {
+        _hwdecBefore ??= await native.getProperty('hwdec');
+        await native.setProperty('hwdec', 'no');
+      } else {
+        await native.setProperty('hwdec', _hwdecBefore ?? 'auto');
+      }
+      softwareDecode.value = on;
+    } catch (e) {
+      Log.logPrint(e);
+    }
+  }
+
+  @override
+  void onPlayerLog(PlayerLog event) {
+    var fault = _pictureGuard.onLog(event.prefix, event.level, event.text);
+    if (fault != PictureFault.none) {
+      Log.d("花屏：$fault（${event.prefix} ${event.text}）");
+      unawaited(_fixPicture(fault));
+    }
+  }
+
+  /// 花屏时依次：重新拉流（和手动刷新一样）→ 换下一条线路 → 这个窗口改用软件解码 → 放弃。
+  /// 隔了 [kPictureCalm] 没再花屏，或者手动刷新、换直播间后，又从第一步开始
+  Future<void> _fixPicture(PictureFault fault) async {
+    if (isClosed ||
+        _recovering ||
+        livePause.paused.value ||
+        !liveStatus.value ||
+        playUrls.isEmpty) {
+      return;
+    }
+    var now = DateTime.now();
+    var last = _pictureLastFix;
+    if (last == null || now.difference(last) > kPictureCalm) {
+      _pictureStep = 0;
+    }
+    _pictureLastFix = now;
+    var line = currentLineIndex < 0 ? 0 : currentLineIndex;
+    _pictureStep++;
+    var fix = PictureGuard.fixFor(
+      _pictureStep,
+      canSoftware: canToggleDecoder && !softwareDecode.value,
+      lineCount: playUrls.length,
+    );
+    switch (fix) {
+      case PictureFix.reopen:
+        await recoverPlayback("画面花屏".t);
+      case PictureFix.software:
+        addSysMsg("画面还是花屏，这个窗口改用软件解码".t);
+        await setSoftwareDecode(true);
+        await openPlaylist(startIndex: line);
+      case PictureFix.nextLine:
+        var next = (line + 1) % playUrls.length;
+        addSysMsg("画面还是花屏，换到线路{p}".tf({"p": next + 1}));
+        changePlayLine(next);
+      case PictureFix.giveUp:
+        // 只提示一次；之后一直花屏也不再折腾
+        if (PictureGuard.fixFor(
+              _pictureStep - 1,
+              canSoftware: canToggleDecoder && !softwareDecode.value,
+              lineCount: playUrls.length,
+            ) !=
+            PictureFix.giveUp) {
+          addSysMsg("画面一直花屏，重新拉流、换线路、软件解码都没用，可能是直播源本身的问题".t);
+        }
+    }
+  }
+
   /// 读取SC
   void getSuperChatMessage() async {
     try {
@@ -1587,8 +1758,14 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   /// 最近 10 秒缓冲的最低值：HLS 按整段到达，当前值会周期性跳高
   final _bufferFloor = BufferFloor();
 
-  /// 当前播放的是 HLS（Twitch、Kick 等分段直播流）
-  bool get _playingHls => playUrls.any(StreamTuning.isHls);
+  /// 当前播放的是 HLS（Twitch、Kick 等分段直播流）。B 站的线路有 FLV 也有 HLS，看当前线路
+  bool get _playingHls {
+    var i = currentLineIndex;
+    if (i >= 0 && i < playUrls.length) {
+      return StreamTuning.isHls(playUrls[i]);
+    }
+    return playUrls.any(StreamTuning.isHls);
+  }
 
   void initCatchUp() {
     _catchUpTimer?.cancel();
@@ -1928,7 +2105,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
               value: i,
               title: Text("线路{p}".tf({"p": i + 1})),
               secondary: Text(
-                playUrls[i].contains(".flv") ? "FLV" : "HLS",
+                [
+                  playUrls[i].contains(".flv") ? "FLV" : "HLS",
+                  StreamTuning.lineNode(playUrls[i]),
+                ].where((e) => e.isNotEmpty).join(" · "),
               ),
             );
           },
@@ -2585,6 +2765,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
     // 清除全部消息
     resetPlaybackRecovery();
+    _resetPictureFixes();
     liveDanmaku.stop();
     _chatPacer.clear();
     chatLog.clear();
@@ -2726,6 +2907,12 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   void onClose() {
     _windowSettingsWorker?.dispose();
     _windowSettingsTimer?.cancel();
+    _windowFullWorker?.dispose();
+    _mainFullWorker?.dispose();
+    // 窗口全屏时关掉直播间页面（之后退出窗口全屏）：这个窗口不再是窗口全屏
+    if (windowFullState.value) {
+      MultiWindow.noteWindowFull(this, false);
+    }
     _voiceRoomTimer?.cancel();
     MultiWindow.leaveRoom(this);
     AppSettingsController.instance.leaveRoomContext(_danmuContextId);

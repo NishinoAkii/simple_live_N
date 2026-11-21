@@ -131,7 +131,7 @@ class WebDavArchive {
     // settings：data 为官方版设置，ext 为本版本专用设置与完整平台排序，
     // liveSources 为直播源的订阅与已安装的源（只有地址），vault 为加密的账号
     var (settings, accounts) =
-        SyncVault.split(LocalStorageService.instance.settingsBox.toMap());
+        SyncVault.split(LocalStorageService.instance.plainSettings());
     var bilibili = BiliBiliAccountService.instance.cookie;
     if (bilibili.isNotEmpty) {
       accounts[LocalStorageService.kBilibiliCookie] = bilibili;
@@ -238,7 +238,7 @@ class WebDavArchive {
       source,
       user: vaultUser,
       password: vaultPassword,
-      localSettings: LocalStorageService.instance.settingsBox.toMap(),
+      localSettings: LocalStorageService.instance.plainSettings(),
     );
     if (!opened) {
       Log.w(SyncVault.openFailedText);

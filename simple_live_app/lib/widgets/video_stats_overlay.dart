@@ -23,6 +23,7 @@ class VideoStats {
     "video-format",
     "video-codec",
     "hwdec-current",
+    "file-format",
     "frame-drop-count",
     "decoder-frame-drop-count",
     "demuxer-cache-duration",
@@ -125,6 +126,21 @@ class VideoStats {
     return parts.isEmpty ? empty : parts.join(" · ");
   }
 
+  /// 直播流的格式：mpv 的 file-format 是 ffmpeg 的格式名（flv、hls、mov,mp4,…）
+  static String format(String? raw) {
+    var name = raw?.trim().toLowerCase() ?? "";
+    if (name.isEmpty) {
+      return empty;
+    }
+    if (name.contains("hls") || name.contains("applehttp")) {
+      return "HLS";
+    }
+    if (name.contains("mp4") || name.contains("mov")) {
+      return "MP4";
+    }
+    return name.split(",").first.toUpperCase();
+  }
+
   /// 丢帧：输出丢帧 + 解码丢帧
   static String drops(String? output, String? decoder) {
     var a = int.tryParse(output?.trim() ?? "");
@@ -142,6 +158,7 @@ class VideoStats {
     "videoBitrate",
     "audioBitrate",
     "codec",
+    "format",
     "drops",
     "buffer",
     "speed",
@@ -154,6 +171,7 @@ class VideoStats {
         "videoBitrate" => "视频码率".t,
         "audioBitrate" => "音频码率".t,
         "codec" => "编解码".t,
+        "format" => "格式".t,
         "drops" => "丢帧".t,
         "buffer" => "缓冲".t,
         "speed" => "下载速度".t,
@@ -171,6 +189,7 @@ class VideoStats {
       "videoBitrate": bitrate(v["video-bitrate"]),
       "audioBitrate": bitrate(v["audio-bitrate"]),
       "codec": codec(v["video-format"], v["video-codec"], v["hwdec-current"]),
+      "format": format(v["file-format"]),
       "drops": drops(v["frame-drop-count"], v["decoder-frame-drop-count"]),
       "buffer": seconds(v["demuxer-cache-duration"]),
       "speed": speed(v["cache-speed"]),
