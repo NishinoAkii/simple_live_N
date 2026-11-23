@@ -20,6 +20,7 @@ import 'package:simple_live_app/services/sync_backup_format.dart';
 import 'package:simple_live_app/services/webdav_archive.dart';
 import 'package:simple_live_app/services/sync_compat.dart';
 import 'package:simple_live_app/services/sync_vault.dart';
+import 'package:simple_live_app/services/webdav_addresses.dart';
 import 'package:simple_live_app/services/webdav_auto_sync.dart';
 import 'package:simple_live_app/services/webdav_sync_service.dart';
 
@@ -676,6 +677,53 @@ void mobileFlowTests() {
         storage.getValue(LocalStorageService.kTwitchToken, ''),
         'local-token',
       );
+    });
+
+    test('用过的 WebDAV 地址和备注加密进存档；拉取时和本机的合并，不按“同步设置”，正在用的地址不变', () async {
+      await service.enable();
+      var active = storage.getValue(LocalStorageService.kWebDAVUri, '');
+      // 另一台设备传的存档：它用过本机这个地址，还写了一个局域网地址的备注
+      await WebDavAddressBook.use(active);
+      await WebDavAddressBook.setNote('http://192.168.9.9:8090', '家里的路由器');
+      files[backupPath] = WebDavArchive.build(
+        DateTime.now().millisecondsSinceEpoch + 60000,
+        key: await SyncVault.keyFor('u', 'p'),
+      );
+      var text = ZipDecoder()
+          .decodeBytes(files[backupPath]!)
+          .map((file) => utf8.decode(file.content))
+          .join('\n');
+      expect(text, isNot(contains('127.0.0.1')));
+      expect(text, isNot(contains('192.168.9.9')));
+      expect(text, isNot(contains('家里的路由器')));
+      // 旧版只解开账号那一项：里面没有地址表
+      var accounts = await SyncVault.open(
+        remote().extraMap(SyncBackupFormat.settingsFile, SyncVault.extraKey)!,
+        user: 'u',
+        password: 'p',
+        context: SyncVault.webDavContext(remote().dataTime!),
+      );
+      expect(accounts, isNotNull);
+      expect(accounts!.containsKey(WebDavAddressBook.kKey), isFalse);
+
+      // 本机：只记着一个外网地址
+      await storage.setValue(
+        WebDavAddressBook.kKey,
+        WebDavAddressBook.encode([
+          const WebDavAddress(uri: 'https://dav.example.com', note: '外网', time: 1),
+        ]),
+      );
+      expect(WebDavSyncOptions.autoSettings, isFalse);
+      await service.pullIfNewer();
+      await waitFor(
+        () => WebDavAddressBook.visible().length == 3,
+        '地址表合并',
+      );
+      expect(
+        WebDavAddressBook.visible().map((e) => e.label).toSet(),
+        {active, '家里的路由器', '外网'},
+      );
+      expect(storage.getValue(LocalStorageService.kWebDAVUri, ''), active);
     });
   });
 

@@ -17,6 +17,7 @@ import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/sync_vault.dart';
+import 'package:simple_live_app/services/webdav_addresses.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 
 class OtherSettingsController extends BaseController {
@@ -209,10 +210,8 @@ class OtherSettingsController extends BaseController {
     try {
       var storage = LocalStorageService.instance;
       var time = DateTime.now().millisecondsSinceEpoch;
-      var (config, accounts) = SyncVault.split(
-        storage.plainSettings(),
-        includeLocalOnly: true,
-      );
+      var all = storage.plainSettings();
+      var (config, accounts) = SyncVault.split(all, includeLocalOnly: true);
       var key = await SyncVault.keyFor(
         storage.getValue(LocalStorageService.kWebDAVUser, ""),
         storage.getValue(LocalStorageService.kWebDAVPassword, ""),
@@ -231,6 +230,9 @@ class OtherSettingsController extends BaseController {
             key,
             SyncVault.configContext(time),
           ),
+        if (SyncVault.sealAddresses(all, key, SyncVault.configContext(time))
+            case var addresses?)
+          SyncVault.addressesKey: addresses,
       };
 
       var bytes = Uint8List.fromList(utf8.encode(jsonEncode(data)));
@@ -339,6 +341,21 @@ class OtherSettingsController extends BaseController {
     }
     var (_, localAccounts) = SyncVault.split(local, includeLocalOnly: true);
     config.addAll(accounts ?? localAccounts);
+    // 用过的 WebDAV 地址（在文件里另外加密）：解开后和本机的合并，解不开就用本机的
+    const book = WebDavAddressBook.kKey;
+    var exportTime = data["time"];
+    var incoming = await SyncVault.openAddresses(
+      data[SyncVault.addressesKey],
+      user: storage.getValue(LocalStorageService.kWebDAVUser, ""),
+      password: storage.getValue(LocalStorageService.kWebDAVPassword, ""),
+      context: SyncVault.configContext(exportTime is int ? exportTime : 0),
+    );
+    var addresses = WebDavAddressBook.mergeRaw(local[book], incoming);
+    if (addresses == null) {
+      config.remove(book);
+    } else {
+      config[book] = addresses;
+    }
     return warning;
   }
 

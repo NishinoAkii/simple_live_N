@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/modules/sync/remote_sync/webdav/remote_sync_webdav_controller.dart';
+import 'package:simple_live_app/modules/sync/remote_sync/webdav/webdav_address_field.dart';
 import 'package:simple_live_app/widgets/none_border_circular_textfield.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 
@@ -78,18 +79,11 @@ class _RemoteSyncWebDAVConfigPageState
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  NoneBorderCircularTextField(
-                    editingController: _urlController,
-                    labelText: "WebDAV 服务器地址".t,
-                    hintText: "以 http:// 或 https:// 开头".t,
-                    prefixIcon: const Icon(Icons.public),
-                    trailing: InkWell(
-                      child: const Icon(
-                        Icons.cancel,
-                        size: 20,
-                      ),
-                      onTap: () => _urlController.clear(),
-                    ),
+                  // 用过的地址在下拉菜单里，点一下填进来
+                  WebDavAddressField(
+                    controller: _urlController,
+                    addresses: controller.addresses.toList(),
+                    onEditNote: controller.editAddressNote,
                   ),
                   NoneBorderCircularTextField(
                     editingController: _userNameController,

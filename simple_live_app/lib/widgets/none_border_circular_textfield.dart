@@ -13,6 +13,9 @@ class NoneBorderCircularTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final TextAlign textAlign;
   final Widget? trailing;
+
+  /// 一直显示在右边的按钮（[trailing] 只在有内容或正在输入时显示）
+  final Widget? suffixIcon;
   final TextInputType? inputType;
   final int? maxLines;
   final bool autoFocus;
@@ -35,6 +38,7 @@ class NoneBorderCircularTextField extends StatelessWidget {
     this.maxLines = 1,
     this.onEditingComplete,
     this.trailing,
+    this.suffixIcon,
     this.autoFocus = false,
     this.focusNode,
     this.inputType,
@@ -56,6 +60,7 @@ class NoneBorderCircularTextField extends StatelessWidget {
         filled: true,
         contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
         suffix: trailing,
+        suffixIcon: suffixIcon,
         helperText: helperText,
         helperMaxLines: 3,
         border: const OutlineInputBorder(

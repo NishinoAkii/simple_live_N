@@ -9,6 +9,7 @@ import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/sync_backup_format.dart';
 import 'package:simple_live_app/services/sync_compat.dart';
+import 'package:simple_live_app/services/webdav_addresses.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 
 /// 加密账号用的密钥，由 WebDAV 账号和密码算出
@@ -23,6 +24,8 @@ class SyncVaultKey {
 ///
 /// 账号类设置（各平台的 Cookie、令牌、登录名，见 [LocalStorageService.isAccountKey]）
 /// 不写明文，加密后放进 [extraKey] 一项；WebDAV 的地址、账号、密码不写进文件。
+/// 用过的 WebDAV 地址和备注（[WebDavAddressBook]，1.27.1）用同一个密钥加密，放在
+/// [addressesKey] 一项里。
 ///
 /// 密钥由 WebDAV 账号和密码经 PBKDF2-HMAC-SHA256 算出，登录同一个 WebDAV 账号的设备
 /// 直接就能解开；只拿到文件的人看不到账号。加密用 AES-256-GCM，附加数据里有文件的
@@ -31,6 +34,10 @@ class SyncVaultKey {
 /// 官方版和本版本的旧版不认这一项，从新存档恢复时拿不到账号。
 class SyncVault {
   static const String extraKey = "vault";
+
+  /// 加密的用过的 WebDAV 地址。不放进 [extraKey]：旧版把那里解出来的每一项都当成设置
+  /// 写进本机，之后会把地址明文传上去；这一项旧版不认，直接跳过
+  static const String addressesKey = "webdavAddresses";
   static const int _version = 1;
   static const String _kdf = "pbkdf2-sha256";
 
@@ -61,6 +68,10 @@ class SyncVault {
     settings.forEach((key, value) {
       var name = key.toString();
       if (connectionKeys.contains(name)) {
+        return;
+      }
+      // 用过的 WebDAV 地址两边都不放，另外加密（[sealAddresses]）
+      if (name == WebDavAddressBook.kKey) {
         return;
       }
       if (LocalStorageService.isAccountKey(name)) {
@@ -217,6 +228,39 @@ class SyncVault {
     }
   }
 
+  /// 加密 [settings] 里用过的 WebDAV 地址；没有密钥或地址表是空的时返回 null（不写进文件）
+  static Map<String, dynamic>? sealAddresses(
+    Map settings,
+    SyncVaultKey? key,
+    String context,
+  ) {
+    var value = settings[WebDavAddressBook.kKey];
+    if (key == null || value is! String || value.isEmpty) {
+      return null;
+    }
+    return seal({WebDavAddressBook.kKey: value}, key, "$context|addresses");
+  }
+
+  /// 解开 [sealAddresses] 加密的地址表，解不开返回 null
+  static Future<String?> openAddresses(
+    Object? sealed, {
+    required String user,
+    required String password,
+    required String context,
+  }) async {
+    if (sealed is! Map) {
+      return null;
+    }
+    var opened = await open(
+      sealed,
+      user: user,
+      password: password,
+      context: "$context|addresses",
+    );
+    var value = opened?[WebDavAddressBook.kKey];
+    return value is String ? value : null;
+  }
+
   // ---------------------------------------------------------------------
   // WebDAV 存档
   // ---------------------------------------------------------------------
@@ -276,6 +320,16 @@ class SyncVault {
     required String password,
     required Map localSettings,
   }) async {
+    // 用过的 WebDAV 地址：解开后放进 ext，恢复时和本机的合并；解不开就只用本机的
+    var addresses = await openAddresses(
+      backup.extraMap(SyncBackupFormat.settingsFile, addressesKey),
+      user: user,
+      password: password,
+      context: webDavContext(backup.dataTime ?? 0),
+    );
+    if (addresses != null) {
+      backup = _withExtSetting(backup, WebDavAddressBook.kKey, addresses);
+    }
     var vault = backup.extraMap(SyncBackupFormat.settingsFile, extraKey);
     if (vault == null) {
       return (backup, true);
@@ -291,5 +345,26 @@ class SyncVault {
     }
     var (_, local) = split(localSettings);
     return (withAccounts(backup, local, bilibiliFile: false), false);
+  }
+
+  /// 存档的 ext 里加一项设置（没有 ext 的旧存档原样返回）
+  static SyncBackupFormat _withExtSetting(
+    SyncBackupFormat backup,
+    String key,
+    Object value,
+  ) {
+    const settingsFile = SyncBackupFormat.settingsFile;
+    var files = Map<String, dynamic>.from(backup.files);
+    var file = files[settingsFile];
+    if (file is! Map || file[SyncBackupFormat.extKey] is! Map) {
+      return backup;
+    }
+    var copy = Map<String, dynamic>.from(file);
+    copy[SyncBackupFormat.extKey] = {
+      ...Map<String, dynamic>.from(copy[SyncBackupFormat.extKey]),
+      key: value,
+    };
+    files[settingsFile] = copy;
+    return SyncBackupFormat(files);
   }
 }

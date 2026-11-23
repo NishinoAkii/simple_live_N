@@ -4,6 +4,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/modules/sync/remote_sync/webdav/remote_sync_webdav_controller.dart';
+import 'package:simple_live_app/modules/sync/remote_sync/webdav/webdav_address_field.dart';
 import 'package:simple_live_app/routes/route_path.dart';
 import 'package:simple_live_app/widgets/settings/settings_card.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
@@ -43,6 +44,16 @@ class RemoteSyncWebDAVPage extends GetView<RemoteSyncWebDAVController> {
                           trailing: const Icon(Icons.logout),
                           onTap: () {
                             controller.onLogout();
+                          },
+                        ),
+                        AppStyle.divider,
+                        ListTile(
+                          title: Text("服务器地址".t),
+                          subtitle: Text(controller.activeLabel),
+                          leading: const Icon(Icons.dns_outlined),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Get.dialog(const WebDavSwitchAddressDialog());
                           },
                         ),
                         AppStyle.divider,

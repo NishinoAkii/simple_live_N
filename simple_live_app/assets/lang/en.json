@@ -1983,5 +1983,18 @@
  "视频（原始流）": "Video (original stream)",
  "原样保存直播流（MKV），不带弹幕": "Saves the live stream as it arrives (MKV), without danmaku",
  "只有画面，没有声音和弹幕，最长 1 分钟": "Picture only, no sound or danmaku, up to 1 min",
- "到时间自动停下并保存；存成 GIF 时最长 1 分钟": "Stops and saves automatically when the time is up; GIFs stop at 1 min"
+ "到时间自动停下并保存；存成 GIF 时最长 1 分钟": "Stops and saves automatically when the time is up; GIFs stop at 1 min",
+ "服务器地址": "Server address",
+ "切换服务器地址": "Change server address",
+ "账号和密码不变。连接测试通过则保存新地址。": "Your account and password stay the same. If the connection test passes, the new address is saved.",
+ "测试并保存": "Test and save",
+ "地址需以 http:// 或 https:// 开头": "The address must start with http:// or https://",
+ "正在测试连接": "Testing connection",
+ "无法连接该地址，未切换": "Can't connect to this address. The address was not changed.",
+ "连接正常，地址未更改": "Connected. The address is unchanged.",
+ "已切换到 {name}": "Switched to {name}",
+ "历史地址": "Previous addresses",
+ "长按可编辑备注或删除": "Long-press to edit the note or delete",
+ "地址备注": "Address note",
+ "例如：家里、外网": "For example: Home, Remote"
 }

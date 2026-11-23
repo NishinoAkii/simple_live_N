@@ -19,6 +19,7 @@ import 'package:simple_live_app/services/kick_account_service.dart';
 import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/twitch_account_service.dart';
+import 'package:simple_live_app/services/webdav_addresses.dart';
 import 'package:simple_live_app/services/youtube_account_service.dart';
 
 /// 与官方版之间的同步兼容
@@ -82,6 +83,8 @@ class SyncCompat {
   static const Set<String> forkSettingKeys = {
     // 多开时各直播间的设置（音量、静音、弹幕开关、清晰度），位置不在这里
     WindowSetRecorder.kRoomSettings,
+    // 用过的 WebDAV 地址和备注（1.27.1）：恢复时两边合并，见 [_mergeAddressBook]
+    WebDavAddressBook.kKey,
     LocalStorageService.kLiveCatchUp,
     LocalStorageService.kLiveCatchUpMaxRate,
     LocalStorageService.kLiveCatchUpTarget,
@@ -511,7 +514,28 @@ class SyncCompat {
         result[name] = value;
       }
     });
+    _mergeAddressBook(result, local, ext);
     return result;
+  }
+
+  /// 用过的 WebDAV 地址：本机的和存档里的合并（同一个地址以改得晚的为准，删掉的也跟着删），
+  /// 不按“自动同步时也同步设置”。存档来自官方版或旧版（没有这一项）时不变
+  static void _mergeAddressBook(
+    Map<String, dynamic> result,
+    Map local,
+    Map<String, dynamic>? ext,
+  ) {
+    const key = WebDavAddressBook.kKey;
+    if (ext == null || !ext.containsKey(key)) {
+      if (local.containsKey(key)) {
+        result[key] = local[key];
+      }
+      return;
+    }
+    var merged = WebDavAddressBook.mergeRaw(local[key], ext[key]);
+    if (merged != null) {
+      result[key] = merged;
+    }
   }
 
   /// 恢复设置
@@ -560,7 +584,8 @@ class SyncCompat {
       return false;
     }
     if (autoAccountKeys.contains(key) ||
-        key == LocalStorageService.kBilibiliCookie) {
+        key == LocalStorageService.kBilibiliCookie ||
+        key == WebDavAddressBook.kKey) {
       return true;
     }
     return syncSettings;
@@ -588,6 +613,9 @@ class SyncCompat {
         : <String, dynamic>{
             for (var entry in local.entries) entry.key.toString(): entry.value,
           };
+    if (!syncSettings) {
+      _mergeAddressBook(result, local, ext);
+    }
     var backup = {...main, ...?ext};
     void account(String key, bool sync) {
       var value = backup[key];

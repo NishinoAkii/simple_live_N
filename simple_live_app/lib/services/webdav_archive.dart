@@ -129,9 +129,10 @@ class WebDavArchive {
     // 哔哩哔哩账号不再单独放一个文件，Cookie 和其它账号一起加密进设置文件。
     // 官方版和旧版找不到这个文件时保留本机登录
     // settings：data 为官方版设置，ext 为本版本专用设置与完整平台排序，
-    // liveSources 为直播源的订阅与已安装的源（只有地址），vault 为加密的账号
-    var (settings, accounts) =
-        SyncVault.split(LocalStorageService.instance.plainSettings());
+    // liveSources 为直播源的订阅与已安装的源（只有地址），vault 为加密的账号，
+    // webdavAddresses 为加密的用过的 WebDAV 地址
+    var all = LocalStorageService.instance.plainSettings();
+    var (settings, accounts) = SyncVault.split(all);
     var bilibili = BiliBiliAccountService.instance.cookie;
     if (bilibili.isNotEmpty) {
       accounts[LocalStorageService.kBilibiliCookie] = bilibili;
@@ -155,6 +156,13 @@ class WebDavArchive {
               key,
               SyncVault.webDavContext(dataTime),
             ),
+          if (SyncVault.sealAddresses(
+                all,
+                key,
+                SyncVault.webDavContext(dataTime),
+              )
+              case var addresses?)
+            SyncVault.addressesKey: addresses,
         },
       ),
     );

@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/controller/base_controller.dart';
 import 'package:simple_live_app/app/log.dart';
 import 'package:simple_live_app/app/utils.dart';
+import 'package:simple_live_app/modules/sync/remote_sync/webdav/webdav_address_field.dart';
 import 'package:simple_live_app/modules/sync/remote_sync/webdav/webdav_client.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
+import 'package:simple_live_app/services/webdav_addresses.dart';
 import 'package:simple_live_app/services/webdav_archive.dart';
 import 'package:simple_live_app/services/webdav_sync_service.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
@@ -41,10 +45,32 @@ class RemoteSyncWebDAVController extends BaseController {
   var lastRecoverTime = "--".obs;
   var lastUploadTime = "--".obs;
 
+  /// 正在用的服务器地址，没登录时为空
+  var activeUri = "".obs;
+
+  /// 用过的地址（输入框的下拉菜单）
+  var addresses = <WebDavAddress>[].obs;
+
+  /// 页面上显示的当前地址：有备注时备注在前
+  String get activeLabel {
+    var uri = activeUri.value;
+    var key = WebDavAddressBook.keyOf(uri);
+    for (var address in addresses) {
+      if (address.key == key && address.note.isNotEmpty) {
+        return "${address.note} · $uri";
+      }
+    }
+    return uri;
+  }
+
   @override
   void onInit() {
     doWebDAVInit();
     super.onInit();
+  }
+
+  void loadAddresses() {
+    addresses.assignAll(WebDavAddressBook.visible(active: activeUri.value));
   }
 
   // webDAV 逻辑
@@ -52,9 +78,13 @@ class RemoteSyncWebDAVController extends BaseController {
   void doWebDAVInit() {
     var uri = LocalStorageService.instance
         .getValue(LocalStorageService.kWebDAVUri, "");
+    activeUri.value = uri;
+    loadAddresses();
     if (uri.isEmpty) {
       notLogin.value = true;
     } else {
+      // 这个功能之前就登录了：正在用的地址补进列表，随存档同步给别的设备
+      WebDavAddressBook.ensure(uri).then((_) => loadAddresses());
       user.value = LocalStorageService.instance
           .getValue(LocalStorageService.kWebDAVUser, "");
       var password = LocalStorageService.instance
@@ -113,6 +143,9 @@ class RemoteSyncWebDAVController extends BaseController {
       user.value = webDAVUser;
       LocalStorageService.instance
           .setValue(LocalStorageService.kWebDAVPassword, webDAVPassword);
+      await WebDavAddressBook.use(webDAVUri);
+      activeUri.value = webDAVUri;
+      loadAddresses();
       Get.back();
       SmartDialog.showToast("登录成功".t);
     } else {
@@ -135,7 +168,78 @@ class RemoteSyncWebDAVController extends BaseController {
       await WebDavSyncService.instance.onLogout();
       autoSync.value = false;
       notLogin.value = true;
+      // 用过的地址和备注留着，下次登录时在下拉菜单里选
+      activeUri.value = "";
+      loadAddresses();
     }
+  }
+
+  /// 换服务器地址，不用退出登录：账号密码不变，先测试连接，连得上才保存。返回换没换成
+  Future<bool> switchAddress(String input) async {
+    if (!WebDavAddressBook.isValidUri(input)) {
+      SmartDialog.showToast("地址需以 http:// 或 https:// 开头".t);
+      return false;
+    }
+    SmartDialog.showLoading(msg: "正在测试连接".t);
+    WebDavSwitchResult result;
+    DAVClient? client;
+    try {
+      (result, client) = await WebDavAddressBook.switchTo(input);
+    } catch (e, stackTrace) {
+      Log.e("切换 WebDAV 地址失败：$e", stackTrace);
+      result = WebDavSwitchResult.offline;
+    } finally {
+      SmartDialog.dismiss(status: SmartStatus.loading);
+    }
+    switch (result) {
+      case WebDavSwitchResult.invalid:
+        SmartDialog.showToast("地址需以 http:// 或 https:// 开头".t);
+        return false;
+      case WebDavSwitchResult.offline:
+        SmartDialog.showToast("无法连接该地址，未切换".t);
+        return false;
+      case WebDavSwitchResult.same:
+      case WebDavSwitchResult.switched:
+        break;
+    }
+    davClient = client!;
+    activeUri.value = input.trim();
+    loadAddresses();
+    if (result == WebDavSwitchResult.same) {
+      SmartDialog.showToast("连接正常，地址未更改".t);
+    } else {
+      var label = addresses
+              .firstWhereOrNull(
+                  (e) => e.key == WebDavAddressBook.keyOf(activeUri.value))
+              ?.label ??
+          activeUri.value;
+      SmartDialog.showToast("已切换到 {name}".tf({"name": label}));
+    }
+    // 开着自动同步：用新地址比较一次，原来“连不上”的提示也换成新的结果
+    var service = WebDavSyncService.instance;
+    if (service.enabled) {
+      unawaited(service.pullIfNewer());
+    }
+    return true;
+  }
+
+  /// 长按地址：写备注，或者从列表里删掉（正在用的不能删）
+  Future<void> editAddressNote(WebDavAddress address) async {
+    var active = activeUri.value.isNotEmpty &&
+        address.key == WebDavAddressBook.keyOf(activeUri.value);
+    var result = await Get.dialog<(WebDavNoteAction, String)>(
+      WebDavAddressNoteDialog(address: address, canDelete: !active),
+    );
+    if (result == null) {
+      return;
+    }
+    var (action, note) = result;
+    if (action == WebDavNoteAction.delete) {
+      await WebDavAddressBook.remove(address.uri);
+    } else {
+      await WebDavAddressBook.setNote(address.uri, note);
+    }
+    loadAddresses();
   }
 
   // webDAV上传到云端

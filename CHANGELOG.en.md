@@ -7,6 +7,7 @@
 - Reopening the last set of extra windows restores each window, the main window included, to how it was closed: position, size, sound, danmaku, quality, Fill window, keep on top and the chat panel.
 - A room opened in a new extra window uses that room's last volume, mute, danmaku on/off, quality, audio output, Fill window and window size.
 - A room's remembered mute state takes precedence over "Mute new extra windows", and unmuting restores the previous volume.
+- You can change the WebDAV server address on the sync page without logging in again. Previous addresses appear in the field's dropdown, and the list is encrypted and synced with the archive.
 
 ### Fixed
 
