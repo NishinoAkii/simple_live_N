@@ -188,8 +188,18 @@ class WindowMemory with WindowListener {
   @override
   void onWindowUnmaximize() => _scheduleSave();
 
+  /// 到这个时候之前挪动、改大小不记（[holdSaving]）
+  DateTime _holdUntil = DateTime(0);
+
+  /// 打开上次的多开窗口时把主窗口放回那一组记的位置：这一下（和随后几秒里系统发来的挪动）
+  /// 不记成主窗口平常的位置，下次正常打开主窗口时还在原来记的地方
+  void holdSaving([Duration duration = const Duration(seconds: 3)]) {
+    _saveTimer?.cancel();
+    _holdUntil = DateTime.now().add(duration);
+  }
+
   void _scheduleSave() {
-    if (!enabled.value) return;
+    if (!enabled.value || DateTime.now().isBefore(_holdUntil)) return;
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 600), () {
       unawaited(save());

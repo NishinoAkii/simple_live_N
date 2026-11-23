@@ -102,8 +102,10 @@ extension LiveRoomPlayback on LiveRoomController {
     resetPlaybackRecovery();
     errorMsg.value = "";
     state.resuming = true;
-    // 又点了暂停、关了直播间、或者用户自己刷新了：这次继续作废
-    bool stale() => isClosed || state.paused.value;
+    // 又点了暂停、关了直播间、换了直播间：这次继续作废（读到的是原来那个直播间的）
+    var generation = roomGeneration;
+    bool stale() =>
+        isClosed || state.paused.value || generation != roomGeneration;
     try {
       var fresh = await site.liveSite.getRoomDetail(roomId: roomId);
       if (stale()) {
@@ -138,7 +140,7 @@ extension LiveRoomPlayback on LiveRoomController {
       }
       qualites.value = list;
       currentQuality = index;
-      currentQualityInfo.value = list[index].quality;
+      setQualityInfo(list[index].quality);
       playUrls.value = playUrl.urls;
       playHeaders = playUrl.headers;
       if (currentLineIndex < 0 || currentLineIndex >= playUrls.length) {

@@ -32,6 +32,7 @@ import 'package:simple_live_app/modules/live_room/live_gifts.dart';
 import 'package:simple_live_app/modules/live_room/listen_mode.dart';
 import 'package:simple_live_app/modules/live_room/live_room_capture.dart';
 import 'package:simple_live_app/modules/live_room/live_room_playback.dart';
+import 'package:simple_live_app/modules/live_room/live_room_shortcuts.dart';
 import 'package:simple_live_app/modules/live_room/live_room_tabs.dart';
 import 'package:simple_live_app/modules/live_room/rank/live_rank_state.dart';
 import 'package:simple_live_app/modules/live_room/room_notice.dart';
@@ -47,6 +48,7 @@ import 'package:simple_live_app/services/danmaku_emotes.dart';
 import 'package:simple_live_app/services/db_service.dart';
 import 'package:simple_live_app/services/follow_service.dart';
 import 'package:simple_live_app/services/live_notify_service.dart';
+import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/app/multi_window/multi_window.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/widgets/follow_actions_sheet.dart';
@@ -203,6 +205,22 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   var currentQuality = -1;
   var currentQualityInfo = "".obs;
 
+  /// [currentQualityInfo] 是哪个直播间的（平台|房间号）。换直播间时清掉，读到新直播间的清晰度时设上
+  String? _qualityRoom;
+
+  /// 现在的清晰度换成 [name]（这个直播间读到清晰度以后选的、重连或继续时按名字找到的）。
+  /// 多开：从这时起报的设置才带清晰度。名字和原来那个直播间的一样时 [currentQualityInfo]
+  /// 不变，这里报一次
+  void setQualityInfo(String name) {
+    var key = "${site.id}|$roomId";
+    var first = _qualityRoom != key;
+    _qualityRoom = key;
+    currentQualityInfo.value = name;
+    if (first && _windowSettingsWorker != null) {
+      _noteWindowSettings();
+    }
+  }
+
   /// 线路数据
   RxList<String> playUrls = RxList<String>();
 
@@ -257,6 +275,11 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   /// 已读到房间信息的直播间（平台|房间号）：换直播间后、读到新信息之前不用旧的标题
   String? _detailKey;
+
+  /// 换一次直播间（[resetRoom]）加一。读直播间信息、SC、继续播放的地址时换了直播间的，
+  /// 读到的是原来那个直播间的，不用。抖音只是换成平台认的房间号时不加
+  int _roomGeneration = 0;
+  int get roomGeneration => _roomGeneration;
 
   @override
   void onInit() {
@@ -332,18 +355,24 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   /// 副窗口里只有第一次进的直播间用主窗口给的设置（之后是用户自己换的）
   static bool _launchSettingsUsed = false;
 
-  /// 多开窗口打开上次的时，用那个窗口里选的清晰度（用一次）
+  /// 打开上次的多开窗口时，用那个窗口里选的清晰度（用一次）
   String? _preferredQuality;
   Worker? _windowSettingsWorker;
-  Timer? _windowSettingsTimer;
   Worker? _windowFullWorker;
-  Worker? _mainFullWorker;
+  Worker? _chatCollapsedWorker;
+  Worker? _mainRestoreWorker;
+
+  /// 主窗口：音量用的是打开上次的一组时记的（不改平常记的，关掉这个直播间时换回来）
+  bool _volumeFromSet = false;
 
   void _initWindowSettings() {
     if (MultiWindow.supported) {
       // 进出窗口全屏：副窗口告诉主窗口，主窗口自己记着（打开上次的窗口时照样恢复）
       _windowFullWorker = ever<bool>(
           windowFullState, (value) => MultiWindow.noteWindowFull(this, value));
+      // 宽屏时收起、展开聊天栏也一样记着（只在打开上次的窗口时恢复）
+      _chatCollapsedWorker = ever<bool>(LiveRoomKeyState.of(this).chatCollapsed,
+          (value) => MultiWindow.noteChatCollapsed(this, value));
     }
     if (MultiWindow.isSecondary) {
       var first = !_launchSettingsUsed;
@@ -352,6 +381,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
       // 打开上次的窗口：上次是窗口全屏的照样进
       if (first && (MultiWindow.launch?.windowFull ?? false)) {
         _enterWindowFullOnOpen();
+      }
+      // 打开上次的窗口：上次收起了聊天栏的照样收起
+      if (first && (MultiWindow.launch?.chatCollapsed ?? false)) {
+        LiveRoomKeyState.of(this).chatCollapsed.value = true;
       }
       if (settings != null) {
         if (settings.volume case var volume?) {
@@ -369,35 +402,79 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
           unawaited(_restoreAudioDevice(settings.audioDevice));
         }
       }
-      // 之后变了告诉主窗口，记成这个直播间多开时的设置
-      _windowSettingsWorker = everAll([
-        AppSettingsController.instance.playerVolume,
-        muted,
-        showDanmakuState,
-        currentQualityInfo,
-        audioDevice,
-      ], (_) => _scheduleWindowSettings());
+      // 之后变了告诉主窗口：先记在开着的这一组里，关掉这个窗口时记成这个直播间多开时的设置
+      _watchWindowSettings();
       return;
     }
-    if (MultiWindow.canOpen) {
-      // 打开上次的一组：主窗口的这个直播间上次是窗口全屏的照样进（页面已经开着时也是）
-      _mainFullWorker =
-          ever<String?>(MultiWindow.mainFullRequest, (_) => _takeMainFull());
-      _takeMainFull();
+    if (!MultiWindow.canOpen) {
+      return;
     }
-    // 主窗口：“每个窗口单独选声音输出设备”开着时用它自己记的
-    if (MultiWindow.canOpen && MultiWindowPrefs.devicePerWindow.value) {
+    // 主窗口：打开上次的一组时这个直播间照这一组记的（页面已经开着时也是）；平常打开时不用
+    _mainRestoreWorker = ever<MainRestore?>(
+        MultiWindow.mainRestoreRequest, (_) => _takeMainRestore());
+    var deviceFromSet = _takeMainRestore();
+    // “每个窗口单独选声音输出设备”开着时用主窗口自己记的
+    if (!deviceFromSet && MultiWindowPrefs.devicePerWindow.value) {
       var saved = MultiWindow.mainAudioDevice;
       if (saved != null) {
         unawaited(_restoreAudioDevice(saved));
       }
     }
+    // 主窗口的音量这些也记着（记进开着的这一组）
+    _watchWindowSettings();
+    _noteWindowSettings();
   }
 
-  void _takeMainFull() {
-    if (MultiWindow.takeMainFull(WindowRoom(siteId: site.id, roomId: roomId))) {
+  /// 测试用：只做 onInit 里多开的那部分（告诉 MultiWindow 在看的直播间，开始报音量这些）
+  @visibleForTesting
+  void initMultiWindowForTest() {
+    _noteWindowRoom();
+    _initWindowSettings();
+  }
+
+  /// 打开上次的一组时主窗口的这个直播间：用这一组记的窗口全屏、聊天栏收起没有、音量、静音、
+  /// 弹幕开关、清晰度、声音输出设备。返回用没用这一组记的声音输出设备
+  bool _takeMainRestore() {
+    var restore = MultiWindow.takeMainRestore(
+        WindowRoom(siteId: site.id, roomId: roomId));
+    if (restore == null) {
+      return false;
+    }
+    if (restore.windowFull) {
       _enterWindowFullOnOpen();
     }
+    LiveRoomKeyState.of(this).chatCollapsed.value = restore.chatCollapsed;
+    var settings = restore.settings;
+    if (settings == null) {
+      return false;
+    }
+    if (settings.volume case var volume?) {
+      // 只用在这个页面：不存成平常的音量（AppSettingsController 记的），关掉时换回来
+      AppSettingsController.instance.playerVolume.value = volume;
+      _volumeFromSet = true;
+      player.setVolume(volume);
+    }
+    if (settings.danmaku case var danmaku?) {
+      showDanmakuState.value = danmaku;
+    }
+    setMuted(settings.muted ?? muted.value);
+    if (settings.quality case var quality?) {
+      var index = qualites.indexWhere((e) => e.quality == quality);
+      if (index < 0) {
+        // 还没读到清晰度：读到以后用
+        _preferredQuality = quality;
+      } else if (index != currentQuality) {
+        // 页面已经开着：换过去（不记成手动选的）
+        currentQuality = index;
+        getPlayUrl();
+      }
+    }
+    if (settings.audioDevice != null &&
+        MultiWindowPrefs.devicePerWindow.value) {
+      unawaited(_restoreAudioDevice(settings.audioDevice));
+      return true;
+    }
+    return false;
   }
 
   /// 打开上次的窗口时进窗口全屏（“进入直播间自动全屏”开着时从全屏换成窗口全屏）
@@ -407,19 +484,37 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     }
   }
 
-  void _scheduleWindowSettings() {
-    _windowSettingsTimer?.cancel();
-    _windowSettingsTimer = Timer(const Duration(milliseconds: 500), () {
-      var quality = currentQualityInfo.value;
-      MultiWindow.reportSettings(WindowSettings(
+  void _watchWindowSettings() {
+    _windowSettingsWorker = everAll([
+      AppSettingsController.instance.playerVolume,
+      muted,
+      showDanmakuState,
+      currentQualityInfo,
+      audioDevice,
+    ], (_) => _noteWindowSettings());
+  }
+
+  /// 音量、静音、弹幕开关、清晰度、声音输出设备交给 MultiWindow：副窗口连着改时停下 [delay]
+  /// 再报（关窗口之前还没报的马上报），主窗口记着。音量是静音之前的（静音不改它）。
+  /// 清晰度读到这个直播间的以后才带（[setQualityInfo]）：换直播间以后、读到新的之前，
+  /// [currentQualityInfo] 还是原来那个直播间的
+  void _noteWindowSettings({
+    Duration delay = const Duration(milliseconds: 500),
+  }) {
+    var quality = currentQualityInfo.value;
+    var ready = _qualityRoom == "${site.id}|$roomId" && quality.isNotEmpty;
+    MultiWindow.noteSettings(
+      this,
+      WindowSettings(
         volume: AppSettingsController.instance.playerVolume.value,
         muted: muted.value,
         danmaku: showDanmakuState.value,
-        quality: quality.isEmpty ? null : quality,
+        quality: ready ? quality : null,
         audioDevice:
             MultiWindowPrefs.devicePerWindow.value ? audioDevice.value : null,
-      ));
-    });
+      ),
+      delay: delay,
+    );
   }
 
   Future<void> _restoreAudioDevice(String? saved) async {
@@ -588,6 +683,8 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   // 弹窗逻辑
 
   void refreshRoom() {
+    // 还没读完的上一次加载作废，只有这一次的接着连弹幕、拉流
+    _roomGeneration++;
     resetPlaybackRecovery();
     _resetPictureFixes();
     //messages.clear();
@@ -1084,6 +1181,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   /// 加载直播间信息
   void loadData() async {
+    // 读的时候换了直播间（开播提醒、关注列表里点了别的）：读到的是原来那个直播间的，
+    // 什么都不改（抖音不会把关注的直播间换掉）
+    var generation = _roomGeneration;
+    bool moved() => generation != _roomGeneration;
     try {
       SmartDialog.showLoading(msg: "");
       loadError.value = false;
@@ -1099,7 +1200,11 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
           "version": fix.info.version
         }));
       }
-      detail.value = await site.liveSite.getRoomDetail(roomId: roomId);
+      var fresh = await site.liveSite.getRoomDetail(roomId: roomId);
+      if (isClosed || moved()) {
+        return;
+      }
+      detail.value = fresh;
       // 设置页里显示的直播间名字换成主播名
       _enterRoomContext();
 
@@ -1110,7 +1215,13 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
         if (detail.value!.roomId != roomId) {
           var oldId = roomId;
           rxRoomId.value = detail.value!.roomId;
-          if (followed.value) {
+          // 多开：还是这个直播间，只是房间号换了，不当作换了直播间（音量、清晰度这些照旧）
+          if (_qualityRoom == "${site.id}|$oldId") {
+            _qualityRoom = "${site.id}|$roomId";
+          }
+          _noteWindowRoom(renamedFrom: oldId);
+          // 旧房间号有没有关注看数据库（followed 可能还是上一个直播间的）
+          if (DBService.instance.getFollowExist("${site.id}_$oldId")) {
             // 更新关注列表（开播提醒的订阅跟着换过去）
             var old = DBService.instance.followBox.get("${site.id}_$oldId");
             DBService.instance.deleteFollow("${site.id}_$oldId");
@@ -1162,10 +1273,13 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
       startLiveDurationTimer(); // 启动开播时长定时器
     } catch (e) {
       Log.logPrint(e);
-      //SmartDialog.showToast(e.toString());
-      loadError.value = true;
-      // 直播源脚本的错误可能是 Exception
-      error = e is Error ? e : CoreError(e.toString());
+      // 换了直播间以后才出的错是原来那个直播间的，不算新的没加载出来
+      if (!moved()) {
+        //SmartDialog.showToast(e.toString());
+        loadError.value = true;
+        // 直播源脚本的错误可能是 Exception
+        error = e is Error ? e : CoreError(e.toString());
+      }
     } finally {
       SmartDialog.dismiss(status: SmartStatus.loading);
     }
@@ -1175,17 +1289,26 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   void getPlayQualites() async {
     qualites.clear();
     currentQuality = -1;
+    // 读的时候换了直播间（关注列表里点了别的）、关了页面：读到的是原来那个的，不用
+    var key = "${site.id}|$roomId";
+    bool stale() => isClosed || key != "${site.id}|$roomId";
 
     try {
       var playQualites =
           await site.liveSite.getPlayQualites(detail: detail.value!);
+      if (stale()) {
+        return;
+      }
 
       if (playQualites.isEmpty) {
         SmartDialog.showToast("获取不到清晰度".t);
         return;
       }
-      qualites.value = playQualites;
       var qualityLevel = await getQualityLevel();
+      if (stale()) {
+        return;
+      }
+      qualites.value = playQualites;
       if (qualityLevel == 2) {
         //最高
         currentQuality = 0;
@@ -1238,12 +1361,17 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   }
 
   void getPlayUrl() async {
+    var generation = _roomGeneration;
     playUrls.clear();
-    currentQualityInfo.value = qualites[currentQuality].quality;
+    setQualityInfo(qualites[currentQuality].quality);
     currentLineInfo.value = "";
     currentLineIndex = -1;
     var playUrl = await site.liveSite
         .getPlayUrls(detail: detail.value!, quality: qualites[currentQuality]);
+    // 读地址的时候换了直播间（或刷新了）：这是原来那次的地址，不播
+    if (isClosed || generation != _roomGeneration) {
+      return;
+    }
     if (playUrl.urls.isEmpty) {
       SmartDialog.showToast("获取不到播放地址".t);
       return;
@@ -1295,6 +1423,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   /// 打开当前线路列表，从 [startIndex] 开始播放
   Future<void> openPlaylist({int startIndex = 0}) async {
+    var generation = _roomGeneration;
     currentLineInfo.value = "线路{p}".tf({"p": startIndex + 1});
     errorMsg.value = "";
 
@@ -1325,6 +1454,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     );
     _bufferFloor.clear();
 
+    // 准备的时候换了直播间：不打开原来那个直播间的流
+    if (isClosed || generation != _roomGeneration) {
+      return;
+    }
     await player.open(Playlist(mediaList, index: startIndex));
     _pictureGuard.opened();
   }
@@ -1498,6 +1631,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
         try {
           // 重新读取直播间：既能确认是否已下播，也能拿到新的签名/防盗链参数
           var fresh = await site.liveSite.getRoomDetail(roomId: roomId);
+          // 等的时候换了直播间：读到的是原来那个的，不能写进新的直播间
+          if (stale()) {
+            return;
+          }
           if (!fresh.status && !fresh.isRecord) {
             liveStatus.value = false;
             addSysMsg("主播已下播".t);
@@ -1508,6 +1645,9 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
           var qualityName = qualites[currentQuality].quality;
           var freshQualities =
               await site.liveSite.getPlayQualites(detail: fresh);
+          if (stale()) {
+            return;
+          }
           if (freshQualities.isEmpty) {
             continue;
           }
@@ -1528,7 +1668,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
           }
           qualites.value = freshQualities;
           currentQuality = index;
-          currentQualityInfo.value = freshQualities[index].quality;
+          setQualityInfo(freshQualities[index].quality);
           playUrls.value = playUrl.urls;
           playHeaders = playUrl.headers;
           // 连续失败时轮换线路
@@ -1644,13 +1784,21 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   /// 读取SC
   void getSuperChatMessage() async {
+    // 读的时候换了直播间：读到的是原来那个直播间的，不要
+    var generation = _roomGeneration;
+    bool stale() => isClosed || generation != _roomGeneration;
     try {
       var sc =
           await site.liveSite.getSuperChatMessage(roomId: detail.value!.roomId);
+      if (stale()) {
+        return;
+      }
       addSuperChats(sc.where(userBlocks.keepsSuperChat));
     } catch (e) {
       Log.logPrint(e);
-      addSysMsg("SC 加载失败".t);
+      if (!stale()) {
+        addSysMsg("SC 加载失败".t);
+      }
     }
   }
 
@@ -2754,12 +2902,21 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     }
     // 正在录的是原来的直播间：先停下保存
     capture.stopForLeave();
+    // 原来那个直播间还没读完的（直播间信息、SC、继续播放）读到了也不用
+    var generation = ++_roomGeneration;
 
     rxSite.value = site;
     rxRoomId.value = roomId;
+    // 多开：现在的清晰度还是原来那个直播间的，读到新的以后才报（主窗口记的也一样）
+    _qualityRoom = null;
     // 弹幕设置按平台、直播间记忆时换成新直播间的
     _enterRoomContext();
     _noteWindowRoom();
+    // 多开：换到的直播间从现在的音量、静音、弹幕开关算起，马上报（之后变了的才是在这个直播间里
+    // 改的）。清晰度读到新的再报
+    if (MultiWindow.supported) {
+      _noteWindowSettings(delay: Duration.zero);
+    }
     // 录屏接口先换成新直播间（清掉旧的弹幕），读到房间信息后再补上标题
     _obs?.updateRoom(this);
 
@@ -2788,6 +2945,10 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
     // 停止播放
     await player.stop();
+    // 停的时候又换了直播间：由后一次加载
+    if (isClosed || generation != _roomGeneration) {
+      return;
+    }
 
     // 刷新信息
     loadData();
@@ -2889,8 +3050,9 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   }
 
   /// 多开：这个窗口在看哪个直播间（副窗口告诉主窗口，主窗口自己记着），
-  /// “打开上次的窗口”用。读到房间信息之前标题和主播名是空的
-  void _noteWindowRoom() {
+  /// “打开上次的窗口”用。读到房间信息之前标题和主播名是空的。
+  /// [renamedFrom]：只是房间号换成了平台认的（抖音），原来的房间号
+  void _noteWindowRoom({String? renamedFrom}) {
     var room = _detailKey == "${site.id}|$roomId" ? detail.value : null;
     MultiWindow.noteRoom(
       this,
@@ -2900,18 +3062,31 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
         title: room?.title ?? "",
         userName: room?.userName ?? "",
       ),
+      renamedFrom: renamedFrom,
     );
   }
 
   @override
   void onClose() {
     _windowSettingsWorker?.dispose();
-    _windowSettingsTimer?.cancel();
     _windowFullWorker?.dispose();
-    _mainFullWorker?.dispose();
+    _chatCollapsedWorker?.dispose();
+    _mainRestoreWorker?.dispose();
     // 窗口全屏时关掉直播间页面（之后退出窗口全屏）：这个窗口不再是窗口全屏
     if (windowFullState.value) {
       MultiWindow.noteWindowFull(this, false);
+    }
+    // 收起聊天栏时关掉直播间页面：之后再开的直播间不收起
+    if (LiveRoomKeyState.of(this).chatCollapsed.value) {
+      MultiWindow.noteChatCollapsed(this, false);
+    }
+    // 主窗口用过打开上次的一组时记的音量：换回平常记的（这里改过的已经存成平常的）
+    if (_volumeFromSet) {
+      AppSettingsController.instance.playerVolume.value =
+          LocalStorageService.instance.getValue(
+        LocalStorageService.kPlayerVolume,
+        100.0,
+      );
     }
     _voiceRoomTimer?.cancel();
     MultiWindow.leaveRoom(this);

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.27.1 (12701)
+
+### New
+
+- Reopening the last set of extra windows restores each window, the main window included, to how it was closed: position, size, sound, danmaku, quality, Fill window, keep on top and the chat panel.
+- A room opened in a new extra window uses that room's last volume, mute, danmaku on/off, quality, audio output, Fill window and window size.
+- A room's remembered mute state takes precedence over "Mute new extra windows", and unmuting restores the previous volume.
+
+### Fixed
+
+- After switching rooms, unfinished loads from the previous room (info, SC, stream addresses) no longer end up in the new room or remove a Douyin follow.
+- Refreshing while a room is still loading no longer opens a second danmaku connection.
+
 ## 1.27.0 (12700)
 
 ### New

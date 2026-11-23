@@ -161,6 +161,35 @@ void main() {
       expect(SecondaryLaunch.parse([...full.toArgs(), "--sl-full=1"]), isNull);
     });
 
+    test("打开上次的窗口：上次收起了聊天栏的带着收起；没收起时不带（以前的参数照样认）", () {
+      var plain = sample();
+      expect(plain.toArgs().any((e) => e.startsWith("--sl-chat")), isFalse);
+      expect(SecondaryLaunch.parse(plain.toArgs())!.chatCollapsed, isFalse);
+      var collapsed = SecondaryLaunch(
+        port: 50123,
+        token: WindowToken.generate(),
+        dataDir: dataDir,
+        slot: 5,
+        siteId: "douyu",
+        roomId: "1",
+        windowFull: true,
+        chatCollapsed: true,
+      );
+      expect(collapsed.toArgs(), contains("--sl-chat=1"));
+      var parsed = SecondaryLaunch.parse(collapsed.toArgs())!;
+      expect(parsed.chatCollapsed, isTrue);
+      expect(parsed.windowFull, isTrue);
+      expect(parsed.slot, 5);
+      expect(
+          SecondaryLaunch.parse([...plain.toArgs(), "--sl-chat=0"])!
+              .chatCollapsed,
+          isFalse);
+      expect(
+          SecondaryLaunch.parse([...plain.toArgs(), "--sl-chat=yes"]), isNull);
+      expect(SecondaryLaunch.parse([...collapsed.toArgs(), "--sl-chat=1"]),
+          isNull);
+    });
+
     test("没有 --sl-secondary 就是普通启动", () {
       var args = sample().toArgs()..remove(SecondaryLaunch.flag);
       expect(SecondaryLaunch.parse(args), isNull);

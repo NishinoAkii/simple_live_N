@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -20,11 +21,14 @@ import 'package:simple_live_core/simple_live_core.dart';
 import 'fakes/fake_player.dart';
 import 'layout/layout_matrix.dart';
 
-/// 不读本地存储的设置
+/// 不读本地存储的设置；按直播间记的弹幕设置不换（要 Hive）
 class _TestSettings extends AppSettingsController {
   @override
   // ignore: must_call_super
   void onInit() {}
+
+  @override
+  void enterRoomContext(RoomContext context) {}
 }
 
 /// 两档清晰度、两条线路；记下每个接口被调了几次
@@ -33,9 +37,13 @@ class _FakeSite extends LiveSite {
   final calls = <String>[];
   List<String> qualityNames = ["原画", "高清", "流畅"];
 
+  /// 不为空时读直播间信息要等它
+  Completer<void>? detailGate;
+
   @override
   Future<LiveRoomDetail> getRoomDetail({required String roomId}) async {
     calls.add("detail");
+    await detailGate?.future;
     return LiveRoomDetail(
       roomId: roomId,
       title: "标题",
@@ -100,6 +108,11 @@ class _Room extends LiveRoomController {
     currentLineIndex = line;
     fakePlayer.setPlaying(true);
     fake.calls.clear();
+  }
+
+  /// 在关注列表里点了别的直播间。测试里没有 SmartDialog，之后的 loadData 一开始就停下（错误不管）
+  void switchTo(Site site, String roomId) {
+    runZonedGuarded(() => resetRoom(site, roomId), (_, __) {});
   }
 }
 
@@ -168,6 +181,27 @@ void main() {
       expect(room.currentQuality, 1);
       expect(room.currentQualityInfo.value, "原画");
       expect(room.opened.single, startsWith("https://a/原画.flv"));
+    });
+
+    test("继续时换了直播间：读到的是原来那个的，不用（房间信息不改，不换清晰度，不打开）", () async {
+      await room.startPlaying(quality: 1, line: 1);
+      await room.pauseLive();
+      var before = room.detail.value;
+      fake.detailGate = Completer<void>();
+      var resuming = room.resumeLive();
+      await settle();
+      // 还在读直播间信息时，在关注列表里点了别的直播间
+      room.switchTo(
+          Site(id: "other", liveSite: _FakeSite(), logo: "", name: "别的"), "2");
+      await settle();
+      fake.detailGate!.complete();
+      await resuming;
+      await settle();
+      expect(fake.calls, ["detail"]);
+      expect(room.opened, isEmpty);
+      expect(room.detail.value, same(before));
+      expect(room.currentQualityInfo.value, "");
+      expect(room.livePause.resuming, isFalse);
     });
 
     test("暂停期间下播了：继续时显示下播，不再打开", () async {

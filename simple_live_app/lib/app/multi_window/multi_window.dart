@@ -24,6 +24,7 @@ import 'package:simple_live_app/app/multi_window/window_server.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/multi_window/window_snapshot.dart';
 import 'package:simple_live_app/app/sites.dart';
+import 'package:simple_live_app/app/window_geometry.dart';
 import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/app/window_pin.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
@@ -62,7 +63,8 @@ enum BackgroundTask {
 ///   历史页可以一下全部打开（[WindowSetRecorder]、[restoreLast]）。
 /// - 副窗口：读一份数据快照（[WindowSnapshot]），关注、观看记录、屏蔽、备注、
 ///   记住的清晰度、开播提醒的开关交给主窗口保存（[forward]）；音量、弹幕开关、
-///   临时换的清晰度、收起侧栏这些只在这个窗口里，不保存。设置只能查看。
+///   临时换的清晰度、收起侧栏这些不改主窗口的设置，由主窗口按直播间、按这一组记着
+///   （[WindowSetRecorder]）。设置只能查看。
 ///   不启动 [secondarySkips] 里的后台功能，日志单独写一个文件。
 ///
 /// 只在 Windows 上开放：摆放按 Windows 的物理像素算，别的系统没有试过
@@ -226,11 +228,41 @@ class MultiWindow {
   }
 
   static WindowSettings? _reportedSettings;
+  static WindowSettings? _pendingSettings;
+  static Timer? _settingsTimer;
 
-  /// 副窗口：音量、静音、弹幕开关、清晰度、声音输出设备变了，告诉主窗口（记成这个直播间多开时的设置）
-  static void reportSettings(WindowSettings settings) {
+  /// 直播间页面的音量、静音、弹幕开关、清晰度、声音输出设备变了（[owner] 是那个页面的控制器）。
+  /// 副窗口：连着改时停下 [delay] 再告诉主窗口（先记在开着的这一组里，关掉时记成这个直播间的），
+  /// 关窗口之前还没报的马上报；主窗口：记下自己的（记进这一组）
+  static void noteSettings(Object owner, WindowSettings settings,
+      {Duration delay = Duration.zero}) {
+    if (!isSecondary) {
+      if (!identical(owner, _mainRoomOwner)) {
+        return;
+      }
+      if (settings == _mainSettings) {
+        return;
+      }
+      _mainSettings = settings;
+      recorder.mainRoomChanged();
+      return;
+    }
+    _settingsTimer?.cancel();
+    _pendingSettings = settings;
+    if (delay == Duration.zero) {
+      _flushSettings();
+    } else {
+      _settingsTimer = Timer(delay, _flushSettings);
+    }
+  }
+
+  /// 副窗口：还没报的设置马上报（关窗口之前）
+  static void _flushSettings() {
+    _settingsTimer?.cancel();
+    var settings = _pendingSettings;
+    _pendingSettings = null;
     var l = link;
-    if (!isSecondary || l == null || settings == _reportedSettings) {
+    if (settings == null || l == null || settings == _reportedSettings) {
       return;
     }
     _reportedSettings = settings;
@@ -239,9 +271,11 @@ class MultiWindow {
 
   static bool? _reportedFull;
   static bool? _reportedPinned;
+  static bool? _reportedChat;
 
-  /// 副窗口：窗口全屏、置顶变了，告诉主窗口（记在这一组里）
-  static void _reportLayout({bool? windowFull, bool? pinned}) {
+  /// 副窗口：窗口全屏、置顶、聊天栏收起变了，告诉主窗口（记在这一组里）
+  static void _reportLayout(
+      {bool? windowFull, bool? pinned, bool? chatCollapsed}) {
     var l = link;
     if (!isSecondary || l == null) {
       return;
@@ -252,12 +286,17 @@ class MultiWindow {
     if (pinned == _reportedPinned) {
       pinned = null;
     }
-    if (windowFull == null && pinned == null) {
+    if (chatCollapsed == _reportedChat) {
+      chatCollapsed = null;
+    }
+    if (windowFull == null && pinned == null && chatCollapsed == null) {
       return;
     }
     _reportedFull = windowFull ?? _reportedFull;
     _reportedPinned = pinned ?? _reportedPinned;
-    unawaited(l.report(WindowReport(windowFull: windowFull, pinned: pinned)));
+    _reportedChat = chatCollapsed ?? _reportedChat;
+    unawaited(l.report(WindowReport(
+        windowFull: windowFull, pinned: pinned, chatCollapsed: chatCollapsed)));
   }
 
   static double _dpr() =>
@@ -285,9 +324,10 @@ class MultiWindow {
       return;
     }
     // 置顶变了（自己点的、跟着主窗口的）告诉主窗口，“打开上次的窗口”时照样置顶。
-    // 一开始的置顶、窗口全屏主窗口知道
+    // 一开始的置顶、窗口全屏、聊天栏收起主窗口知道
     _reportedPinned = info.pinned;
     _reportedFull = info.windowFull;
+    _reportedChat = info.chatCollapsed;
     ever<bool>(
         WindowPin.instance.pinned, (value) => _reportLayout(pinned: value));
     unawaited(l.ping().then((ok) {
@@ -352,22 +392,42 @@ class MultiWindow {
   static WindowRoom? get mainRoom => _mainRoom;
 
   /// 直播间页面打开、换直播间、读到直播间信息时调用（[owner] 是那个页面的控制器）。
-  /// 副窗口：告诉主窗口这个窗口在看哪个直播间；主窗口：记下自己在看的
-  static void noteRoom(Object owner, WindowRoom room) {
+  /// 副窗口：告诉主窗口这个窗口在看哪个直播间；主窗口：记下自己在看的。
+  /// [renamedFrom]：还是原来那个直播间，只是房间号换成了平台认的（抖音），这里是原来的房间号。
+  /// 这样不算换了直播间，音量、清晰度这些照旧
+  static void noteRoom(Object owner, WindowRoom room, {String? renamedFrom}) {
+    bool renamedFromRoom(WindowRoom? before) =>
+        renamedFrom != null &&
+        before != null &&
+        before.siteId == room.siteId &&
+        before.roomId == renamedFrom;
     if (isSecondary) {
       if (room == _reportedRoom) {
         return;
       }
+      var renamed = renamedFromRoom(_reportedRoom);
+      if (!renamed && _reportedRoom != null && _reportedRoom!.key != room.key) {
+        // 换了直播间：还没报的设置先报（算原来那个直播间的），新的直播间的设置从头报
+        _flushSettings();
+        _reportedSettings = null;
+      }
       _reportedRoom = room;
       var l = link;
       if (l != null) {
-        unawaited(l.report(WindowReport(room: room)));
+        unawaited(l.report(WindowReport(
+            room: room, renamedFrom: renamed ? renamedFrom : null)));
       }
       return;
     }
+    var renamed =
+        identical(owner, _mainRoomOwner) && renamedFromRoom(_mainRoom);
     _mainRoomOwner = owner;
     if (room == _mainRoom) {
       return;
+    }
+    if (!renamed && _mainRoom != null && _mainRoom!.key != room.key) {
+      // 换了直播间：记着的清晰度是原来那个直播间的，读到新的再记（音量这些还是这个页面的）
+      _mainSettings = _mainSettings?.withQuality(null);
     }
     _mainRoom = room;
     recorder.mainRoomChanged();
@@ -381,11 +441,102 @@ class MultiWindow {
     _mainRoomOwner = null;
     _mainRoom = null;
     _mainFull = false;
+    _mainChatCollapsed = false;
+    _mainSettings = null;
     recorder.mainRoomChanged();
   }
 
   /// 主窗口的直播间是不是窗口全屏
   static bool _mainFull = false;
+
+  /// 主窗口的直播间宽屏时收起了聊天栏
+  static bool _mainChatCollapsed = false;
+
+  /// 主窗口直播间的音量、静音、弹幕开关、清晰度、声音输出设备
+  static WindowSettings? _mainSettings;
+
+  /// 主窗口的位置和大小（和 WindowMemory 记的一样），挪动、改大小以后量（[_measureMain]）
+  static WindowPlacement? _mainPlacement;
+
+  /// 记进开着的这一组的主窗口位置和大小
+  static WindowPlacement? get mainPlacement => _mainPlacement;
+
+  /// 主窗口现在的样子（记进开着的这一组）
+  static MainLayout mainLayoutNow() => (
+        windowFull: _mainFull,
+        pinned: WindowPin.instance.pinned.value,
+        chatCollapsed: _mainChatCollapsed,
+        placement: _mainPlacement,
+        settings: _mainSettings,
+      );
+
+  /// 量到的主窗口位置和大小：最大化时留着最大化之前的位置和大小（[before]），记下“最大化”
+  static WindowPlacement measuredPlacement(
+          WindowPlacement? before, Rect rect, double scale,
+          {required bool maximized}) =>
+      maximized
+          ? (before ?? WindowPlacement(rect, scale)).copyWith(maximized: true)
+          : WindowPlacement(rect, scale);
+
+  static Timer? _remeasureTimer;
+
+  /// 放回过几次主窗口（[mainPlaced]）：量的时候又放回了，量到的是放回之前的，不用
+  static int _placedCount = 0;
+
+  /// 打开上次的一组时主窗口放回了 [placed]（最大化的连同最大化之前的位置和大小）：先照这样
+  /// 记进开着的这一组（不然最大化着量到的还是放回去之前的位置），等系统发来的挪动停下来
+  /// （[WindowMemory.holdSaving] 那几秒）以后再量一次
+  static void mainPlaced(WindowPlacement placed,
+      {Duration settle = const Duration(milliseconds: 3500)}) {
+    _placedCount++;
+    _mainPlacement = placed;
+    recorder.mainRoomChanged();
+    _remeasureTimer?.cancel();
+    _remeasureTimer = Timer(settle, () => unawaited(_measureMain()));
+  }
+
+  /// 放回主窗口以后还没再量（测试用）
+  @visibleForTesting
+  static bool get remeasurePending => _remeasureTimer?.isActive ?? false;
+
+  /// 测试用：不等 [mainPlaced] 定的时间到，现在就再量（没在等时什么都不做）
+  @visibleForTesting
+  static Future<void> remeasureNow() async {
+    if (!remeasurePending) {
+      return;
+    }
+    _remeasureTimer!.cancel();
+    await _measureMain();
+  }
+
+  /// 量一下主窗口的位置和大小，记进开着的这一组。小窗、全屏、最小化时不改；
+  /// 最大化时留着之前的位置和大小，记下“最大化”
+  static Future<void> _measureMain() async {
+    if (!canOpen) {
+      return;
+    }
+    var placed = _placedCount;
+    try {
+      if (WindowMemory.instance.inSmallWindow ||
+          await windowManager.isFullScreen() ||
+          await windowManager.isMinimized()) {
+        return;
+      }
+      var rect = await WindowMemory.bounds();
+      var scale = WindowMemory.windowScale;
+      var maximized = await windowManager.isMaximized();
+      // 都量完了再读记着的；量的时候放回了主窗口（mainPlaced），量到的是放回之前的，不用
+      if (placed != _placedCount) {
+        return;
+      }
+      _mainPlacement =
+          measuredPlacement(_mainPlacement, rect, scale, maximized: maximized);
+      recorder.mainRoomChanged();
+    } catch (e) {
+      // 测试里没有窗口插件
+      Log.logPrint(e);
+    }
+  }
 
   /// 直播间页面进出窗口全屏时调用（[owner] 是那个页面的控制器）。副窗口：告诉主窗口；
   /// 主窗口：记下自己的。“打开上次的窗口”时照样恢复
@@ -401,30 +552,51 @@ class MultiWindow {
     recorder.mainRoomChanged();
   }
 
-  /// 打开上次的一组时，主窗口要进窗口全屏的直播间（[WindowRoom.key]）。主窗口在这个直播间里的
-  /// 页面看到后进窗口全屏（[takeMainFull]，用一次），过一会儿还没用上就作废
-  static final mainFullRequest = RxnString();
-  static DateTime _mainFullUntil = DateTime(0);
-
-  static void _requestMainFull(WindowRoom room) {
-    _mainFullUntil = DateTime.now().add(const Duration(seconds: 15));
-    // 上次的没用上、还是这个直播间时也要再通知一次
-    mainFullRequest.value = null;
-    mainFullRequest.value = room.key;
+  /// 直播间页面收起、展开宽屏时的聊天栏时调用（[owner] 是那个页面的控制器）。副窗口：
+  /// 告诉主窗口；主窗口：记下自己的。只在“打开上次的窗口”时照样恢复，平常打开直播间不用
+  static void noteChatCollapsed(Object owner, bool value) {
+    if (isSecondary) {
+      _reportLayout(chatCollapsed: value);
+      return;
+    }
+    if (!identical(owner, _mainRoomOwner) || value == _mainChatCollapsed) {
+      return;
+    }
+    _mainChatCollapsed = value;
+    recorder.mainRoomChanged();
   }
 
-  /// 主窗口在 [room] 里的页面：要不要进窗口全屏（打开上次的一组时上次是窗口全屏的）
-  static bool takeMainFull(WindowRoom room) {
-    if (isSecondary || mainFullRequest.value != room.key) {
-      return false;
+  /// 打开上次的一组时主窗口的直播间页面要用的（窗口全屏、音量这些，见 [MainRestore]）。
+  /// 主窗口在这个直播间里的页面看到后用上（[takeMainRestore]，用一次），过一会儿还没用上就作废
+  static final mainRestoreRequest = Rxn<MainRestore>();
+  static DateTime _mainRestoreUntil = DateTime(0);
+
+  /// 打开上次的一组时调用。只有这时主窗口才用这一组记的，平常打开主窗口还是按它自己记的
+  static void requestMainRestore(MainRestore restore) {
+    if (restore.room == null) {
+      return;
     }
-    mainFullRequest.value = null;
-    return DateTime.now().isBefore(_mainFullUntil);
+    _mainRestoreUntil = DateTime.now().add(const Duration(seconds: 15));
+    // 上次的没用上时也要再通知一次
+    mainRestoreRequest.value = null;
+    mainRestoreRequest.value = restore;
+  }
+
+  /// 主窗口在 [room] 里的页面：打开上次的一组时要用的（没有时为 null）
+  static MainRestore? takeMainRestore(WindowRoom room) {
+    var request = mainRestoreRequest.value;
+    if (isSecondary || request == null || request.room?.key != room.key) {
+      return null;
+    }
+    mainRestoreRequest.value = null;
+    return DateTime.now().isBefore(_mainRestoreUntil) ? request : null;
   }
 
   /// 副窗口自己直接退出之前（定时关闭时间到了）：把位置告诉主窗口，最多等 1 秒。
   /// 主窗口、手机上什么都不做
   static Future<void> reportPlacementNow() async {
+    // 还没开始报位置（刚开就关）时，没报的音量这些也要报
+    _flushSettings();
     try {
       await _placement?.reportNow().timeout(const Duration(seconds: 1));
     } catch (_) {}
@@ -467,8 +639,7 @@ class MultiWindow {
   @visibleForTesting
   static WindowSetRecorder recorder = WindowSetRecorder(
     mainRoom: () => mainRoom,
-    mainLayout: () =>
-        (windowFull: _mainFull, pinned: WindowPin.instance.pinned.value),
+    mainLayout: mainLayoutNow,
     onGroupClosed: _stampHistory,
   );
 
@@ -696,7 +867,11 @@ class _PlacementReporter with WindowListener {
   bool _closing = false;
 
   /// 关之前马上报一次
-  Future<void> reportNow() => _report();
+  Future<void> reportNow() {
+    // 还没报的音量这些先报（和位置排在一起发，等位置报完时它也到了）
+    MultiWindow._flushSettings();
+    return _report();
+  }
 
   @override
   void onWindowMoved() => unawaited(_report());
@@ -764,10 +939,19 @@ class _Secondary {
   bool exited = false;
 }
 
-/// 主窗口这边：开副窗口、记着它们（[recorder]）、关掉它们
+/// 启动副窗口的进程
+typedef SecondaryStarter = Future<SecondaryProcess> Function(
+    String executable, List<String> arguments);
+
+/// 主窗口这边：开副窗口、记着它们（[recorder]）、关掉它们。
+/// [startProcess]、[mainSettle] 测试里换成假的、短的
 class WindowHost {
-  WindowHost(WindowChangeSink sink, this.recorder)
-      : server = WindowServer(sink) {
+  WindowHost(
+    WindowChangeSink sink,
+    this.recorder, {
+    this.startProcess = SecondaryProcess.start,
+    this.mainSettle = const Duration(milliseconds: 3500),
+  }) : server = WindowServer(sink) {
     server.onReport = _onReport;
     // 主窗口置顶、取消置顶：开着的副窗口都跟着变；主窗口的也记在开着的这一组里
     _pinWorker = ever<bool>(WindowPin.instance.pinned, (value) {
@@ -783,6 +967,10 @@ class WindowHost {
 
   final WindowServer server;
   final WindowSetRecorder recorder;
+  final SecondaryStarter startProcess;
+
+  /// 打开上次的一组把主窗口放回去以后，等这么久再量一次（[MultiWindow.mainPlaced]）
+  final Duration mainSettle;
   final Map<int, _Secondary> _windows = {};
   bool _opening = false;
 
@@ -862,6 +1050,7 @@ class WindowHost {
           "多开窗口最多 {count} 个".tf({"count": SecondaryLaunch.maxWindows}));
       return false;
     }
+    _watchMain();
     // 摆放：这个编号记过的位置；第一次用时从前一个窗口（或主窗口）往右下错开
     var env = await _screens();
     var slot = _freeNumber()!;
@@ -872,21 +1061,24 @@ class WindowHost {
       open: _openRects(),
       main: env.main,
     );
+    // 这个直播间在多开窗口里关过：大小、窗口全屏、声音输出设备照那时的（位置不照）
+    var memory = recorder.roomLayout(room);
     await _launch(
-      WindowEntry(
-        slot: slot,
-        room: room,
-        bounds: where?.$1,
-        scale: where?.$2 ?? env.dpr,
+      WindowRestore.opening(
+        slot,
+        room,
+        where,
+        memory: memory,
+        screens: env.screens,
+        fallbackScale: env.dpr,
         // 主窗口置顶时，新开的一出来就置顶
         pinned: WindowPin.instance.pinned.value,
       ),
-      // 新开的：这个直播间记的设置，“默认静音”开着时先静音
-      WindowSettings.initial(
-        restored: false,
+      // 新开的：这个直播间记的设置。记过静音就照记的，没记过时“默认静音”开着就先静音
+      WindowRestore.openingSettings(
         muteNew: MultiWindowPrefs.muteNew.value,
         room: recorder.roomSettings(room),
-        audioDevice: _deviceFor(slot, null),
+        audioDevice: _deviceFor(slot, memory?.audioDevice),
       ),
     );
     SmartDialog.showToast("已在新窗口打开".t);
@@ -895,13 +1087,16 @@ class WindowHost {
 
   /// 打开上次的一组（[saved]）：按上次打开的顺序开（后开的在上面），每个放回上次的位置
   /// （缩放改了按逻辑大小换算，整个放进屏幕里），那块屏幕找不到了时按这个编号记的位置或错开放，
-  /// 窗口全屏、置顶也照上次的。已经开着的直播间跳过，不超过同时开的上限。正在开别的窗口时返回 null
+  /// 窗口全屏、置顶、音量、静音、弹幕开关、清晰度、声音输出设备都照这一组记的；主窗口也是
+  /// （[WindowRestore.mainFor]）。这一组记的只用在这次打开，不改各直播间平常记的和主窗口自己记的。
+  /// 已经开着的直播间跳过，不超过同时开的上限。正在开别的窗口时返回 null
   Future<RestoreResult?> restore(WindowSet saved) async {
     if (_opening) {
       return null;
     }
     _opening = true;
     try {
+      _watchMain();
       var env = await _screens();
       // 平台没装了（删掉的直播源）的打不开
       var known = [
@@ -919,31 +1114,31 @@ class WindowHost {
         openRooms: {for (var e in recorder.active) e.room.key},
         mainRoomNow: MultiWindow.mainRoom,
       );
-      // 主窗口没在看别的直播间时，也回到这一组记的样子：置顶先设好（之后开的副窗口按各自记的，
-      // 不跟着主窗口变），窗口全屏等主窗口的这个直播间页面出来再进（见 takeMainFull）
-      var now = MultiWindow.mainRoom;
-      var adoptMain = (plan.windows.isNotEmpty || plan.mainRoom != null) &&
-          (now == null || now.key == saved.mainRoom?.key);
-      if (adoptMain) {
-        if (WindowPin.instance.pinned.value != saved.mainPinned) {
-          await WindowPin.instance.set(saved.mainPinned);
+      // 主窗口没在看别的直播间时，也回到这一组记的样子：置顶、位置先设好（之后开的副窗口按各自记的，
+      // 不跟着主窗口变，后开的在上面），直播间的窗口全屏、声音这些等主窗口的这个直播间页面出来再用
+      // （见 takeMainRestore）
+      var main =
+          WindowRestore.mainFor(saved, plan, mainRoomNow: MultiWindow.mainRoom);
+      if (main != null) {
+        if (WindowPin.instance.pinned.value != main.pinned) {
+          await WindowPin.instance.set(main.pinned);
         }
-        var fullRoom = now ?? plan.mainRoom;
-        if (saved.mainFull && fullRoom != null) {
-          MultiWindow._requestMainFull(fullRoom);
+        if (main.placement != null) {
+          await _placeMain(main.placement!);
         }
+        MultiWindow.requestMainRestore(main);
       }
       // 主窗口不按这一组来、现在置顶着：开的窗口都一出来就置顶（后开的在上面）
-      var followPin = !adoptMain && WindowPin.instance.pinned.value;
+      var followPin = main == null && WindowPin.instance.pinned.value;
       var opened = 0;
       var failed = saved.windows.length - known.length;
       for (var t in plan.windows) {
         try {
           await _launch(
             t.reopen(followPin: followPin),
-            // 打开上次的：关的时候是什么样就是什么样
-            WindowSettings.initial(
-              restored: true,
+            // 打开上次的：关的时候是什么样就是什么样。这一组记的音量这些优先，
+            // 以前存的没有时用这个直播间记的
+            t.launchSettings(
               muteNew: MultiWindowPrefs.muteNew.value,
               room: recorder.roomSettings(t.saved.room),
               audioDevice: _deviceFor(t.slot, t.saved.audioDevice),
@@ -975,12 +1170,61 @@ class WindowHost {
     }
   }
 
-  /// “每个窗口单独选声音输出设备”开着时，这个窗口用的设备：这一组里记的，没有时这个编号记的
+  /// “每个窗口单独选声音输出设备”开着时，这个窗口用的设备：这一组里（或这个直播间关掉时）记的，
+  /// 没有时这个编号记的
   String? _deviceFor(int slot, String? saved) {
     if (!MultiWindowPrefs.devicePerWindow.value) {
       return null;
     }
     return saved ?? recorder.slotDevice(slot);
+  }
+
+  bool _watchingMain = false;
+
+  /// 开始记主窗口的位置和大小（挪动、改大小以后量，记进开着的这一组）
+  void _watchMain() {
+    if (_watchingMain) {
+      return;
+    }
+    _watchingMain = true;
+    windowManager.addListener(_MainWindowWatcher());
+    unawaited(MultiWindow._measureMain());
+  }
+
+  /// 打开上次的一组：主窗口放回那时的位置和大小（最大化的再最大化），和启动时放回
+  /// WindowMemory 记的一样算。小窗、全屏、最小化时不动。这一下挪动不记成主窗口平常的位置，
+  /// 之后用户自己挪的照常记
+  Future<void> _placeMain(WindowPlacement saved) async {
+    try {
+      if (WindowMemory.instance.inSmallWindow ||
+          await windowManager.isFullScreen() ||
+          await windowManager.isMinimized()) {
+        return;
+      }
+      var displays = await WindowMemory.displays();
+      if (displays.isEmpty) {
+        return;
+      }
+      WindowMemory.instance.holdSaving();
+      if (await windowManager.isMaximized()) {
+        await windowManager.unmaximize();
+      }
+      var current = await WindowMemory.bounds();
+      var fallback =
+          WindowGeometry.displayOf(current, displays) ?? displays.first;
+      var (rect, display) = WindowGeometry.restore(saved, displays, fallback);
+      await WindowMemory.applyBounds(rect, display.scale);
+      if (saved.maximized) {
+        await windowManager.maximize();
+      }
+      WindowMemory.instance.holdSaving();
+      // 开着的这一组记的主窗口位置换成放回去的（之后再量一次）
+      MultiWindow.mainPlaced(
+          WindowPlacement(rect, display.scale, maximized: saved.maximized),
+          settle: mainSettle);
+    } catch (e) {
+      Log.logPrint(e);
+    }
   }
 
   /// 开一个副窗口：数据快照、口令、启动参数（位置、置顶、窗口全屏、一开始的设置在参数里，
@@ -1014,7 +1258,7 @@ class WindowHost {
         .toArgs();
     SecondaryProcess process;
     try {
-      process = await SecondaryProcess.start(Platform.resolvedExecutable, args);
+      process = await startProcess(Platform.resolvedExecutable, args);
     } catch (e) {
       server.removePeer(token);
       await _deleteLater(dir);
@@ -1022,7 +1266,8 @@ class WindowHost {
     }
     var window = _Secondary(slot, token, process, dir);
     _windows[slot] = window;
-    recorder.opened(entry.copyWith(audioDevice: settings?.audioDevice));
+    recorder.opened(entry.copyWith(
+        audioDevice: settings?.audioDevice, settings: settings?.roomPart));
     _changed();
     unawaited(process.exited.then((_) => _onExit(window)));
   }
@@ -1081,7 +1326,8 @@ class WindowHost {
     if (list.isEmpty) {
       return 0;
     }
-    // 关之前把开着的这一组定下来，之后它们退出时不再从里面去掉
+    // 关之前把开着的这一组定下来（连同主窗口现在的位置），之后它们退出时不再从里面去掉
+    await MultiWindow._measureMain();
     await recorder.closingAll();
     for (var w in list) {
       server.requestClose(w.token);
@@ -1098,6 +1344,30 @@ class WindowHost {
     if (killed > 0) {
       Log.w("多开窗口：$killed 个没有自己退出，已强制结束");
     }
+    // 到这时还没退出的（强制结束的）：照最后报上来的样子记下各自的直播间。
+    // 都写完再走（主窗口可能马上退出）
+    recorder.rememberClosing();
+    await recorder.flush();
     return list.length;
   }
+}
+
+/// 主窗口挪动、改大小、最大化以后停一会儿量一下位置和大小（记进开着的这一组）
+class _MainWindowWatcher with WindowListener {
+  Timer? _timer;
+
+  void _later() {
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 600),
+        () => unawaited(MultiWindow._measureMain()));
+  }
+
+  @override
+  void onWindowMoved() => _later();
+  @override
+  void onWindowResized() => _later();
+  @override
+  void onWindowMaximize() => _later();
+  @override
+  void onWindowUnmaximize() => _later();
 }

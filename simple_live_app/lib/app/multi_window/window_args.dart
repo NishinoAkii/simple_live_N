@@ -73,6 +73,9 @@ class SecondaryLaunch {
   /// 一开始就窗口全屏（打开上次的窗口时上次是窗口全屏的），进直播间时进
   final bool windowFull;
 
+  /// 一开始就收起宽屏时的聊天栏（打开上次的窗口时上次收起了的），进直播间时收起
+  final bool chatCollapsed;
+
   /// 一开始的音量、静音、弹幕开关、清晰度、声音输出设备（见 WindowSettings 的 JSON），
   /// 为空时用默认的
   final Map<String, dynamic>? settings;
@@ -89,6 +92,7 @@ class SecondaryLaunch {
     this.mainPid = 0,
     this.pinned = false,
     this.windowFull = false,
+    this.chatCollapsed = false,
     this.settings,
   });
 
@@ -107,6 +111,7 @@ class SecondaryLaunch {
         "--sl-main-pid=$mainPid",
         if (pinned) "--sl-pinned=1",
         if (windowFull) "--sl-full=1",
+        if (chatCollapsed) "--sl-chat=1",
         if (settings != null && settings!.isNotEmpty)
           "--sl-settings=${base64Url.encode(utf8.encode(json.encode(settings)))}",
       ];
@@ -123,6 +128,7 @@ class SecondaryLaunch {
     "main-pid",
     "pinned",
     "full",
+    "chat",
     "settings",
   };
 
@@ -156,6 +162,7 @@ class SecondaryLaunch {
     var mainPid = int.tryParse(values["main-pid"] ?? "0");
     var pinned = values["pinned"] ?? "0";
     var full = values["full"] ?? "0";
+    var chat = values["chat"] ?? "0";
     Map<String, dynamic>? settings;
     if (values["settings"] case var text?) {
       try {
@@ -183,7 +190,8 @@ class SecondaryLaunch {
         !(scale >= 0.5 && scale <= 8) ||
         mainPid == null ||
         (pinned != "0" && pinned != "1") ||
-        (full != "0" && full != "1")) {
+        (full != "0" && full != "1") ||
+        (chat != "0" && chat != "1")) {
       return null;
     }
     Rect? bounds;
@@ -205,6 +213,7 @@ class SecondaryLaunch {
       mainPid: mainPid,
       pinned: pinned == "1",
       windowFull: full == "1",
+      chatCollapsed: chat == "1",
       settings: settings,
     );
   }
