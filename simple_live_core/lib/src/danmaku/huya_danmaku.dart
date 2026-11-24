@@ -666,7 +666,15 @@ LiveBadge? _huyaDecorationBadge(HuyaDecorationInfo item) {
       if (name.isEmpty || badge.iBadgeLevel <= 0) {
         return null;
       }
-      return LiveBadge(LiveBadgeKind.medal, name, level: badge.iBadgeLevel);
+      var owner = badge.sPresenterNickName.trim();
+      return LiveBadge(
+        LiveBadgeKind.medal,
+        name,
+        level: badge.iBadgeLevel,
+        ownerName: owner.isEmpty ? null : owner,
+        // 信仰牌不是某一个主播的
+        ownerUid: badge.iBadgeType == 0 ? liveNumericId(badge.lBadgeId) : null,
+      );
     case 10200:
       // 贵族（NobleBase）
       if (data.isEmpty) {

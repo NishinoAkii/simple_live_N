@@ -6,6 +6,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 import 'package:simple_live_core/src/danmaku/proto/douyin.pb.dart';
 import 'package:simple_live_core/src/model/tars/huya_danmaku.dart';
+import 'package:tars_dart/tars/codec/tars_input_stream.dart';
 import 'package:tars_dart/tars/codec/tars_output_stream.dart';
 import 'package:tars_dart/tars/codec/tars_struct.dart';
 import 'package:test/test.dart';
@@ -52,6 +53,14 @@ HuyaDecorationInfo deco(int appId, List<int> data, {int viewType = 0}) =>
       ..iAppId = appId
       ..iViewType = viewType
       ..vData = Uint8List.fromList(data);
+
+/// 一帧聊天里主播的 uid（MessageNotice 的 tag 11 lPid）
+int _presenterUid(List<int> frame) {
+  var cmd = TarsInputStream(Uint8List.fromList(frame));
+  var push = HYPushMessage()
+    ..readFrom(TarsInputStream(cmd.readBytes(1, false)));
+  return TarsInputStream(Uint8List.fromList(push.msg)).readInt(11, true);
+}
 
 /// 一条虎牙聊天（MessageNotice）：tag 0 发送人（含贵族）、3 内容、8/9 装饰、20 id
 List<int> huyaNotice({
@@ -123,7 +132,8 @@ void main() {
       expect(chats[0].message, '这盾狗牛逼');
       expect(chats[0].badges, const [
         LiveBadge(LiveBadgeKind.level, '等级', level: 19),
-        LiveBadge(LiveBadgeKind.medal, '楚河', level: 20),
+        // 没有主播名，lBadgeId 是主播的 uid
+        LiveBadge(LiveBadgeKind.medal, '楚河', level: 20, ownerUid: '294636272'),
         LiveBadge(LiveBadgeKind.noble, '剑士', level: 1),
       ]);
     });
@@ -136,7 +146,12 @@ void main() {
     test('房管、公会管理带图标；后缀里的钻粉图标不当粉丝牌', () {
       expect(chats[2].badges, const [
         LiveBadge(LiveBadgeKind.level, '等级', level: 24),
-        LiveBadge(LiveBadgeKind.medal, '林yn', level: 36),
+        LiveBadge(
+          LiveBadgeKind.medal,
+          '林yn',
+          level: 36,
+          ownerUid: '2210112017',
+        ),
         LiveBadge(
           LiveBadgeKind.admin,
           '公会管理',
@@ -165,11 +180,25 @@ void main() {
       ]);
     });
 
+    test('直播间自己的粉丝牌：lBadgeId 和推送里主播的 uid（lPid）一样', () {
+      // 两条带粉丝牌的聊天都是在牌子主播的直播间里抓的
+      var owners = [
+        for (var chat in chats)
+          for (var badge in chat.badges ?? const <LiveBadge>[])
+            if (badge.kind == LiveBadgeKind.medal) badge.ownerUid,
+      ];
+      var presenters = [
+        for (var i in [0, 2]) '${_presenterUid(huyaFrames()[i])}',
+      ];
+      expect(owners, ['294636272', '2210112017']);
+      expect(owners, presenters);
+    });
+
     test('身份会写进 toString 的 JSON', () {
       var map = json.decode(chats[0].toString()) as Map;
       expect(map['badges'], [
         {'k': 'level', 't': '等级', 'l': 19},
-        {'k': 'medal', 't': '楚河', 'l': 20},
+        {'k': 'medal', 't': '楚河', 'l': 20, 'u': '294636272'},
         {'k': 'noble', 't': '剑士', 'l': 1},
       ]);
     });
@@ -203,9 +232,44 @@ void main() {
         ),
       );
       expect(badges, const [
-        LiveBadge(LiveBadgeKind.medal, '测试牌', level: 11),
+        LiveBadge(LiveBadgeKind.medal, '测试牌', level: 11, ownerUid: '1'),
         LiveBadge(LiveBadgeKind.noble, '君王', level: 5),
       ]);
+    });
+
+    test('粉丝牌是谁的：主播名、主播的 uid，空的和 0 没有；信仰牌不算某个主播的', () {
+      LiveBadge medal(HuyaBadgeInfo info) => parseHuyaChatBadges(
+        huyaNotice(
+          prefix: [
+            deco(
+              10400,
+              tarsBody(
+                info
+                  ..sBadgeName = '测试牌'
+                  ..iBadgeLevel = 11,
+              ),
+            ),
+          ],
+        ),
+      )!.single;
+      var full = medal(
+        HuyaBadgeInfo()
+          ..lBadgeId = 1259527100648
+          ..sPresenterNickName = ' 主播丙 ',
+      );
+      expect(full.ownerName, '主播丙');
+      expect(full.ownerUid, '1259527100648');
+      expect(full.ownerRoomId, isNull);
+      var none = medal(HuyaBadgeInfo());
+      expect(none.level, 11);
+      expect(none.hasOwner, isFalse);
+      var faith = medal(
+        HuyaBadgeInfo()
+          ..lBadgeId = 1259527100648
+          ..iBadgeType = 1,
+      );
+      expect(faith.text, '测试牌');
+      expect(faith.hasOwner, isFalse);
     });
 
     test('贵族装饰里有名称时用它，没有装饰时按等级取名', () {

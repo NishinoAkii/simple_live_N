@@ -30,8 +30,12 @@ class BiliWebWatch {
 
   Future<void> run() async {
     var csrf = site.csrf;
+    if (csrf.isEmpty || !room.valid) {
+      return;
+    }
+    await site.loadLiveBuvid();
     var buvid = site.liveBuvid;
-    if (csrf.isEmpty || buvid.isEmpty || !room.valid) {
+    if (_closed || buvid.isEmpty) {
       return;
     }
     var uuid = BiliWatchHeart.newUuid();
@@ -93,6 +97,10 @@ class BiliWebWatch {
         );
       }
     } catch (e) {
+      if (e is BiliHeartError && e.code == BiliHeartError.signFailed) {
+        // 规则 0 的算法说法不一（见 BiliWatchHeart.md5Twice）：换一种，下次进直播间时再试
+        BiliWatchHeart.md5Twice = !BiliWatchHeart.md5Twice;
+      }
       CoreLog.error(e);
     }
   }

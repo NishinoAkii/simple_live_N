@@ -141,6 +141,65 @@ class UpdateDialog extends StatelessWidget {
   }
 }
 
+/// 下载完以后问是否现在安装：先不装时安装包留着，下次更新直接用
+class UpdateInstallDialog extends StatelessWidget {
+  /// 显示用的版本号
+  final String version;
+
+  /// 装到哪里、会怎样，一行一句
+  final List<String> lines;
+
+  const UpdateInstallDialog({
+    required this.version,
+    this.lines = const [],
+    super.key,
+  });
+
+  static Future<bool> show({
+    required String version,
+    List<String> lines = const [],
+  }) async =>
+      await Get.dialog<bool>(
+        UpdateInstallDialog(version: version, lines: lines),
+        barrierDismissible: false,
+      ) ??
+      false;
+
+  @override
+  Widget build(BuildContext context) {
+    var grey =
+        Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey);
+    return AlertDialog(
+      title: Text("安装更新".t),
+      scrollable: true,
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("{version} 已下载，是否现在安装？".tf({"version": version})),
+            for (var line in lines) ...[
+              AppStyle.vGap8,
+              Text(line, style: grey),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text("稍后".t),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text("现在安装".t),
+        ),
+      ],
+    );
+  }
+}
+
 /// 更新内容的一行
 class NoteLine {
   /// 0 正文，1 标题，2 列表项

@@ -84,12 +84,14 @@ void main() {
     ChatUserCardLevel level, {
     String duration = "",
     ChatUser who = user,
+    ChatUserMedal? medal,
   }) =>
       ChatUserCard(
         user: who,
         blocks: blocks,
         initialLevel: level,
         initialDuration: duration,
+        medal: medal,
         body: (_) => const Text(
           "这是一条很长很长的弹幕，看看卡片里换行是不是正常，"
           "再长一点再长一点再长一点再长一点再长一点再长一点",
@@ -128,6 +130,41 @@ void main() {
         "main-no-id",
         () => sheet(card(ChatUserCardLevel.main,
             who: const ChatUser("bilibili", name: longName))));
+  });
+
+  testWidgets("卡片第一级：粉丝牌是哪个主播的（名字很长）", (tester) async {
+    await check(
+      tester,
+      "main-medal",
+      () => sheet(card(
+        ChatUserCardLevel.main,
+        medal: ChatUserMedal(
+          title: "粉丝牌：{medal}".tf({"medal": "名字很长的粉丝牌子 120"}),
+          owner: "来自 {name} 的直播间".tf({"name": longName}),
+          onTap: () {},
+        ),
+      )),
+    );
+  });
+
+  testWidgets("卡片第一级：粉丝牌不能点的几种", (tester) async {
+    for (var owner in <String Function()>[
+      () => "本直播间".t,
+      () => "来自直播间 {room}".tf({"room": "30000002"}),
+      () => "来自 UID {uid} 的直播间".tf({"uid": "3546569288714792"}),
+    ]) {
+      await check(
+        tester,
+        "main-medal-info",
+        () => sheet(card(
+          ChatUserCardLevel.main,
+          medal: ChatUserMedal(
+            title: "粉丝牌：{medal}".tf({"medal": "甜心 30"}),
+            owner: owner(),
+          ),
+        )),
+      );
+    }
   });
 
   testWidgets("卡片第一级：定时屏蔽着（还剩多久）", (tester) async {

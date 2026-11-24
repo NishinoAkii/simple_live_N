@@ -60,6 +60,55 @@ void main() {
       expect(list.items[3].hasMedal, isTrue);
     });
 
+    test("粉丝牌是谁的：榜单里只有主播的 uid（ruid，旧格式 targetId、target_id）", () {
+      String? owner(LiveRankItem item) {
+        var medal = item.badges.singleWhere(
+          (e) => e.kind == LiveBadgeKind.medal,
+        );
+        expect((medal.ownerName, medal.ownerRoomId), (null, null));
+        return medal.ownerUid;
+      }
+
+      var online = parseBiliOnlineRank(fixture("bili_online_rank.json"));
+      expect(owner(online.items[0]), "3000000001");
+      expect(owner(online.items[3]), "3000000099");
+      var guards = parseBiliGuardRank(fixture("bili_guard_rank.json"));
+      expect(owner(guards.list.items.first), "3000000001");
+      var fans = parseBiliFansRank(fixture("bili_fans_rank.json"));
+      expect(owner(fans.items.first), "3000000001");
+
+      // 旧格式：没有 uinfo.medal、uinfo_medal
+      var data = fixture("bili_online_rank.json");
+      for (var item in data["data"]["OnlineRankItem"]) {
+        item.remove("uinfo");
+      }
+      var old = parseBiliOnlineRank(data);
+      expect(owner(old.items[3]), "3000000099");
+      data = fixture("bili_fans_rank.json");
+      for (var item in data["data"]["item"]) {
+        item.remove("uinfo_medal");
+      }
+      expect(owner(parseBiliFansRank(data).items.first), "3000000001");
+
+      // 没给、0、不是数字：没有，牌子照常
+      for (var bad in <dynamic>[
+        null,
+        0,
+        "",
+        "x",
+        -1,
+        [1],
+      ]) {
+        data = fixture("bili_fans_rank.json");
+        for (var item in data["data"]["item"]) {
+          item["uinfo_medal"]["ruid"] = bad;
+        }
+        var item = parseBiliFansRank(data).items.first;
+        expect(owner(item), isNull, reason: "$bad");
+        expect(item.badges.last.text, "测试牌");
+      }
+    });
+
     test("大航海：top3 在前，list 从第 4 名接着；陪伴天数是分数", () {
       var result = parseBiliGuardRank(fixture("bili_guard_rank.json"));
       expect(result.pages, 1);

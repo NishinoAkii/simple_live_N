@@ -5,12 +5,15 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/multi_window/multi_window.dart';
 import 'package:simple_live_app/app/multi_window/window_args.dart';
 import 'package:simple_live_app/modules/settings/update/update_dialogs.dart';
 import 'package:simple_live_app/services/app_update/app_update_service.dart';
+import 'package:simple_live_app/services/app_update/installers/install_common.dart';
+import 'package:simple_live_app/services/app_update/installers/windows_installer.dart';
 import 'package:simple_live_app/services/app_update/release_api.dart';
 import 'package:simple_live_app/services/app_update/release_models.dart';
 import 'package:simple_live_app/services/app_update/update_downloader.dart';
@@ -54,7 +57,7 @@ void main() {
           release: release(),
           local: local,
           asset: withAsset ? release().assets.first : null,
-          installNote: withAsset ? "更新时 App 会退出，安装完成后自动重新打开" : "",
+          installNote: withAsset ? "下载完成后询问是否安装，安装时 App 会退出" : "",
           pageUrl: release().htmlUrl,
           openUrl: opened == null ? null : (url) async => opened.add(url),
         );
@@ -83,7 +86,7 @@ void main() {
       expect(find.text("1.25.0（12500） · 2026-11-20"), findsOneWidget);
       expect(find.text("当前版本 1.24.2（12402）"), findsOneWidget);
       expect(
-          find.text("安装包 50.00 MB · 更新时 App 会退出，安装完成后自动重新打开"), findsOneWidget);
+          find.text("安装包 50.00 MB · 下载完成后询问是否安装，安装时 App 会退出"), findsOneWidget);
       expect(find.text("前往下载"), findsNothing);
       // 头部的链接打开这个版本的网页
       await tester.tap(find.text("在 GitHub 查看"));
@@ -215,9 +218,49 @@ void main() {
     });
   });
 
+  group("是否现在安装的对话框", () {
+    Future<bool?> show(WidgetTester tester, String button) async {
+      await tester.pumpWidget(const GetMaterialApp(home: Scaffold()));
+      bool? result;
+      UpdateInstallDialog.show(
+        version: "1.27.4（12705）",
+        lines: ["安装位置：D:\\Apps\\Simple Live", "需要管理员权限，安装时由系统询问"],
+      ).then((value) => result = value);
+      await tester.pumpAndSettle();
+      expect(find.text("1.27.4（12705） 已下载，是否现在安装？"), findsOneWidget);
+      expect(find.text("安装位置：D:\\Apps\\Simple Live"), findsOneWidget);
+      expect(find.text("需要管理员权限，安装时由系统询问"), findsOneWidget);
+      // 点外面不算
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      expect(result, isNull);
+      await tester.tap(find.text(button));
+      await tester.pumpAndSettle();
+      expect(find.byType(UpdateInstallDialog), findsNothing);
+      return result;
+    }
+
+    testWidgets("现在安装", (tester) async {
+      expect(await show(tester, "现在安装"), isTrue);
+    });
+
+    testWidgets("稍后", (tester) async {
+      expect(await show(tester, "稍后"), isFalse);
+    });
+
+    testWidgets("小屏幕放得下", (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      expect(await show(tester, "现在安装"), isTrue);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group("下载和安装（缓存目录是临时文件夹）", () {
     late Directory cache;
     late List<String> opened;
+    late List<String> revealed;
     late _FakeInstaller target;
     late FakeHttpAdapter adapter;
     const zipApi =
@@ -250,9 +293,13 @@ void main() {
       return ReleaseParser.parse(json, tagPrefix: "v");
     }
 
-    AppUpdateService start(FutureOr<ResponseBody> Function(RequestOptions) on) {
+    AppUpdateService start(
+      FutureOr<ResponseBody> Function(RequestOptions) on, {
+      _FakeInstaller? installer,
+    }) {
       opened = [];
-      target = _FakeInstaller();
+      revealed = [];
+      target = installer ?? _FakeInstaller();
       adapter = FakeHttpAdapter(on);
       storage.values[UpdateSettings.kSource] = UpdateSettings.sourceDirect;
       return Get.put(AppUpdateService(
@@ -260,7 +307,22 @@ void main() {
         localBuild: () => local,
         installer: () => target,
         openUrl: (url) async => opened.add(url),
+        revealFile: (path) async => revealed.add(path),
       ));
+    }
+
+    /// 安装包已经下好（不用联网）的服务
+    AppUpdateService downloaded(_FakeInstaller installer) {
+      var dir = Directory("${cache.path}${Platform.pathSeparator}app_update")
+        ..createSync();
+      File("${dir.path}/${small().assets.first.name}")
+          .writeAsStringSync("test");
+      return start(
+        (options) => options.uri.toString() == zipApi
+            ? FakeHttpAdapter.redirect(temp)
+            : fail("不该下载：${options.uri}"),
+        installer: installer,
+      );
     }
 
     /// 跑 [work]，期间一直画界面（对话框要画出来），文件读写要真的等
@@ -295,6 +357,91 @@ void main() {
           adapter.requests.where((e) => e.uri.toString() != zipApi), isEmpty);
     });
 
+    testWidgets("先问是否现在安装：选稍后不装，安装包留着；选现在安装就装", (tester) async {
+      await tester.pumpWidget(GetMaterialApp(
+        builder: FlutterSmartDialog.init(),
+        home: const Scaffold(),
+      ));
+      var later = _ConfirmingInstaller(answer: false);
+      var service = downloaded(later);
+      await drive(tester, () => service.startUpdate(small()));
+      expect(later.asked, ["1.25.0（12500） x64.zip"]);
+      expect(later.installed, isEmpty);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text("安装包已保留，下次更新时直接安装"), findsOneWidget);
+      expect(find.text("更新失败"), findsNothing);
+      await tester.pump(const Duration(seconds: 5));
+      expect(
+        Directory("${cache.path}/app_update").listSync(),
+        hasLength(1),
+      );
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets("选现在安装就装，装之前只问一次", (tester) async {
+      await tester.pumpWidget(const GetMaterialApp(home: Scaffold()));
+      var now = _ConfirmingInstaller(answer: true);
+      var service = downloaded(now);
+      await drive(tester, () => service.startUpdate(small()));
+      expect(now.asked, hasLength(1));
+      expect(now.installed, hasLength(1));
+    });
+
+    testWidgets("更新窗口的颜色跟着 App 的主题", (tester) async {
+      expect(WindowsInstaller.themeTexts(), isEmpty);
+      for (var brightness in Brightness.values) {
+        var theme = ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.teal,
+            brightness: brightness,
+          ),
+        );
+        await tester.pumpWidget(GetMaterialApp(
+          key: ValueKey(brightness),
+          theme: theme,
+          home: const Scaffold(),
+        ));
+        await tester.pumpAndSettle();
+        expect(WindowsInstaller.themeTexts(), {
+          "accent": WindowsInstaller.hexColor(theme.colorScheme.primary),
+          "onAccent": WindowsInstaller.hexColor(theme.colorScheme.onPrimary),
+          "dark": brightness == Brightness.dark ? "1" : "0",
+        });
+      }
+    });
+
+    testWidgets("没让装（UAC 里点了否）：提示一句，不算失败", (tester) async {
+      await tester.pumpWidget(GetMaterialApp(
+        builder: FlutterSmartDialog.init(),
+        home: const Scaffold(),
+      ));
+      var service = downloaded(_FakeInstaller()
+        ..failWith = const UpdateInstallCancelled("已取消安装"));
+      await drive(tester, () => service.startUpdate(small()));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text("已取消安装"), findsOneWidget);
+      expect(find.text("更新失败"), findsNothing);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets("安装失败：安装包下好了的，可以打开它所在的文件夹", (tester) async {
+      await tester.pumpWidget(const GetMaterialApp(home: Scaffold()));
+      var service = downloaded(_FakeInstaller()
+        ..failWith =
+            const UpdateInstallError("安装程序没有启动", package: r"C:\a\b.zip"));
+      await drive(tester, () => service.startUpdate(small()),
+          until: () => find.text("打开安装包位置").evaluate().isNotEmpty);
+      await tester.pumpAndSettle();
+      expect(find.text("安装失败：安装程序没有启动"), findsOneWidget);
+      await tester.tap(find.text("打开安装包位置"));
+      await tester.pumpAndSettle();
+      expect(revealed, [r"C:\a\b.zip"]);
+      await tester.tap(find.text("关闭"));
+      await tester.pumpAndSettle();
+      expect(opened, isEmpty);
+    });
+
     testWidgets("下载失败：说明原因，可以去 GitHub 下载", (tester) async {
       await tester.pumpWidget(const GetMaterialApp(home: Scaffold()));
       var service = start((options) => options.uri.toString() == zipApi
@@ -305,6 +452,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text("更新失败"), findsOneWidget);
       expect(find.textContaining("HTTP 503"), findsOneWidget);
+      expect(find.text("打开安装包位置"), findsNothing);
       await tester.tap(find.text("前往 GitHub 下载"));
       await tester.pumpAndSettle();
       expect(opened, [small().htmlUrl]);
@@ -407,9 +555,25 @@ void main() {
   });
 }
 
+/// 下载完先问一声的
+class _ConfirmingInstaller extends _FakeInstaller
+    implements UpdateInstallConfirm {
+  _ConfirmingInstaller({required this.answer});
+
+  final bool answer;
+  final List<String> asked = [];
+
+  @override
+  Future<bool> confirmInstall(String version, ReleaseAsset asset) async {
+    asked.add("$version ${asset.name.split("-").last}");
+    return answer;
+  }
+}
+
 class _FakeInstaller implements UpdateInstaller {
   static const note = "装好后重新打开";
   final List<String> installed = [];
+  Object? failWith;
 
   @override
   bool get canInstallInApp => true;
@@ -434,6 +598,9 @@ class _FakeInstaller implements UpdateInstaller {
     required String version,
     String? tempUrl,
   }) async {
+    if (failWith != null) {
+      throw failWith!;
+    }
     installed.add(filePath);
   }
 }

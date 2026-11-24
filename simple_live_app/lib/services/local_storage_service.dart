@@ -254,6 +254,9 @@ class LocalStorageService extends GetxService {
   /// 哔哩哔哩网页端的 LIVE_BUVID（生成一次后一直沿用，同浏览器保存的 Cookie）
   static const String kBiliLiveBuvid = "BiliLiveBuvid";
 
+  /// 平台发的 LIVE_BUVID，有它时不用上面生成的
+  static const String kBiliLiveBuvidCookie = "BiliLiveBuvidCookie";
+
   /// 抖音cookie
   static const String kDouyinCookie = "DouyinCookie";
 
@@ -305,6 +308,7 @@ class LocalStorageService extends GetxService {
   static const Set<String> accountKeys = {
     kBilibiliCookie,
     kBiliLiveBuvid,
+    kBiliLiveBuvidCookie,
     kDouyinCookie,
     kDouyuCookie,
     kDouyuLtp0,

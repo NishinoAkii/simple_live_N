@@ -84,7 +84,7 @@ abstract class UpdateInstaller {
   /// 从 Release 的安装包里挑这台设备要的那个；没有合适的返回 null
   ReleaseAsset? pickAsset(List<ReleaseAsset> assets);
 
-  /// 安装下载好、校验过的文件。Windows 会退出 App，安装完成后重新打开；macOS 打开 dmg；
+  /// 安装下载好、校验过的文件。Windows 的压缩包会退出 App，装完问要不要打开；macOS 打开 dmg；
   /// 安卓调起系统安装界面；iOS 交给 TrollStore 等工具（[tempUrl] 是临时下载链接，没有时为 null）
   Future<void> install(
     String filePath,
@@ -92,4 +92,11 @@ abstract class UpdateInstaller {
     required String version,
     String? tempUrl,
   });
+}
+
+/// 下载完先问一声是否现在安装的平台（Windows）
+abstract class UpdateInstallConfirm {
+  /// [version] 是显示用的版本号，[asset] 是下载好的安装包。
+  /// 返回 false 是先不装：安装包留着，下次更新时直接用
+  Future<bool> confirmInstall(String version, ReleaseAsset asset);
 }

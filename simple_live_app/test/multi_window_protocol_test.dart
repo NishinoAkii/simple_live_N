@@ -640,6 +640,62 @@ void main() {
     }
   });
 
+  test("电脑睡醒、主窗口卡了一会儿：没回应不算不在了，接着等、改动再交一次", () async {
+    // 假的主窗口：第一次等指令、第一次交改动都不回应，之后正常
+    var fake = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    var waits = 0;
+    var posts = 0;
+    var pings = 0;
+    fake.listen((request) async {
+      await request.drain<void>();
+      var path = request.uri.path;
+      if (path == "/ping") {
+        pings++;
+      } else if (path == "/wait") {
+        if (++waits == 1) {
+          return;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      } else if (++posts == 1) {
+        return;
+      }
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(json.encode(
+          {"ok": true, "cmd": path == "/wait" && waits == 2 ? "pin" : "none"}));
+      await request.response.close();
+    });
+    var gone = 0;
+    var l = MainWindowLink(
+      port: fake.port,
+      token: token,
+      onMainGone: () => gone++,
+      timeout: const Duration(milliseconds: 300),
+      pollTimeout: const Duration(milliseconds: 100),
+      pollGrace: const Duration(milliseconds: 100),
+    );
+    addTearDown(() async {
+      l.dispose();
+      await fake.close(force: true);
+    });
+    var pins = <bool>[];
+    unawaited(l.watch(onClose: () {}, onPin: pins.add));
+    await _until(() => pins.length == 1);
+    expect(pins, [true]);
+    expect(await l.send(const FollowNotifyChanged("douyu_1", true)), isTrue);
+    expect(posts, 2);
+    expect(pings, greaterThanOrEqualTo(2));
+    expect(l.online, isTrue);
+    expect(gone, 0);
+
+    // 真的没了（端口关了）：马上知道
+    await fake.close(force: true);
+    var watch = Stopwatch()..start();
+    expect(await l.send(const FollowNotifyChanged("douyu_1", true)), isFalse);
+    expect(watch.elapsedMilliseconds, lessThan(1500));
+    expect(l.online, isFalse);
+    expect(gone, 1);
+  });
+
   test("主窗口不在了：改动算没保存，之后的也不再发", () async {
     var unsaved = <(WindowChange, bool)>[];
     var gone = 0;

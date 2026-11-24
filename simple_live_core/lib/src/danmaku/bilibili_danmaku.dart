@@ -462,7 +462,9 @@ class BiliBiliDanmaku implements LiveDanmaku {
   /// 按大航海、房管、粉丝牌、等级、头衔排列，一个也没有时返回 null：
   /// - info[7]：大航海，1 总督、2 提督、3 舰长
   /// - info[2][2]：房管时为 1
-  /// - info[3]：戴着的粉丝牌 [等级, 名称, 主播名, 房间号, 颜色, …]，没戴时是 []
+  /// - info[3]：戴着的粉丝牌 [等级, 名称, 主播名, 房间号, 颜色, …]，没戴时是 []。
+  ///   第 12 项是牌子主播的 uid，没有时用 info[0][15].user.medal.ruid（同一个牌子）；
+  ///   主播名可能是空的
   /// - info[4][0]：用户等级（UL）
   /// - info[16][0]：荣耀等级
   /// - info[5]：头衔 [旧 id, id]，如 "title-111-1"，没有时是空字符串
@@ -493,12 +495,17 @@ class BiliBiliDanmaku implements LiveDanmaku {
     if (medalName.isNotEmpty) {
       var level = _toInt(_at(medal, 0)) ?? 0;
       var color = (_toInt(_at(medal, 4)) ?? 0) & 0xffffff;
+      var ownerName = _text(_at(medal, 2));
       badges.add(
         LiveBadge(
           LiveBadgeKind.medal,
           medalName,
           level: level > 0 ? level : null,
           color: color != 0 ? color : null,
+          ownerName: ownerName.isEmpty ? null : ownerName,
+          ownerRoomId: liveNumericId(_at(medal, 3)),
+          ownerUid:
+              liveNumericId(_at(medal, 12)) ?? liveNumericId(_medalRuid(info)),
         ),
       );
     }
@@ -520,6 +527,14 @@ class BiliBiliDanmaku implements LiveDanmaku {
       badges.add(LiveBadge(LiveBadgeKind.title, title));
     }
     return badges.isEmpty ? null : badges;
+  }
+
+  /// 新格式里戴着的牌子的主播 uid（info[0][15].user.medal.ruid），没有时为 null
+  static dynamic _medalRuid(List info) {
+    var meta = _at(_at(info, 0), 15);
+    var user = meta is Map ? meta["user"] : null;
+    var medal = user is Map ? user["medal"] : null;
+    return medal is Map ? medal["ruid"] : null;
   }
 
   /// [list] 的第 [index] 项，不是数组或没有这一项时为 null

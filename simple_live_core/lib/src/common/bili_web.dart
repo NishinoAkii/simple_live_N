@@ -74,6 +74,22 @@ class BiliWeb {
     if (cookie.isNotEmpty) "cookie": cookie,
   };
 
+  /// 响应头 Set-Cookie（每一项一个 Cookie）里 [name] 的值，没有时为空
+  static String setCookieValue(Iterable<String> setCookies, String name) {
+    for (var line in setCookies) {
+      // 一项是“名字=值; Path=/; Domain=...”，名字和值在第一个分号前
+      var first = line.split(";").first;
+      var eq = first.indexOf("=");
+      if (eq > 0 && first.substring(0, eq).trim() == name) {
+        var value = first.substring(eq + 1).trim();
+        if (value.isNotEmpty) {
+          return value;
+        }
+      }
+    }
+    return "";
+  }
+
   /// 打开直播间页面（地址栏导航）的请求头
   static Map<String, String> pageHeaders({String cookie = ""}) => {
     "accept":

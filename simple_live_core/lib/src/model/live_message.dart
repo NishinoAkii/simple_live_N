@@ -352,6 +352,17 @@ String? liveUserId(dynamic value) {
   return text.isEmpty || text == "0" ? null : text;
 }
 
+/// 平台给的数字 ID（粉丝牌主人的房间号、uid）统一成字符串：正整数、写成字符串的正整数都认；
+/// 没给、空的、0、不是数字的算没有，返回 null
+String? liveNumericId(dynamic value) {
+  var id = switch (value) {
+    int n => n,
+    String s => int.tryParse(s.trim(), radix: 10),
+    _ => null,
+  };
+  return id == null || id <= 0 ? null : "$id";
+}
+
 /// 同一个平台上两个人是不是同一个人（屏蔽、备注、只看这个人、重复弹幕过滤共用）：
 /// 两边都有用户 ID 时只比 ID，改名也认得出；有一边没有时比用户名，必须完全一致。
 /// 比较前由调用方确认是同一个平台
@@ -411,7 +422,26 @@ class LiveBadge {
   /// 平台给的颜色 0xRRGGBB，没有为 null
   final int? color;
 
-  const LiveBadge(this.kind, this.text, {this.level, this.icon, this.color});
+  /// 粉丝牌是哪个主播的：主播名、房间号、uid，平台没给（空的、0）的为 null。
+  /// 哔哩哔哩、斗鱼、虎牙可以戴别的直播间的牌子，消息里带着；别的平台、别的身份都是 null
+  final String? ownerName;
+  final String? ownerRoomId;
+  final String? ownerUid;
+
+  const LiveBadge(
+    this.kind,
+    this.text, {
+    this.level,
+    this.icon,
+    this.color,
+    this.ownerName,
+    this.ownerRoomId,
+    this.ownerUid,
+  });
+
+  /// 知道是哪个主播的牌子
+  bool get hasOwner =>
+      ownerName != null || ownerRoomId != null || ownerUid != null;
 
   Map<String, dynamic> toJson() => {
     "k": kind.name,
@@ -419,6 +449,9 @@ class LiveBadge {
     if (level != null) "l": level,
     if (icon != null) "i": icon,
     if (color != null) "c": color,
+    if (ownerName != null) "n": ownerName,
+    if (ownerRoomId != null) "r": ownerRoomId,
+    if (ownerUid != null) "u": ownerUid,
   };
 
   static LiveBadge? fromJson(dynamic json) {
@@ -431,7 +464,16 @@ class LiveBadge {
       level: json["l"] is num ? (json["l"] as num).toInt() : null,
       icon: json["i"]?.toString(),
       color: json["c"] is num ? (json["c"] as num).toInt() : null,
+      ownerName: _ownerText(json["n"]),
+      ownerRoomId: _ownerText(json["r"]),
+      ownerUid: _ownerText(json["u"]),
     );
+  }
+
+  /// 文字或数字，空的、别的类型都算没有
+  static String? _ownerText(dynamic value) {
+    var text = value is String || value is num ? "$value".trim() : "";
+    return text.isEmpty ? null : text;
   }
 
   @override
@@ -441,15 +483,28 @@ class LiveBadge {
       other.text == text &&
       other.level == level &&
       other.icon == icon &&
-      other.color == color;
+      other.color == color &&
+      other.ownerName == ownerName &&
+      other.ownerRoomId == ownerRoomId &&
+      other.ownerUid == ownerUid;
 
   @override
-  int get hashCode => Object.hash(kind, text, level, icon, color);
+  int get hashCode => Object.hash(
+    kind,
+    text,
+    level,
+    icon,
+    color,
+    ownerName,
+    ownerRoomId,
+    ownerUid,
+  );
 
   @override
   String toString() =>
       "LiveBadge(${kind.name}, $text"
-      "${level == null ? "" : ", $level"})";
+      "${level == null ? "" : ", $level"}"
+      "${hasOwner ? ", owner: $ownerName/$ownerRoomId/$ownerUid" : ""})";
 }
 
 /// 消息中的一个表情图片

@@ -24,7 +24,15 @@ void main() {
       var log = ChatLog(chunkSize: 4, hotChunks: 0, cachedChunks: 0);
       const badges = [
         LiveBadge(LiveBadgeKind.guard, "舰长", level: 3, icon: "https://i/g3"),
-        LiveBadge(LiveBadgeKind.medal, "甜心", level: 21, color: 0x5896de),
+        LiveBadge(
+          LiveBadgeKind.medal,
+          "甜心",
+          level: 21,
+          color: 0x5896de,
+          ownerName: "主播乙",
+          ownerRoomId: "30000002",
+          ownerUid: "20000002",
+        ),
         LiveBadge(LiveBadgeKind.admin, "房管"),
       ];
       log.add(LiveChatRecord(
@@ -55,6 +63,12 @@ void main() {
       log.add(chat(5)); // 封存第一块，转存出去
       var first = log[0].message;
       expect(first.badges, badges);
+      // 粉丝牌是哪个主播的也在（重新建的对象，不是原来那个）
+      expect(identical(first.badges![1], badges[1]), isFalse);
+      expect(first.badges![1].ownerName, "主播乙");
+      expect(first.badges![1].ownerRoomId, "30000002");
+      expect(first.badges![1].ownerUid, "20000002");
+      expect(first.badges![2].hasOwner, isFalse);
       expect(first.emotes!.single.text, "[比心]");
       expect(first.emotes!.single.width, 20);
       expect(log[1].message.sticker!.url, "https://e/2");

@@ -93,6 +93,21 @@ void main() {
     test("不认识的算法报错，不悄悄算一个错的", () {
       expect(() => sign([2, 9]), throwsA(isA<BiliHeartRuleError>()));
     });
+
+    test("规则 0 做两遍的那一种：只影响 0", () {
+      addTearDown(() => BiliWatchHeart.md5Twice = false);
+      var once = sign([0]);
+      var other = sign([2, 5, 1, 4]);
+      BiliWatchHeart.md5Twice = true;
+      expect(
+        sign([0]),
+        Hmac(
+          md5,
+          utf8.encode(secretKey),
+        ).convert(utf8.encode(once)).toString(),
+      );
+      expect(sign([2, 5, 1, 4]), other);
+    });
   });
 
   group("参数", () {

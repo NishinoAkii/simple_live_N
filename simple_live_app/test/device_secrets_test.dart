@@ -4,9 +4,13 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:simple_live_app/app/constant.dart';
+import 'package:simple_live_app/app/sites.dart';
+import 'package:simple_live_app/services/bilibili_account_service.dart';
 import 'package:simple_live_app/services/device_secrets.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 import 'package:simple_live_app/services/sync_vault.dart';
+import 'package:simple_live_core/simple_live_core.dart';
 
 /// 所有账号、令牌、Cookie 和 WebDAV 密码：设置里只存密文，原版留下的明文照样读、启动时加密；
 /// 同步时和别的账号一起加密，到了别的设备用那台的密钥重新加密
@@ -110,6 +114,29 @@ void main() {
       expect(storage.getValue(tokenKey, ""), token);
       expect(storage.plainSettings()[LocalStorageService.kTwitchToken], "tw-token");
       expect(box.toMap().toString(), isNot(contains("SESSDATA")));
+    });
+
+    test('平台发的 LIVE_BUVID：存密文，有它时不用自己生成的，自己生成的留着', () async {
+      var site = Sites.allSites[Constant.kBiliBili]!.liveSite as BiliBiliSite;
+      addTearDown(() => site
+        ..savedLiveBuvid = ""
+        ..liveBuvidIssued = false
+        ..onLiveBuvidIssued = null);
+      var account = Get.put(BiliBiliAccountService());
+      var own = storage.getValue(LocalStorageService.kBiliLiveBuvid, "");
+      expect(own, matches(RegExp(r"^AUTO\d{16}$")));
+      expect(site.savedLiveBuvid, own);
+      expect(site.liveBuvidIssued, isFalse);
+
+      site.onLiveBuvidIssued!("AUTO1234567890123456");
+      await pumpEventQueue();
+      const key = LocalStorageService.kBiliLiveBuvidCookie;
+      expect(DeviceSecrets.isProtected(box.get(key)), isTrue);
+      expect(LocalStorageService.isAccountKey(key), isTrue);
+      account.setSite();
+      expect(site.savedLiveBuvid, "AUTO1234567890123456");
+      expect(site.liveBuvidIssued, isTrue);
+      expect(storage.getValue(LocalStorageService.kBiliLiveBuvid, ""), own);
     });
 
     test('原版、旧版本留下的明文照样读；启动时改成密文', () async {

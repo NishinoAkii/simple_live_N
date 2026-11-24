@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:simple_live_core/simple_live_core.dart';
+import 'package:simple_live_core/src/common/http_client.dart';
 import 'package:simple_live_core/src/danmaku/douyu_aside.dart';
 import 'package:test/test.dart';
 
@@ -57,6 +60,57 @@ List<String> loadDouyu() => File(
   'test/fixtures/badges/douyu_chatmsg.txt',
 ).readAsLinesSync().where((e) => e.startsWith("type@=")).toList();
 
+/// 样例里哔哩哔哩的粉丝牌：都是主播A 的（主播名、房间号、uid）
+LiveBadge biliMedal(int level, int color) => LiveBadge(
+  LiveBadgeKind.medal,
+  "粉丝牌",
+  level: level,
+  color: color,
+  ownerName: "主播A",
+  ownerRoomId: "30000001",
+  ownerUid: "20000001",
+);
+
+/// 样例里斗鱼的粉丝牌：只有房间号（brid）
+LiveBadge douyuMedal(int level, String roomId) =>
+    LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: level, ownerRoomId: roomId);
+
+/// 一条弹幕的粉丝牌是谁的（主播名、房间号、uid）
+(String?, String?, String?) ownerOf(LiveMessage? message) {
+  var medal = message!.badges!.singleWhere(
+    (e) => e.kind == LiveBadgeKind.medal,
+  );
+  return (medal.ownerName, medal.ownerRoomId, medal.ownerUid);
+}
+
+/// 假的 HTTP：记录每个请求，按路径返回编好的结果，不访问网络
+class OwnerNameAdapter implements HttpClientAdapter {
+  final requests = <RequestOptions>[];
+  final routes = <String, Object?>{};
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests.add(options);
+    if (!routes.containsKey(options.uri.path)) {
+      return ResponseBody.fromString("not found", 404);
+    }
+    return ResponseBody.fromString(
+      json.encode(routes[options.uri.path]),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
   group('哔哩哔哩 DANMU_MSG 的身份', () {
     late List<LiveMessage> out;
@@ -77,7 +131,7 @@ void main() {
           icon: "${_guardIcons}3.png",
         ),
         const LiveBadge(LiveBadgeKind.admin, "房管"),
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 21, color: 1725515),
+        biliMedal(21, 1725515),
         const LiveBadge(LiveBadgeKind.level, "UL", level: 12),
         const LiveBadge(LiveBadgeKind.level, "荣耀", level: 16),
         const LiveBadge(LiveBadgeKind.title, "title-111-1"),
@@ -109,7 +163,8 @@ void main() {
           level: 1,
           icon: "${_guardIcons}1.png",
         ),
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 15, color: 6067854),
+        // 房间号也是字符串
+        biliMedal(15, 6067854),
         const LiveBadge(LiveBadgeKind.level, "荣耀", level: 9),
       ]);
     });
@@ -118,11 +173,11 @@ void main() {
       var real = runBili(loadBili('test/fixtures/gifts/bilibili_gifts.json'));
       expect(real, hasLength(2));
       expect(real[0].badges, [
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 21, color: 1725515),
+        biliMedal(21, 1725515),
         const LiveBadge(LiveBadgeKind.level, "荣耀", level: 7),
       ]);
       expect(real[1].badges, [
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 27, color: 398668),
+        biliMedal(27, 398668),
         const LiveBadge(LiveBadgeKind.level, "UL", level: 5),
         const LiveBadge(LiveBadgeKind.level, "荣耀", level: 16),
       ]);
@@ -187,6 +242,98 @@ void main() {
       // 原来就解析不了的照旧返回 null
       expect(BiliBiliDanmaku.parseBiliDanmuMsg({"info": []}), isNull);
     });
+
+    test('粉丝牌是谁的：别的主播的牌子照平台给的写', () {
+      LiveMessage? parse(List<dynamic> medal, {dynamic meta}) =>
+          BiliBiliDanmaku.parseBiliDanmuMsg(
+            shortDanmu({0: meta ?? [], 3: medal}),
+          );
+      // 第 12 项是主播的 uid
+      var medal = [30, "牌子", "主播乙", 30000002, 0, "", 0, 0, 0, 0, 0, 1];
+      expect(ownerOf(parse([...medal, 20000002])), (
+        "主播乙",
+        "30000002",
+        "20000002",
+      ));
+      // 旧的没有第 12 项；新格式里有 user.medal.ruid 时用它
+      expect(ownerOf(parse(medal)), ("主播乙", "30000002", null));
+      List<dynamic> meta(dynamic user) => [
+        ...List<dynamic>.filled(15, 0),
+        {"user": user},
+      ];
+      var ruid = {
+        "medal": {"name": "牌子", "ruid": 20000003},
+      };
+      expect(ownerOf(parse(medal, meta: meta(ruid))).$3, "20000003");
+      // 两个都有时用第 12 项，它是 0 时用另一个
+      expect(
+        ownerOf(parse([...medal, 20000002], meta: meta(ruid))).$3,
+        "20000002",
+      );
+      expect(ownerOf(parse([...medal, 0], meta: meta(ruid))).$3, "20000003");
+      // 主播名是空的、房间号是 0：那一项没有，别的照留
+      expect(ownerOf(parse([1, "牌子", "", 30000002])), (null, "30000002", null));
+      expect(ownerOf(parse([1, "牌子", " 主播乙 ", 0])), ("主播乙", null, null));
+      var none = parse([1, "牌子", "", 0, 0, "", 0, 0, 0, 0, 0, 1, 0])!;
+      expect(ownerOf(none), (null, null, null));
+      expect(none.badges!.single.hasOwner, isFalse);
+    });
+
+    test('粉丝牌主人的几项类型不对：算没有，弹幕和别的身份照常', () {
+      for (var bad in <dynamic>[
+        null,
+        true,
+        -5,
+        "abc",
+        "0x10",
+        "",
+        1.5,
+        double.infinity,
+        double.nan,
+        [1],
+        {"a": 1},
+      ]) {
+        var medal = [3, "牌子", bad, bad, 0, "", 0, 0, 0, 0, 0, 1, bad];
+        var metas = <dynamic>[
+          bad,
+          [...List<dynamic>.filled(15, 0), bad],
+          [
+            ...List<dynamic>.filled(15, 0),
+            {"user": bad},
+          ],
+          [
+            ...List<dynamic>.filled(15, 0),
+            {
+              "user": {"medal": bad},
+            },
+          ],
+          [
+            ...List<dynamic>.filled(15, 0),
+            {
+              "user": {
+                "medal": {"ruid": bad},
+              },
+            },
+          ],
+        ];
+        for (var meta in metas) {
+          var msg = BiliBiliDanmaku.parseBiliDanmuMsg(
+            shortDanmu({
+              0: meta,
+              3: medal,
+              16: [5],
+            }),
+          )!;
+          expect(msg.message, "测试", reason: "$bad $meta");
+          expect(msg.badges!.map((e) => (e.text, e.level)), [
+            ("牌子", 3),
+            ("荣耀", 5),
+          ], reason: "$bad $meta");
+          var (_, room, uid) = ownerOf(msg);
+          expect((room, uid), (null, null), reason: "$bad $meta");
+        }
+      }
+    });
   });
 
   group('斗鱼 chatmsg 的身份', () {
@@ -205,12 +352,12 @@ void main() {
           level: 1,
           icon: "${_douyuImages}noble-level1_1b45cf2.png",
         ),
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 20),
+        douyuMedal(20, "24422"),
         const LiveBadge(LiveBadgeKind.level, "等级", level: 61),
       ]);
       expect(out[1].badges, [
         const LiveBadge(LiveBadgeKind.admin, "房管"),
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 26),
+        douyuMedal(26, "24422"),
         const LiveBadge(LiveBadgeKind.level, "等级", level: 35),
       ]);
       expect(out[2].badges, [
@@ -219,7 +366,7 @@ void main() {
           "钻粉",
           icon: "${_douyuImages}diamond-icon_0531e5c.png",
         ),
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 28),
+        douyuMedal(28, "9263298"),
         const LiveBadge(LiveBadgeKind.level, "等级", level: 47),
       ]);
       expect(out[3].badges, [
@@ -247,7 +394,7 @@ void main() {
           "钻粉",
           icon: "${_douyuImages}diamond-icon_0531e5c.png",
         ),
-        const LiveBadge(LiveBadgeKind.medal, "粉丝牌", level: 20),
+        douyuMedal(20, "24422"),
         const LiveBadge(LiveBadgeKind.level, "等级", level: 61),
       ]);
       var host = runDouyu([line.replaceFirst("/rg@=4/", "/rg@=5/")]);
@@ -278,9 +425,188 @@ void main() {
       expect(DouyuDanmaku.parseChatBadges({}), isNull);
     });
 
+    test('粉丝牌是谁的：只有房间号（brid），没给、0、不是数字时没有', () {
+      var line = loadDouyu().first;
+      (String?, String?, String?) owner(String brid) =>
+          ownerOf(runDouyu([line.replaceFirst("/brid@=24422/", brid)]).single);
+      // 别的房间的牌子
+      expect(owner("/brid@=9263298/"), (null, "9263298", null));
+      for (var bad in [
+        "/",
+        "/brid@=/",
+        "/brid@=0/",
+        "/brid@=-1/",
+        "/brid@=abc/",
+        // 里面又是一层
+        "/brid@=a@A=1@S/",
+        "/brid@=1@S@S2/",
+      ]) {
+        expect(owner(bad), (null, null, null), reason: bad);
+      }
+    });
+
+    test('按房间号查主播名：只读一次 betard，不登录、不用签名', () async {
+      CoreLog.enableLog = false;
+      var original = HttpClient.instance.dio.httpClientAdapter;
+      var fake = OwnerNameAdapter();
+      HttpClient.instance.dio.httpClientAdapter = fake;
+      addTearDown(() => HttpClient.instance.dio.httpClientAdapter = original);
+      var site = DouyuSite()..cookie = "acf_uid=1; acf_stk=fake";
+      fake.routes["/betard/9263298"] = {
+        "room": {"room_id": 9263298, "owner_name": " 主播乙 "},
+      };
+      expect(await site.getRoomOwnerName(roomId: "9263298"), "主播乙");
+      var request = fake.requests.single;
+      expect(request.method, "GET");
+      expect(request.uri.toString(), "https://www.douyu.com/betard/9263298");
+      expect(
+        request.headers.keys.map((e) => e.toLowerCase()),
+        isNot(contains("cookie")),
+      );
+      // 没有名字：null；没有这个房间、读不到：报错（界面上不提示）
+      fake.routes["/betard/1"] = {
+        "room": {"room_id": 1, "owner_name": ""},
+      };
+      expect(await site.getRoomOwnerName(roomId: "1"), isNull);
+      fake.routes["/betard/2"] = {"room": null};
+      await expectLater(site.getRoomOwnerName(roomId: "2"), throwsA(anything));
+      await expectLater(site.getRoomOwnerName(roomId: "3"), throwsA(anything));
+      expect(fake.requests, hasLength(4));
+    });
+
     test('没有 dms 的机器人弹幕照旧不发', () {
       var bot = loadDouyu().first.replaceFirst("/dms@=4/", "/");
       expect(runDouyu([bot]), isEmpty);
+    });
+  });
+
+  group('粉丝牌的主人存进历史记录', () {
+    const medal = LiveBadge(
+      LiveBadgeKind.medal,
+      "牌子",
+      level: 30,
+      color: 0x2d0855,
+      ownerName: "主播乙",
+      ownerRoomId: "30000002",
+      ownerUid: "20000002",
+    );
+
+    test('写出去、读回来一样；原来的键不变，旧版不认识新的键', () {
+      var saved = json.decode(json.encode(medal.toJson())) as Map;
+      expect(saved, {
+        "k": "medal",
+        "t": "牌子",
+        "l": 30,
+        "c": 0x2d0855,
+        "n": "主播乙",
+        "r": "30000002",
+        "u": "20000002",
+      });
+      expect(LiveBadge.fromJson(saved), medal);
+      // 以前的 fromJson：只读原来的那几个键
+      LiveBadge old(Map json) => LiveBadge(
+        LiveBadgeKind.values.byName(json["k"]),
+        json["t"]?.toString() ?? "",
+        level: json["l"] is num ? (json["l"] as num).toInt() : null,
+        icon: json["i"]?.toString(),
+        color: json["c"] is num ? (json["c"] as num).toInt() : null,
+      );
+      expect(
+        old(saved),
+        const LiveBadge(LiveBadgeKind.medal, "牌子", level: 30, color: 0x2d0855),
+      );
+    });
+
+    test('没有的不写；旧的记录（没有这几个键）照样读', () {
+      const plain = LiveBadge(LiveBadgeKind.medal, "牌子", level: 30);
+      expect(plain.toJson(), {"k": "medal", "t": "牌子", "l": 30});
+      var old = LiveBadge.fromJson({"k": "medal", "t": "牌子", "l": 30})!;
+      expect(old, plain);
+      expect(old.hasOwner, isFalse);
+    });
+
+    test('类型不对、空的当作没有；数字当文字读', () {
+      for (var bad in <dynamic>[
+        null,
+        "",
+        "  ",
+        true,
+        [1],
+        {"a": 1},
+      ]) {
+        var badge = LiveBadge.fromJson({
+          "k": "medal",
+          "t": "牌子",
+          "n": bad,
+          "r": bad,
+          "u": bad,
+        })!;
+        expect(badge.hasOwner, isFalse, reason: "$bad");
+        expect(badge.text, "牌子");
+      }
+      var number = LiveBadge.fromJson({
+        "k": "medal",
+        "t": "牌子",
+        "r": 30000002,
+      })!;
+      expect(number.ownerRoomId, "30000002");
+    });
+
+    test('主人不一样就不是同一个牌子', () {
+      LiveBadge badge({String? name, String? room, String? uid}) => LiveBadge(
+        LiveBadgeKind.medal,
+        "牌子",
+        ownerName: name,
+        ownerRoomId: room,
+        ownerUid: uid,
+      );
+      var all = [
+        badge(),
+        badge(name: "主播乙"),
+        badge(room: "1"),
+        badge(uid: "1"),
+        badge(name: "主播乙", room: "1", uid: "1"),
+      ];
+      for (var i = 0; i < all.length; i++) {
+        for (var j = 0; j < all.length; j++) {
+          expect(all[i] == all[j], i == j, reason: "${all[i]} ${all[j]}");
+        }
+      }
+      expect(all.toSet(), hasLength(all.length));
+      expect(all.skip(1).every((e) => e.hasOwner), isTrue);
+      expect(
+        badge(name: "主播乙", room: "1", uid: "1"),
+        badge(name: "主播乙", room: "1", uid: "1"),
+      );
+      expect(
+        badge(name: "主播乙", uid: "1").hashCode,
+        badge(name: "主播乙", uid: "1").hashCode,
+      );
+    });
+
+    test('数字 ID：正整数和它的字符串，别的都没有', () {
+      expect(liveNumericId(30000002), "30000002");
+      expect(liveNumericId(" 30000002 "), "30000002");
+      expect(liveNumericId(3546569288714792), "3546569288714792");
+      for (var bad in <dynamic>[
+        null,
+        0,
+        "0",
+        -1,
+        "-1",
+        "",
+        "abc",
+        "0x1f",
+        "99999999999999999999",
+        1.5,
+        double.nan,
+        double.infinity,
+        true,
+        [1],
+        {"a": 1},
+      ]) {
+        expect(liveNumericId(bad), isNull, reason: "$bad");
+      }
     });
   });
 }

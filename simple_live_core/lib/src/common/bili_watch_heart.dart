@@ -23,6 +23,10 @@ class BiliWatchHeart {
   static const String beatUrl =
       "https://live-trace.bilibili.com/xlive/data-interface/v1/x25Kn/X";
 
+  /// 规则 0（MD5）做两遍。几个库都只做一遍，有一个库说网页的程序做两遍；
+  /// 平台说签名不对时换过来（见 BiliWebWatch）
+  static bool md5Twice = false;
+
   /// secret_rule 里的数字对应的算法
   static Hash? hashOf(int rule) => switch (rule) {
     0 => md5,
@@ -68,6 +72,9 @@ class BiliWatchHeart {
         throw BiliHeartRuleError(rule);
       }
       text = Hmac(hash, key).convert(utf8.encode(text)).toString();
+      if (rule == 0 && md5Twice) {
+        text = Hmac(hash, key).convert(utf8.encode(text)).toString();
+      }
     }
     return text;
   }
@@ -266,6 +273,9 @@ class BiliHeartError implements Exception {
 
   /// -101：账号未登录
   bool get notLoggedIn => code == -101;
+
+  /// 1012001：签名不对
+  static const int signFailed = 1012001;
 
   @override
   String toString() => "$message($code)";

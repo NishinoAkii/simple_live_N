@@ -64,7 +64,8 @@ LiveBadge? _guardBadge(dynamic level) {
 }
 
 /// 粉丝牌：新格式（uinfo.medal：name、level、color_start）或旧格式
-/// （medalInfo：medalName、level、medalColorStart），没有牌子时为 null
+/// （medalInfo：medalName、level、medalColorStart），没有牌子时为 null。
+/// 是谁的牌子只有主播的 uid：ruid（旧格式 targetId、target_id）
 LiveBadge? _medalBadge(dynamic medal) {
   var m = _map(medal);
   var name = _str(m["name"] ?? m["medalName"] ?? m["medal_name"]);
@@ -80,6 +81,10 @@ LiveBadge? _medalBadge(dynamic medal) {
     name,
     level: level > 0 ? level : null,
     color: color != 0 ? color : null,
+    ownerUid:
+        liveNumericId(m["ruid"]) ??
+        liveNumericId(m["targetId"]) ??
+        liveNumericId(m["target_id"]),
   );
 }
 

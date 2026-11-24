@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart' as p;
@@ -13,6 +15,7 @@ import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/app/windows_version.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 import 'package:simple_live_app/modules/settings/update/update_dialogs.dart';
+import 'package:simple_live_app/services/app_update/installers/install_common.dart';
 import 'package:simple_live_app/services/app_update/installers/installers.dart';
 import 'package:simple_live_app/services/app_update/release_api.dart';
 import 'package:simple_live_app/services/app_update/release_models.dart';
@@ -20,6 +23,7 @@ import 'package:simple_live_app/services/app_update/translation_sources.dart';
 import 'package:simple_live_app/services/app_update/update_config.dart';
 import 'package:simple_live_app/services/app_update/update_downloader.dart';
 import 'package:simple_live_app/services/app_update/update_settings.dart';
+import 'package:simple_live_app/services/obs_bridge/danmaku_recorder.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 /// 应用内更新：启动时检查、手动检查、更新对话框、下载并交给各平台的安装方式。
@@ -51,6 +55,9 @@ class AppUpdateService extends GetxService {
   /// 下载翻译、清单时临时放文件的文件夹；测试里直接给
   final Future<String> Function() sourcesDirectory;
 
+  /// 在系统的文件管理器里显示一个文件
+  final Future<void> Function(String path) revealFile;
+
   AppUpdateService({
     UpdateConfig? config,
     Dio? dio,
@@ -60,6 +67,7 @@ class AppUpdateService extends GetxService {
     Future<UpdateChoice?> Function(UpdateDialog dialog)? showUpdateDialog,
     DateTime Function()? now,
     Future<String> Function()? sourcesDirectory,
+    Future<void> Function(String path)? revealFile,
   })  : config = config ?? UpdateConfig.current,
         dio = dio ?? Dio(),
         localBuild = localBuild ?? _currentBuild,
@@ -67,7 +75,11 @@ class AppUpdateService extends GetxService {
         openUrl = openUrl ?? _launch,
         showUpdateDialog = showUpdateDialog ?? UpdateDialog.show,
         now = now ?? DateTime.now,
-        sourcesDirectory = sourcesDirectory ?? _sourcesDirectory;
+        sourcesDirectory = sourcesDirectory ?? _sourcesDirectory,
+        revealFile = revealFile ?? _reveal;
+
+  static Future<void> _reveal(String path) =>
+      DanmakuAssRecorder.reveal(File(path));
 
   static Future<String> _sourcesDirectory() async =>
       p.join((await getApplicationCacheDirectory()).path, "app_sources");
@@ -147,6 +159,9 @@ class AppUpdateService extends GetxService {
   /// 主窗口启动约 10 秒后检查一次（一天最多一次）。多开的副窗口、带着链接启动、
   /// 设置里关掉、要登录却没登录时不查。装过的翻译同时检查
   void scheduleStartupCheck() {
+    if (Platform.isWindows && kReleaseMode && !MultiWindow.isSecondary) {
+      unawaited(_cleanLeftovers());
+    }
     var block = startupBlocker();
     var translationBlock = translationBlocker();
     if (block != null && translationBlock != null) {
@@ -163,6 +178,20 @@ class AppUpdateService extends GetxService {
         unawaited(autoCheckTranslations());
       }
     });
+  }
+
+  /// 以前的更新留下的（1.27.1 和以前的更新装不上，解压出的文件一直留着）
+  Future<void> _cleanLeftovers() async {
+    try {
+      await UpdateLeftovers.clean(
+        updateDir: await UpdatePaths.updateDir(),
+        downloadDir: await UpdatePaths.downloadDir(),
+        version: Utils.packageInfo.version,
+        build: Utils.forkBuild,
+      );
+    } catch (e) {
+      Log.w("清理以前的更新留下的文件失败：$e");
+    }
   }
 
   /// 自动检查翻译：变了的直接换成新的，在 App 里提示一句；没装翻译时不联网
@@ -397,17 +426,26 @@ class AppUpdateService extends GetxService {
       Log.w("换临时下载链接失败：$e");
     }
     try {
+      if (target is UpdateInstallConfirm &&
+          !await (target as UpdateInstallConfirm).confirmInstall(
+              ReleaseParser.displayVersion(release), asset)) {
+        SmartDialog.showToast("安装包已保留，下次更新时直接安装".t);
+        return;
+      }
       await target.install(
         result.path,
         asset,
         version: release.version,
         tempUrl: tempUrl,
       );
+    } on UpdateInstallCancelled catch (e) {
+      SmartDialog.showToast(e.message);
     } catch (e, stackTrace) {
       Log.e("安装更新失败：$e", stackTrace);
       await _showFailure(
         "安装失败：{e}".tf({"e": UpdateErrorText.of(e)}),
         release,
+        package: e is UpdateInstallError ? e.package : null,
       );
     }
   }
@@ -419,14 +457,25 @@ class AppUpdateService extends GetxService {
     return "下载失败：{e}".tf({"e": UpdateErrorText.of(error)});
   }
 
-  /// 更新失败的对话框，可以去 GitHub 网页上自己下载
-  Future<void> _showFailure(String text, AppRelease release) async {
+  /// 更新失败的对话框，可以去 GitHub 网页上自己下载；安装包已经下好时可以打开它所在的文件夹
+  Future<void> _showFailure(
+    String text,
+    AppRelease release, {
+    String? package,
+  }) async {
     if (await Utils.showAlertDialog(
       text,
       title: "更新失败".t,
       confirm: "前往 GitHub 下载".t,
       cancel: "关闭".t,
       selectable: true,
+      actions: [
+        if (package != null)
+          TextButton(
+            onPressed: () => revealFile(package),
+            child: Text("打开安装包位置".t),
+          ),
+      ],
     )) {
       await openUrl(_releasePage(release));
     }
@@ -435,9 +484,7 @@ class AppUpdateService extends GetxService {
   /// 缓存目录里的 app_update。要下的同名文件留着（上次下好、校验对的直接用，
   /// 见 [UpdateDownloader.downloadFile]），别的旧文件清掉
   Future<String> _downloadDirectory(String keep) async {
-    var dir = Directory(
-      p.join((await getApplicationCacheDirectory()).path, "app_update"),
-    );
+    var dir = await UpdatePaths.downloadDir();
     if (await dir.exists()) {
       await for (var entry in dir.list(followLinks: false)) {
         if (p.basename(entry.path) == keep) {

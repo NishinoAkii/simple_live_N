@@ -21,6 +21,7 @@ class MainWindowLink {
     this.onMainGone,
     this.timeout = const Duration(seconds: 5),
     this.pollTimeout = const Duration(seconds: 25),
+    this.pollGrace = const Duration(seconds: 10),
   }) : _client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
 
   final int port;
@@ -29,8 +30,9 @@ class MainWindowLink {
   final void Function()? onMainGone;
   final Duration timeout;
 
-  /// 主窗口那边等指令的时长，这边多等一会儿再算超时
+  /// 主窗口那边等指令的时长，这边多等一会儿（[pollGrace]）再算超时
   final Duration pollTimeout;
+  final Duration pollGrace;
 
   final HttpClient _client;
   bool _online = true;
@@ -46,8 +48,20 @@ class MainWindowLink {
     return result;
   }
 
-  /// 发一个 POST，返回状态码；连不上时抛错
+  /// 发一个 POST，返回状态码；连不上时抛错。没回应、连接断了但主窗口还在
+  /// （电脑睡了一觉、主窗口卡了一会儿）时再发一次
   Future<int> _post(String path, Object body) async {
+    try {
+      return await _postOnce(path, body);
+    } catch (_) {
+      if (_closed || !await _reachable()) {
+        rethrow;
+      }
+      return _postOnce(path, body);
+    }
+  }
+
+  Future<int> _postOnce(String path, Object body) async {
     var request = await _client
         .post(InternetAddress.loopbackIPv4.address, port, path)
         .timeout(timeout);
@@ -110,23 +124,38 @@ class MainWindowLink {
 
   /// 主窗口在不在
   Future<bool> ping() async {
-    try {
-      var request = await _client
-          .get(InternetAddress.loopbackIPv4.address, port, "/ping")
-          .timeout(timeout);
-      request.headers.set(WindowServer.tokenHeader, token);
-      var response = await request.close().timeout(timeout);
-      await response.drain<void>();
-      if (response.statusCode == HttpStatus.ok) {
-        return true;
-      }
-    } catch (_) {}
+    if (await _reachable()) {
+      return true;
+    }
     _goOffline();
     return false;
   }
 
+  /// 主窗口应不应。端口没了、口令作废了马上就知道；没回应、旧连接断了的再试两次
+  Future<bool> _reachable() async {
+    for (var i = 0; i < 3 && !_closed; i++) {
+      try {
+        var request = await _client
+            .get(InternetAddress.loopbackIPv4.address, port, "/ping")
+            .timeout(timeout);
+        request.headers.set(WindowServer.tokenHeader, token);
+        var response = await request.close().timeout(timeout);
+        await response.drain<void>();
+        return response.statusCode == HttpStatus.ok;
+      } on TimeoutException {
+        continue;
+      } on HttpException {
+        continue;
+      } catch (_) {
+        return false;
+      }
+    }
+    return false;
+  }
+
   /// 一直等主窗口的指令：要这个窗口关掉时调用 [onClose]；主窗口的置顶变了时调用
-  /// [onPin]（跟着置顶或取消）；连不上时算主窗口不在了
+  /// [onPin]（跟着置顶或取消）；连不上时算主窗口不在了（电脑睡醒、主窗口卡住以后
+  /// 没回应的不算，接着等）
   Future<void> watch({
     required void Function() onClose,
     void Function(bool pinned)? onPin,
@@ -140,7 +169,7 @@ class MainWindowLink {
         request.headers.set(WindowServer.tokenHeader, token);
         var response = await request
             .close()
-            .timeout(pollTimeout + const Duration(seconds: 10));
+            .timeout(pollTimeout + pollGrace);
         var text = await response.transform(utf8.decoder).join();
         if (response.statusCode != HttpStatus.ok) {
           throw HttpException("status ${response.statusCode}");
@@ -148,9 +177,13 @@ class MainWindowLink {
         var body = json.decode(text);
         command = body is Map ? body["cmd"]?.toString() : null;
       } catch (_) {
-        if (!_closed) {
-          _goOffline();
+        if (_closed) {
+          return;
         }
+        if (await _reachable()) {
+          continue;
+        }
+        _goOffline();
         return;
       }
       if (command == "close") {

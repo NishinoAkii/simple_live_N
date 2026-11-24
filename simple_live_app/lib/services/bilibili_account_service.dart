@@ -26,7 +26,7 @@ class BiliBiliAccountService extends GetxService {
         .getValue(LocalStorageService.kBilibiliCookie, "");
     logined.value = cookie.isNotEmpty;
     // 没登录时也带上（网页端游客同样有这个 Cookie）
-    _site.savedLiveBuvid = _liveBuvid;
+    _setLiveBuvid(_site);
     loadUserInfo();
     super.onInit();
   }
@@ -59,7 +59,17 @@ class BiliBiliAccountService extends GetxService {
   BiliBiliSite get _site =>
       Sites.allSites[Constant.kBiliBili]!.liveSite as BiliBiliSite;
 
-  /// 网页端的 LIVE_BUVID：没有时生成一个存下，之后一直沿用
+  /// 网页端的 LIVE_BUVID：平台发的优先，还没有时用自己生成的
+  void _setLiveBuvid(BiliBiliSite site) {
+    var issued = LocalStorageService.instance
+        .getValue(LocalStorageService.kBiliLiveBuvidCookie, "");
+    site.liveBuvidIssued = issued.isNotEmpty;
+    site.savedLiveBuvid = issued.isNotEmpty ? issued : _liveBuvid;
+    site.onLiveBuvidIssued = (value) => LocalStorageService.instance
+        .setValue(LocalStorageService.kBiliLiveBuvidCookie, value);
+  }
+
+  /// 自己生成的 LIVE_BUVID：没有时生成一个存下，之后一直沿用
   String get _liveBuvid {
     var saved = LocalStorageService.instance
         .getValue(LocalStorageService.kBiliLiveBuvid, "");
@@ -75,7 +85,7 @@ class BiliBiliAccountService extends GetxService {
     var site = _site;
     site.userId = uid;
     site.cookie = cookie;
-    site.savedLiveBuvid = _liveBuvid;
+    _setLiveBuvid(site);
   }
 
   void setCookie(String cookie) {

@@ -56,7 +56,7 @@ class _RollbackTileState extends State<RollbackTile> {
 
   Future<void> _rollback(WindowsBackup backup) async {
     var ok = await Utils.showAlertDialog(
-      "将关闭 Simple Live，换回 {version} 后重新打开".tf({"version": backup.version}),
+      "将关闭 Simple Live N 并换回 {version}，完成后可选择是否重新打开".tf({"version": backup.version}),
       title: "回到上一个版本".t,
     );
     if (!ok) {

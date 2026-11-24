@@ -368,6 +368,14 @@ class DouyuSite with DouyuAccountFollows implements LiveSite, LiveRankSite {
     return roomInfo;
   }
 
+  /// 房间 [roomId] 的主播名，没有时为 null（粉丝牌只带着房间号，用它查是谁的）。
+  /// 和 [getLiveStatus] 一样只读一次 betard：匿名、不用签名
+  Future<String?> getRoomOwnerName({required String roomId}) async {
+    var roomInfo = await _getRoomInfo(roomId);
+    var name = roomInfo["owner_name"]?.toString().trim() ?? "";
+    return name.isEmpty ? null : name;
+  }
+
   //生成指定长度的16进制随机字符串
   String generateRandomString(int length) {
     var random = Random.secure();

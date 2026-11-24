@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:simple_live_app/app/constant.dart';
+import 'package:simple_live_app/app/log.dart';
 import 'package:simple_live_app/services/chat_users/chat_user.dart';
 import 'package:simple_live_app/services/chat_users/chat_users_service.dart';
 import 'package:simple_live_app/services/chat_users/room_user_blocks.dart';
@@ -25,15 +26,39 @@ class ChatUserCardAction {
 /// 卡片的层级：第一级是原来的操作，屏蔽是第二级，自定义时间是第三级；备注单独一级
 enum ChatUserCardLevel { main, block, customTime, remark }
 
+/// 卡片第一行：这个人戴的粉丝牌是哪个主播的，点了先关卡片再去那个主播的直播间
+class ChatUserMedal {
+  /// 牌子名和等级，如“粉丝牌：甜心 21”
+  final String title;
+
+  /// 是谁的，如“来自 某某 的直播间”“来自直播间 123”“本直播间”
+  final String owner;
+
+  /// 为 null 时不能点（就是这个直播间的、不知道房间号），照常显示，不灰掉
+  final VoidCallback? onTap;
+
+  /// 只知道房间号时去读主播名，返回新的 [owner]，没读到返回 null；不用读时为 null。
+  /// 打开卡片时调一次，出错也不提示
+  final Future<String?> Function()? loadOwner;
+
+  const ChatUserMedal({
+    required this.title,
+    required this.owner,
+    this.onTap,
+    this.loadOwner,
+  });
+}
+
 /// 点一条弹幕（或 SC、礼物）弹出的卡片。
 ///
 /// 上面是名字（有备注时后面跟着灰色的备注）和 [body]（身份、这条弹幕），
-/// 下面一行一个操作：[before]、屏蔽这个人 ›、备注、[after]。
+/// 下面一行一个操作：[medal]、[before]、屏蔽这个人 ›、备注、[after]。
 /// 点“屏蔽这个人”后卡片内容换成第二级，左上角有返回；高度变化有过渡，不会跳
 Future<void> showChatUserCard({
   required ChatUser user,
   required RoomUserBlocks blocks,
   required WidgetBuilder body,
+  ChatUserMedal? medal,
   List<ChatUserCardAction> before = const [],
   List<ChatUserCardAction> after = const [],
   String? visitHint,
@@ -51,6 +76,7 @@ Future<void> showChatUserCard({
       user: user,
       blocks: blocks,
       body: body,
+      medal: medal,
       before: before,
       after: after,
       visitHint: visitHint,
@@ -63,6 +89,9 @@ class ChatUserCard extends StatefulWidget {
   final ChatUser user;
   final RoomUserBlocks blocks;
   final WidgetBuilder body;
+
+  /// 粉丝牌是哪个主播的，排在最上面；没戴、平台没给是谁的时为 null，不显示
+  final ChatUserMedal? medal;
   final List<ChatUserCardAction> before;
   final List<ChatUserCardAction> after;
 
@@ -85,6 +114,7 @@ class ChatUserCard extends StatefulWidget {
     required this.user,
     required this.blocks,
     required this.body,
+    this.medal,
     this.before = const [],
     this.after = const [],
     this.visitHint,
@@ -135,6 +165,9 @@ class _ChatUserCardState extends State<ChatUserCard> {
     text: _remark ?? "",
   );
 
+  /// 读到主播名以后，粉丝牌那一行换成的说明；没读、没读到时为 null
+  String? medalOwner;
+
   /// 最长能屏蔽多久
   static const int maxHours = 240;
 
@@ -143,6 +176,26 @@ class _ChatUserCardState extends State<ChatUserCard> {
   ChatUsersService? get service => blocks.service;
 
   String? get _remark => service?.remarkOf(user);
+
+  @override
+  void initState() {
+    super.initState();
+    loadMedalOwner();
+  }
+
+  /// 粉丝牌只带着房间号时读主播名（一张卡片只读一次），没读到就还是房间号
+  Future<void> loadMedalOwner() async {
+    String? owner;
+    try {
+      owner = await widget.medal?.loadOwner?.call();
+    } catch (e) {
+      Log.d("读取粉丝牌的主播名失败：$e");
+    }
+    // 读到时卡片可能已经关了
+    if (owner != null && mounted) {
+      setState(() => medalOwner = owner);
+    }
+  }
 
   @override
   void dispose() {
@@ -299,6 +352,7 @@ class _ChatUserCardState extends State<ChatUserCard> {
     );
   }
 
+  /// 一行。[onTap] 为 null 时不能点，平时灰掉；[info] 是给人看的，不能点也不灰
   Widget row(
     IconData icon,
     String title, {
@@ -306,13 +360,14 @@ class _ChatUserCardState extends State<ChatUserCard> {
     String? subtitle,
     Widget? trailing,
     bool closeFirst = false,
+    bool info = false,
   }) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
       subtitle: subtitle == null ? null : Text(subtitle),
       trailing: trailing,
-      enabled: onTap != null,
+      enabled: info || onTap != null,
       onTap: onTap == null
           ? null
           : closeFirst
@@ -329,7 +384,17 @@ class _ChatUserCardState extends State<ChatUserCard> {
   List<Widget> buildMain() {
     var current = blocks.strongest(user);
     var remark = _remark;
+    var medal = widget.medal;
     return [
+      if (medal != null)
+        row(
+          Icons.loyalty_outlined,
+          medal.title,
+          subtitle: medalOwner ?? medal.owner,
+          onTap: medal.onTap,
+          closeFirst: true,
+          info: true,
+        ),
       for (var a in widget.before)
         row(a.icon, a.title, onTap: a.onTap, closeFirst: true),
       row(

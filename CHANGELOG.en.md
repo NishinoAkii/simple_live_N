@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.27.4 (12704)
+
+### New
+
+- Tapping a chat user shows which streamer their fan badge belongs to (Bilibili, Douyu, Huya). On Bilibili and Douyu you can go to that streamer's room.
+- On the Windows zip build, you are asked whether to install an update once it has downloaded. Progress is shown, and you choose whether to reopen the app.
+- New Twitch icon.
+
+### Fixed
+
+- On the Windows zip build, updates were downloaded but never installed. Version 1.27.1 or earlier needs one manual download and unzip.
+- Files left over from earlier updates are removed at startup.
+- Extra windows stay connected to the main window after the computer sleeps.
+
 ## 1.27.1 (12701)
 
 ### New

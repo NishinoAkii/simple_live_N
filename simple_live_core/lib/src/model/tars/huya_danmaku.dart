@@ -265,13 +265,18 @@ class HuyaDecorationInfo extends TarsStruct {
   void displayAsString(StringBuffer sb, int level) {}
 }
 
-/// 粉丝牌（BadgeInfo，装饰 10400），只读前面用到的字段
+/// 粉丝牌（BadgeInfo，装饰 10400），只读用到的字段。
+/// 普通牌子（[iBadgeType] 为 0）的 [lBadgeId] 就是主播的 uid：实抓的两条聊天里都和
+/// 直播间主播的 uid（MessageNotice 的 tag 11 lPid）一样，网页端也拿它和主播的 uid 比；
+/// [iBadgeType] 为 1 是信仰牌，里面有一组主播（tag 18 tFaithInfo）。
+/// 实抓的聊天里没有 [sPresenterNickName]，也没有房间号
 class HuyaBadgeInfo extends TarsStruct {
   int lUid = 0; // tag 0
   int lBadgeId = 0; // tag 1
   String sPresenterNickName = ""; // tag 2
   String sBadgeName = ""; // tag 3
   int iBadgeLevel = 0; // tag 4
+  int iBadgeType = 0; // tag 17
 
   @override
   void readFrom(TarsInputStream _is) {
@@ -280,6 +285,7 @@ class HuyaBadgeInfo extends TarsStruct {
     sPresenterNickName = _is.read(sPresenterNickName, 2, false);
     sBadgeName = _is.read(sBadgeName, 3, false);
     iBadgeLevel = _is.read(iBadgeLevel, 4, false);
+    iBadgeType = _is.read(iBadgeType, 17, false);
   }
 
   @override
@@ -289,6 +295,7 @@ class HuyaBadgeInfo extends TarsStruct {
     _os.write(sPresenterNickName, 2);
     _os.write(sBadgeName, 3);
     _os.write(iBadgeLevel, 4);
+    _os.write(iBadgeType, 17);
   }
 
   @override
@@ -297,7 +304,8 @@ class HuyaBadgeInfo extends TarsStruct {
     ..lBadgeId = lBadgeId
     ..sPresenterNickName = sPresenterNickName
     ..sBadgeName = sBadgeName
-    ..iBadgeLevel = iBadgeLevel;
+    ..iBadgeLevel = iBadgeLevel
+    ..iBadgeType = iBadgeType;
 
   @override
   void displayAsString(StringBuffer sb, int level) {}

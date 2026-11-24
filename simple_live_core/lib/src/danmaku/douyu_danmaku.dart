@@ -241,7 +241,7 @@ class DouyuDanmaku implements LiveDanmaku {
   /// - nl：贵族等级，1 骑士、2 子爵、3 伯爵、4 公爵、5 国王、6 皇帝、7 游侠
   /// - rg：在这个房间的身份，4 房管、5 主播（1 是普通观众）
   /// - diaf：1 是钻粉
-  /// - bnn、bl：戴着的粉丝牌的名称、等级（brid 是牌子所属的房间）
+  /// - bnn、bl：戴着的粉丝牌的名称、等级；brid 是牌子所属的房间（没有主播名），没戴时是 0
   /// - level：用户等级
   static List<LiveBadge>? parseChatBadges(Map msg) {
     var badges = <LiveBadge>[];
@@ -271,7 +271,12 @@ class DouyuDanmaku implements LiveDanmaku {
     if (medal.isNotEmpty) {
       var bl = _toInt(msg["bl"]) ?? 0;
       badges.add(
-        LiveBadge(LiveBadgeKind.medal, medal, level: bl > 0 ? bl : null),
+        LiveBadge(
+          LiveBadgeKind.medal,
+          medal,
+          level: bl > 0 ? bl : null,
+          ownerRoomId: liveNumericId(msg["brid"]),
+        ),
       );
     }
     var level = _toInt(msg["level"]) ?? 0;

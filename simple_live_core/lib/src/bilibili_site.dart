@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:simple_live_core/src/account_follows/bilibili_account_follows.dart';
 import 'package:simple_live_core/src/bilibili_rank.dart';
 import 'package:simple_live_core/src/common/bili_web.dart';
@@ -56,13 +57,78 @@ class BiliBiliSite
   String accessId = "";
 
   /// 网页端的 LIVE_BUVID（Cookie）：直播接口第一次返回时设下，之后浏览器每次都带上。
-  /// 登录 Cookie 里有就用它，没有时用 App 保存的（[savedLiveBuvid]，由 App 生成一次后一直沿用）
+  /// 登录 Cookie 里有就用它，没有时用 App 保存的 [savedLiveBuvid]：平台发的（见 [loadLiveBuvid]），
+  /// 还没要到时是 App 生成一次后一直沿用的
   String savedLiveBuvid = "";
-  String get liveBuvid =>
+
+  /// [savedLiveBuvid] 是平台发的
+  bool liveBuvidIssued = false;
+
+  /// 要到了平台发的 LIVE_BUVID：App 存下来
+  void Function(String value)? onLiveBuvidIssued;
+
+  String get _cookieLiveBuvid =>
       RegExp(r"(?:^|;\s*)LIVE_BUVID=([^;]+)").firstMatch(cookie)?.group(1) ??
-      savedLiveBuvid;
+      "";
+  String get liveBuvid =>
+      _cookieLiveBuvid.isEmpty ? savedLiveBuvid : _cookieLiveBuvid;
+
+  static const String liveBuvidUrl =
+      "https://api.live.bilibili.com/news/v1/notice/recom";
+
+  /// 没要到时隔这么久再要
+  static const Duration liveBuvidRetry = Duration(minutes: 5);
+  Future<void>? _liveBuvidLoading;
+  DateTime? _liveBuvidTried;
+
+  /// 登录以后还没有平台发的 LIVE_BUVID 时要一个：带着登录 Cookie（不带自己生成的）
+  /// 读一次直播的公告接口，平台在 Set-Cookie 里给。没要到时照旧用生成的，
+  /// 隔 [liveBuvidRetry] 再要。出错只记日志
+  Future<void> loadLiveBuvid({DateTime? now}) =>
+      _liveBuvidLoading ??= _loadLiveBuvid(
+        now ?? DateTime.now(),
+      ).whenComplete(() => _liveBuvidLoading = null);
+
+  Future<void> _loadLiveBuvid(DateTime now) async {
+    if (cookie.isEmpty || liveBuvidIssued || _cookieLiveBuvid.isNotEmpty) {
+      return;
+    }
+    var tried = _liveBuvidTried;
+    if (tried != null && now.difference(tried).abs() < liveBuvidRetry) {
+      return;
+    }
+    _liveBuvidTried = now;
+    try {
+      var response = await HttpClient.instance.dio.get(
+        liveBuvidUrl,
+        queryParameters: {"product": "live"},
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: BiliWeb.apiHeaders(
+            cookie: await _cookieJar(liveBuvid: false),
+          ),
+        ),
+      );
+      var value = BiliWeb.setCookieValue(
+        response.headers["set-cookie"] ?? const [],
+        "LIVE_BUVID",
+      );
+      if (value.isNotEmpty) {
+        savedLiveBuvid = value;
+        liveBuvidIssued = true;
+        onLiveBuvidIssued?.call(value);
+      }
+    } catch (e) {
+      CoreLog.error(e);
+    }
+  }
+
   @override
-  Future<Map<String, String>> getHeader() async {
+  Future<Map<String, String>> getHeader() async =>
+      BiliWeb.apiHeaders(cookie: await _cookieJar());
+
+  /// 请求带的 Cookie。[liveBuvid] 为 false 时不带 App 保存的 LIVE_BUVID
+  Future<String> _cookieJar({bool liveBuvid = true}) async {
     if (buvid3.isEmpty) {
       var buvidInfo = await getBuvid();
       buvid3 = buvidInfo["b_3"] ?? "";
@@ -75,10 +141,12 @@ class BiliBiliSite
         : cookie.contains("buvid3")
         ? cookie
         : "$cookie;buvid3=$buvid3;buvid4=$buvid4;";
-    if (savedLiveBuvid.isNotEmpty && !jar.contains("LIVE_BUVID=")) {
+    if (liveBuvid &&
+        savedLiveBuvid.isNotEmpty &&
+        !jar.contains("LIVE_BUVID=")) {
       jar = "${jar.endsWith(";") ? jar : "$jar;"}LIVE_BUVID=$savedLiveBuvid;";
     }
-    return BiliWeb.apiHeaders(cookie: jar);
+    return jar;
   }
 
   /// 账号关注请求用的 Cookie：登录 Cookie 里缺 buvid 时补上（见 [getHeader]）

@@ -13,7 +13,7 @@ import 'package:simple_live_app/widgets/live_badges.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 
 /// 直播间里打开用户卡片：点一条弹幕、SC 卡片、礼物记录。
-/// 卡片上面是发言人、身份和内容，下面一行一个操作：
+/// 卡片上面是发言人、身份和内容，下面一行一个操作：粉丝牌是哪个主播的（知道时）、
 /// 只看这个人的弹幕、屏蔽这个人 ›、备注、复制弹幕、搜索这条弹幕
 
 /// 点一条弹幕
@@ -144,6 +144,7 @@ void _show(
     user: user,
     blocks: controller.userBlocks,
     body: body ?? (_) => LiveMessageCardBody(message),
+    medal: chatUserMedal(controller, message.badges),
     before: [
       ChatUserCardAction(
         Icons.person_search,
@@ -158,6 +159,68 @@ void _show(
     ],
     after: after,
   );
+}
+
+/// [badges] 里的粉丝牌是哪个主播的（卡片第一行），点了在这个窗口打开那个主播的直播间；
+/// 没戴牌子、平台没给是谁的时为 null。
+/// 斗鱼只给房间号：先写房间号，打开卡片后读一次主播名（[DouyuSite.getRoomOwnerName]）。
+/// 别的平台没有主播名时不去读
+ChatUserMedal? chatUserMedal(
+  LiveRoomController controller,
+  List<LiveBadge>? badges,
+) {
+  for (var medal in badges ?? const <LiveBadge>[]) {
+    if (medal.kind != LiveBadgeKind.medal || !medal.hasOwner) {
+      continue;
+    }
+    var site = controller.site;
+    var liveSite = site.liveSite;
+    var room = medal.ownerRoomId;
+    var own = _isRoomMedal(controller, medal);
+    return ChatUserMedal(
+      title: "粉丝牌：{medal}".tf({
+        "medal": [medal.text, if (medal.level != null) medal.level].join(" "),
+      }),
+      owner: own ? "本直播间".t : _medalOwner(medal, medal.ownerName),
+      onTap:
+          own || room == null ? null : () => controller.resetRoom(site, room),
+      loadOwner: !own &&
+              room != null &&
+              medal.ownerName == null &&
+              liveSite is DouyuSite
+          ? () async {
+              var name = await liveSite.getRoomOwnerName(roomId: room);
+              return name == null ? null : _medalOwner(medal, name);
+            }
+          : null,
+    );
+  }
+  return null;
+}
+
+/// 牌子是谁的：知道主播名 [name] 时写主播名，否则写房间号，都没有时写主播的 uid
+String _medalOwner(LiveBadge medal, String? name) {
+  if (name != null) {
+    return "来自 {name} 的直播间".tf({"name": name});
+  }
+  var room = medal.ownerRoomId;
+  return room != null
+      ? "来自直播间 {room}".tf({"room": room})
+      : "来自 UID {uid} 的直播间".tf({"uid": medal.ownerUid});
+}
+
+/// [medal] 就是这个直播间的牌子：主播的 uid 一样，或者房间号一样
+/// （哔哩哔哩可能是用短号进来的，读到的长号也比）
+bool _isRoomMedal(LiveRoomController controller, LiveBadge medal) {
+  var detail = controller.detail.value;
+  var uid = switch (detail?.danmakuData) {
+    BiliBiliDanmakuArgs args => args.anchorUid,
+    HuyaDanmakuArgs args => args.presenterUid,
+    _ => 0,
+  };
+  var room = medal.ownerRoomId;
+  return (uid > 0 && medal.ownerUid == "$uid") ||
+      (room != null && (room == controller.roomId || room == detail?.roomId));
 }
 
 /// 卡片上面的身份（粉丝牌、头衔等）和这条内容
