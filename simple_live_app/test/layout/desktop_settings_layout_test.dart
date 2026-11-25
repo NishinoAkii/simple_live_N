@@ -9,6 +9,7 @@ import 'package:simple_live_app/app/desktop_shortcuts.dart';
 import 'package:simple_live_app/app/gpu_preference.dart';
 import 'package:simple_live_app/app/multi_window/multi_window.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
+import 'package:simple_live_app/app/multi_window/window_switcher.dart';
 import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/modules/settings/desktop_settings_page.dart';
 import 'package:simple_live_core/simple_live_core.dart';
@@ -66,11 +67,37 @@ void main() {
         children: const [
           ShortcutSettingsSection(),
           WindowSettingsSection(),
-          MultiWindowSettingsSection(visible: true),
+          MultiWindowSettingsSection(visible: true, groupSwitcher: true),
           GpuSettingsSection(visible: true),
         ],
       ),
     );
+  });
+
+  testWidgets("贴靠分组时的 Alt+Tab：Windows 11 有，选了就存", (tester) async {
+    MultiWindow.debugSupported = true;
+    MultiWindowPrefs.reset();
+    addTearDown(() {
+      MultiWindow.debugSupported = null;
+      MultiWindowPrefs.reset();
+    });
+    Widget page(bool has) => GetMaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: MultiWindowSettingsSection(groupSwitcher: has),
+            ),
+          ),
+        );
+    await tester.pumpWidget(page(false));
+    expect(find.text("贴靠分组时的 Alt+Tab"), findsNothing);
+    await tester.pumpWidget(page(true));
+    expect(find.text("显示全部"), findsOneWidget);
+    await tester.tap(find.text("贴靠分组时的 Alt+Tab"));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("只显示分组").last);
+    await tester.pumpAndSettle();
+    expect(MultiWindowPrefs.switcher.value, SwitcherMode.group);
+    expect(find.text("只显示分组"), findsOneWidget);
   });
 
   testWidgets("多开窗口：记着上次的一组时能打开，开着窗口时能关，没有时灰掉", (tester) async {

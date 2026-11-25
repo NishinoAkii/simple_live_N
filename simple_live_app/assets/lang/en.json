@@ -2036,5 +2036,11 @@
  "粉丝牌：{medal}": "Fan badge: {medal}",
  "来自 {name} 的直播间": "From {name}'s room",
  "来自直播间 {room}": "From room {room}",
- "来自 UID {uid} 的直播间": "From the room of UID {uid}"
+ "来自 UID {uid} 的直播间": "From the room of UID {uid}",
+ "多开窗口随主窗口最小化": "Minimize extra windows with the main window",
+ "还原主窗口时，随之最小化的窗口一起还原": "Restoring the main window also restores the windows minimized with it",
+ "贴靠分组时的 Alt+Tab": "Alt+Tab with snap groups",
+ "窗口组成贴靠分组时生效。使用系统未公开的窗口属性，系统更新后可能失效": "Applies while the windows are in a snap group. Uses an undocumented window property that a Windows update may break",
+ "隐藏多开窗口": "Hide extra windows",
+ "只显示分组": "Group only"
 }

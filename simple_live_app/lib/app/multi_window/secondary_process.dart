@@ -12,6 +12,8 @@ import 'package:simple_live_app/app/log.dart';
 /// 只在画面录制打开时这样做（[CaptureFeatures.screenRecording]）；关着时和以前一样直接启动。
 /// 其他平台照旧用 [Process.start]。
 abstract class SecondaryProcess {
+  int get pid;
+
   /// 进程退出时完成
   Future<void> get exited;
 
@@ -54,6 +56,9 @@ class _ChildProcess implements SecondaryProcess {
   final Process _process;
 
   @override
+  int get pid => _process.pid;
+
+  @override
   Future<void> get exited => _process.exitCode;
 
   @override
@@ -68,6 +73,7 @@ class _DetachedProcess implements SecondaryProcess {
             .invokeMethod<Object?>("waitPid", {"pid": pid})
             .then<void>((_) {}, onError: (Object e) => Log.logPrint(e));
 
+  @override
   final int pid;
 
   @override

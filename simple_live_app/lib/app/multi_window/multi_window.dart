@@ -20,9 +20,11 @@ import 'package:simple_live_app/app/multi_window/window_changes.dart';
 import 'package:simple_live_app/app/multi_window/window_frame.dart';
 import 'package:simple_live_app/app/multi_window/window_layout.dart';
 import 'package:simple_live_app/app/multi_window/window_link.dart';
+import 'package:simple_live_app/app/multi_window/window_minimize.dart';
 import 'package:simple_live_app/app/multi_window/window_server.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/multi_window/window_snapshot.dart';
+import 'package:simple_live_app/app/multi_window/window_switcher.dart';
 import 'package:simple_live_app/app/sites.dart';
 import 'package:simple_live_app/app/window_geometry.dart';
 import 'package:simple_live_app/app/window_memory.dart';
@@ -330,12 +332,15 @@ class MultiWindow {
     _reportedChat = info.chatCollapsed;
     ever<bool>(
         WindowPin.instance.pinned, (value) => _reportLayout(pinned: value));
+    var follower = MinimizeFollower()..start();
     unawaited(l.ping().then((ok) {
       if (ok) {
         unawaited(l.watch(
           onClose: _closeSelf,
           // 主窗口置顶或取消置顶：跟着变（之后自己再点只改这个窗口）
           onPin: (value) => unawaited(WindowPin.instance.set(value)),
+          // 主窗口最小化、又出来了：跟着
+          onMinimize: follower.follow,
         ));
       }
     }));
@@ -962,8 +967,55 @@ class WindowHost {
 
   late final Worker _pinWorker;
 
-  /// 不再跟着主窗口的置顶（测试用）
-  void dispose() => _pinWorker.dispose();
+  /// 不再跟着主窗口的置顶、最小化（测试用）
+  void dispose() {
+    _pinWorker.dispose();
+    _minimizeWatcher?.stop();
+    _refocusTimer?.cancel();
+    _hider?.stop();
+  }
+
+  MainMinimizeWatcher? _minimizeWatcher;
+  SnapGroupHider? _hider;
+  Timer? _refocusTimer;
+
+  /// 现在这一次最小化告诉过副窗口
+  bool _minimizedTogether = false;
+
+  /// 还原副窗口以后隔这么久把焦点放回主窗口（贴靠的副窗口还原时会拿到焦点）
+  static const Duration refocusDelay = Duration(milliseconds: 400);
+
+  /// 主窗口最小化了、又出来了：开着“一起最小化”时副窗口跟着。
+  /// [window] 是主窗口自己的（测试里换成假的）
+  void mainMinimized(bool minimized, {WindowShow? Function()? window}) {
+    if (minimized) {
+      _minimizedTogether =
+          _windows.isNotEmpty && MultiWindowPrefs.minimizeTogether.value;
+      if (_minimizedTogether) {
+        server.setMinimized(true);
+      }
+      return;
+    }
+    if (!_minimizedTogether) {
+      return;
+    }
+    _minimizedTogether = false;
+    var main = (window ?? Win32WindowShow.open)();
+    main?.allowForeground();
+    server.setMinimized(false);
+    if (main == null) {
+      return;
+    }
+    _refocusTimer?.cancel();
+    _refocusTimer = Timer(refocusDelay, () {
+      // 这时最前面的是某个副窗口：放回主窗口；用户已经换到别的程序的不动
+      var front = main.foregroundPid;
+      if (!main.minimized &&
+          _windows.values.any((e) => e.process.pid == front)) {
+        main.focus();
+      }
+    });
+  }
 
   final WindowServer server;
   final WindowSetRecorder recorder;
@@ -1188,6 +1240,10 @@ class WindowHost {
     }
     _watchingMain = true;
     windowManager.addListener(_MainWindowWatcher());
+    _minimizeWatcher = MainMinimizeWatcher(mainMinimized)..start();
+    _hider = SnapGroupHider(
+      pids: () => _windows.values.map((e) => e.process.pid),
+    )..start();
     unawaited(MultiWindow._measureMain());
   }
 

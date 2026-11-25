@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:simple_live_app/app/log.dart';
 import 'package:simple_live_app/app/multi_window/window_args.dart';
 import 'package:simple_live_app/app/multi_window/window_layout.dart';
+import 'package:simple_live_app/app/multi_window/window_switcher.dart';
 import 'package:simple_live_app/app/window_geometry.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
 
@@ -1257,14 +1258,24 @@ class MultiWindowPrefs {
   /// 每个窗口单独选声音输出设备（默认关）
   static const String kDevicePerWindow = "MultiWindowDevicePerWindow";
 
+  /// 主窗口最小化时多开窗口一起最小化（默认开）
+  static const String kMinimizeTogether = "MultiWindowMinimizeTogether";
+
+  /// 组成贴靠分组时 Alt+Tab 里留下哪些（默认和系统一样）
+  static const String kSwitcher = "MultiWindowSwitcher";
+
   static const List<String> storageKeys = [
     kMuteNew,
     kDevicePerWindow,
+    kMinimizeTogether,
+    kSwitcher,
     StartupRestoreSetting.kKey,
   ];
 
   static final Rx<bool> _muteNew = true.obs;
   static final Rx<bool> _devicePerWindow = false.obs;
+  static final Rx<bool> _minimizeTogether = true.obs;
+  static final Rx<SwitcherMode> _switcher = SwitcherMode.all.obs;
   static bool _loaded = false;
 
   static void _load() {
@@ -1276,6 +1287,10 @@ class MultiWindowPrefs {
     _muteNew.value = storage?.getValue<bool>(kMuteNew, true) ?? true;
     _devicePerWindow.value =
         storage?.getValue<bool>(kDevicePerWindow, false) ?? false;
+    _minimizeTogether.value =
+        storage?.getValue<bool>(kMinimizeTogether, true) ?? true;
+    _switcher.value =
+        SwitcherMode.parse(storage?.getValue<String>(kSwitcher, ""));
   }
 
   static Rx<bool> get muteNew {
@@ -1286,6 +1301,28 @@ class MultiWindowPrefs {
   static Rx<bool> get devicePerWindow {
     _load();
     return _devicePerWindow;
+  }
+
+  static Rx<bool> get minimizeTogether {
+    _load();
+    return _minimizeTogether;
+  }
+
+  static Future<void> setMinimizeTogether(bool value) async {
+    _load();
+    _minimizeTogether.value = value;
+    await WindowSetRecorder._storage?.setValue<bool>(kMinimizeTogether, value);
+  }
+
+  static Rx<SwitcherMode> get switcher {
+    _load();
+    return _switcher;
+  }
+
+  static Future<void> setSwitcher(SwitcherMode value) async {
+    _load();
+    _switcher.value = value;
+    await WindowSetRecorder._storage?.setValue<String>(kSwitcher, value.name);
   }
 
   static Future<void> setMuteNew(bool value) async {
@@ -1305,6 +1342,8 @@ class MultiWindowPrefs {
     _loaded = false;
     _muteNew.value = true;
     _devicePerWindow.value = false;
+    _minimizeTogether.value = true;
+    _switcher.value = SwitcherMode.all;
   }
 }
 

@@ -144,6 +144,13 @@ class WindowFrame {
     return 0;
   }
 
+  /// 这个进程自己的窗口；不是 Windows、找不到时为 0
+  int get handle {
+    if (!_init()) return 0;
+    if (_hwnd == 0) _hwnd = _findOwnWindow();
+    return _hwnd;
+  }
+
   /// (外框, 看得见的框)，物理像素。DWM 读不到时两个一样
   (Rect, Rect)? read() {
     if (!_init()) return null;

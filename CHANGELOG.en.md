@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.27.5 (12705)
+
+### New
+
+- Extra windows minimize and come back with the main window. You can turn this off in Desktop settings, under Extra windows.
+- On Windows 11, Alt+Tab can hide the extra windows in a snap group or show only the group. Set it in the same section. It is off by default.
+
 ## 1.27.4 (12704)
 
 ### New

@@ -321,6 +321,13 @@ void main() {
       expect(storage.values[MultiWindowPrefs.kMuteNew], isFalse);
       MultiWindowPrefs.reset();
       expect(MultiWindowPrefs.muteNew.value, isFalse);
+      // 随主窗口最小化：默认开，只在本机
+      expect(MultiWindowPrefs.minimizeTogether.value, isTrue);
+      await MultiWindowPrefs.setMinimizeTogether(false);
+      MultiWindowPrefs.reset();
+      expect(MultiWindowPrefs.minimizeTogether.value, isFalse);
+      expect(SyncCompat.isLocalOnlySetting(MultiWindowPrefs.kMinimizeTogether),
+          isTrue);
     });
 
     test("音量、静音、弹幕、清晰度按直播间记（改了马上记，关掉时全部记），声音输出设备记在这一组和这个编号上",

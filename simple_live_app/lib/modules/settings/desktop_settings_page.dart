@@ -8,6 +8,7 @@ import 'package:simple_live_app/app/gpu_preference.dart';
 import 'package:simple_live_app/app/multi_window/multi_window.dart';
 import 'package:simple_live_app/app/multi_window/multi_window_widgets.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
+import 'package:simple_live_app/app/multi_window/window_switcher.dart';
 import 'package:simple_live_app/app/window_memory.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 import 'package:simple_live_app/widgets/settings/settings_action.dart';
@@ -338,7 +339,14 @@ class WindowSettingsSection extends StatelessWidget {
 /// 打开上次的多开窗口、关闭全部多开窗口
 class MultiWindowSettingsSection extends StatelessWidget {
   final bool? visible;
-  const MultiWindowSettingsSection({this.visible, super.key});
+
+  /// 有没有“贴靠分组时的 Alt+Tab”（Windows 11 有）
+  final bool? groupSwitcher;
+  const MultiWindowSettingsSection({
+    this.visible,
+    this.groupSwitcher,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -380,6 +388,27 @@ class MultiWindowSettingsSection extends StatelessWidget {
                   subtitle: "在直播间的“更多”里选，每个窗口记住自己的".t,
                   onChanged: MultiWindowPrefs.setDevicePerWindow,
                 ),
+                AppStyle.divider,
+                SettingsSwitch(
+                  value: MultiWindowPrefs.minimizeTogether.value,
+                  title: "多开窗口随主窗口最小化".t,
+                  subtitle: "还原主窗口时，随之最小化的窗口一起还原".t,
+                  onChanged: MultiWindowPrefs.setMinimizeTogether,
+                ),
+                if (groupSwitcher ?? WindowsSwitcher.supported) ...[
+                  AppStyle.divider,
+                  SettingsMenu<SwitcherMode>(
+                    title: "贴靠分组时的 Alt+Tab".t,
+                    subtitle: "窗口组成贴靠分组时生效。使用系统未公开的窗口属性，系统更新后可能失效".t,
+                    value: MultiWindowPrefs.switcher.value,
+                    valueMap: {
+                      SwitcherMode.all: "显示全部".t,
+                      SwitcherMode.main: "隐藏多开窗口".t,
+                      SwitcherMode.group: "只显示分组".t,
+                    },
+                    onChanged: MultiWindowPrefs.setSwitcher,
+                  ),
+                ],
                 AppStyle.divider,
                 SettingsAction(
                   title: saved > 0

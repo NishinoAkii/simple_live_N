@@ -154,11 +154,12 @@ class MainWindowLink {
   }
 
   /// 一直等主窗口的指令：要这个窗口关掉时调用 [onClose]；主窗口的置顶变了时调用
-  /// [onPin]（跟着置顶或取消）；连不上时算主窗口不在了（电脑睡醒、主窗口卡住以后
-  /// 没回应的不算，接着等）
+  /// [onPin]（跟着置顶或取消）；主窗口最小化、又出来了时调用 [onMinimize]；
+  /// 连不上时算主窗口不在了（电脑睡醒、主窗口卡住以后没回应的不算，接着等）
   Future<void> watch({
     required void Function() onClose,
     void Function(bool pinned)? onPin,
+    void Function(bool minimized)? onMinimize,
   }) async {
     while (_online && !_closed) {
       String? command;
@@ -192,6 +193,8 @@ class MainWindowLink {
       }
       if (command == "pin" || command == "unpin") {
         onPin?.call(command == "pin");
+      } else if (command == "minimize" || command == "restore") {
+        onMinimize?.call(command == "minimize");
       }
     }
   }

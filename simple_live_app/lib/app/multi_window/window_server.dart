@@ -20,11 +20,22 @@ class _Peer {
   /// 还没送到的置顶指令（主窗口的置顶变了）
   bool? pin;
 
-  /// 取出要送的置顶指令（pin、unpin），没有时为 null
-  String? takePin() {
-    var value = pin;
-    pin = null;
-    return value == null ? null : (value ? "pin" : "unpin");
+  /// 还没送到的最小化、还原（主窗口最小化了、又出来了）
+  bool? minimized;
+
+  /// 取出要送的指令（minimize、restore，pin、unpin），没有时为 null
+  String? take() {
+    var minimized = this.minimized;
+    if (minimized != null) {
+      this.minimized = null;
+      return minimized ? "minimize" : "restore";
+    }
+    var pin = this.pin;
+    if (pin != null) {
+      this.pin = null;
+      return pin ? "pin" : "unpin";
+    }
+    return null;
   }
 }
 
@@ -38,7 +49,7 @@ class _Peer {
 ///   （只收 [WindowChange] 列出的几种，内容不对回 400），
 ///   `POST /state` 报告这个窗口在看的直播间和位置（[WindowReport]，交给 [onReport]），
 ///   `GET /wait` 等主窗口的指令（要它关掉时回 close，主窗口置顶变了时回 pin 或 unpin，
-///   没事时过一会儿回 none）
+///   主窗口最小化、又出来了时回 minimize 或 restore，没事时过一会儿回 none）
 class WindowServer {
   WindowServer(
     this.sink, {
@@ -99,9 +110,22 @@ class WindowServer {
   void setPin(bool value) {
     for (var peer in _peers) {
       peer.pin = value;
-      if (peer.waiting != null && peer.command == null) {
-        _complete(peer, peer.takePin()!);
-      }
+      _deliver(peer);
+    }
+  }
+
+  /// 主窗口最小化了、又出来了：所有副窗口跟着（没来得及取的只留最后一次）
+  void setMinimized(bool value) {
+    for (var peer in _peers) {
+      peer.minimized = value;
+      _deliver(peer);
+    }
+  }
+
+  /// 正在等的马上送到，没在等的下次来取
+  void _deliver(_Peer peer) {
+    if (peer.waiting != null && peer.command == null) {
+      _complete(peer, peer.take()!);
     }
   }
 
@@ -188,7 +212,7 @@ class WindowServer {
   }
 
   Future<void> _wait(_Peer peer, HttpResponse response) async {
-    var command = peer.command ?? peer.takePin();
+    var command = peer.command ?? peer.take();
     if (command == null) {
       _complete(peer, "none");
       var waiting = Completer<String>();

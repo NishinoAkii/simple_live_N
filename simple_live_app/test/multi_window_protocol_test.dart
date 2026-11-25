@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi' hide Size;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -13,6 +15,7 @@ import 'package:simple_live_app/app/multi_window/window_apply.dart';
 import 'package:simple_live_app/app/multi_window/window_args.dart';
 import 'package:simple_live_app/app/multi_window/window_changes.dart';
 import 'package:simple_live_app/app/multi_window/window_link.dart';
+import 'package:simple_live_app/app/multi_window/window_minimize.dart';
 import 'package:simple_live_app/app/multi_window/window_server.dart';
 import 'package:simple_live_app/app/multi_window/window_set.dart';
 import 'package:simple_live_app/app/play_prefs.dart';
@@ -74,6 +77,9 @@ class _FakeProcess implements SecondaryProcess {
   var _waits = 0;
 
   @override
+  int get pid => 4242;
+
+  @override
   Future<void> get exited {
     // 第一次是开窗口时挂上的；之后是关全部时在等它退出
     if (_waits++ > 0) {
@@ -96,6 +102,44 @@ class _FakeProcess implements SecondaryProcess {
       exit();
     }
   }
+}
+
+/// 假的窗口：记下调了什么
+class _FakeShow implements WindowShow {
+  final calls = <String>[];
+
+  @override
+  bool minimized = false;
+
+  @override
+  bool snapped = false;
+
+  @override
+  int foregroundPid = 0;
+
+  @override
+  void minimize() {
+    calls.add("minimize");
+    minimized = true;
+  }
+
+  @override
+  void restore() {
+    calls.add("restore");
+    minimized = false;
+  }
+
+  @override
+  void showNoActivate() {
+    calls.add("showNoActivate");
+    minimized = false;
+  }
+
+  @override
+  void allowForeground() => calls.add("allow");
+
+  @override
+  void focus() => calls.add("focus");
 }
 
 /// 写进去的设置可以先压着：[hold] 不为空时，写的要等它
@@ -640,6 +684,184 @@ void main() {
     }
   });
 
+  test("主窗口最小化、又出来了：开着的副窗口都收到；没来得及取的只留最后一次", () async {
+    var host = WindowHost(sink, WindowSetRecorder());
+    addTearDown(() async {
+      host.dispose();
+      WindowPin.instance.pinned.value = false;
+      await host.server.close();
+    });
+    await host.server.start();
+    var tokens = [host.server.addPeer(), host.server.addPeer()];
+    var links = [
+      for (var token in tokens)
+        MainWindowLink(port: host.server.port, token: token),
+    ];
+    var got = [<bool>[], <bool>[]];
+    var pins = <bool>[];
+    void watch(int i) => unawaited(links[i].watch(
+          onClose: () {},
+          onPin: pins.add,
+          onMinimize: got[i].add,
+        ));
+    watch(0);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    host.server.setMinimized(true);
+    await _until(() => got[0].length == 1);
+    // 第二个还没来取：置顶、还原都变了，来了以后两样都收到，最小化不用再做
+    WindowPin.instance.pinned.value = true;
+    host.server.setMinimized(false);
+    await _until(() => got[0].length == 2 && pins.length == 1);
+    watch(1);
+    await _until(() => got[1].length == 1 && pins.length == 2);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(got, [
+      [true, false],
+      [false],
+    ]);
+    expect(pins, [true, true]);
+    for (var l in links) {
+      l.dispose();
+    }
+  });
+
+  group("副窗口跟着主窗口最小化", () {
+    late _FakeShow window;
+    late MinimizeFollower follower;
+    setUp(() {
+      window = _FakeShow();
+      follower = MinimizeFollower(window: () => window);
+    });
+
+    test("跟着最小化、还原；还原时不拿焦点", () {
+      follower.follow(true);
+      expect(window.calls, ["minimize"]);
+      follower.follow(false);
+      expect(window.calls, ["minimize", "showNoActivate"]);
+      // 再来一次也一样；没有最小化过时还原不做事
+      follower.follow(false);
+      expect(window.calls, hasLength(2));
+      follower
+        ..follow(true)
+        ..follow(false);
+      expect(window.calls, [
+        "minimize",
+        "showNoActivate",
+        "minimize",
+        "showNoActivate",
+      ]);
+    });
+
+    test("贴靠着的照系统的办法还原（回到贴靠的位置）", () {
+      window.snapped = true;
+      follower
+        ..follow(true)
+        ..follow(false);
+      expect(window.calls, ["minimize", "restore"]);
+    });
+
+    test("自己最小化的不动；跟着最小化以后自己还原了的，之后不动", () {
+      window.minimized = true;
+      follower
+        ..follow(true)
+        ..follow(false);
+      expect(window.calls, isEmpty);
+
+      window.minimized = false;
+      follower.follow(true);
+      // 点任务栏还原，又自己最小化了
+      window.minimized = false;
+      follower.onWindowRestore();
+      window.minimized = true;
+      follower.follow(false);
+      expect(window.calls, ["minimize"]);
+      // 没等到还原的事件也看得出来：已经不是最小化的不动
+      window.minimized = false;
+      follower.follow(true);
+      window.minimized = false;
+      follower.follow(false);
+      expect(window.calls, ["minimize", "minimize"]);
+    });
+
+    test("最小化时来的焦点事件不算自己还原；找不到窗口时不做事", () {
+      follower.follow(true);
+      follower
+        ..onWindowFocus()
+        ..onWindowMaximize();
+      follower.follow(false);
+      expect(window.calls, ["minimize", "showNoActivate"]);
+      MinimizeFollower(window: () => null)
+        ..follow(true)
+        ..follow(false)
+        ..onWindowRestore();
+    });
+  });
+
+  test("真的系统调用（Windows，不显示的消息窗口）：都找得到，不出错", () {
+    if (!Platform.isWindows) {
+      return;
+    }
+    var user32 = DynamicLibrary.open("user32.dll");
+    var text = DynamicLibrary.open("kernel32.dll").lookupFunction<
+        Pointer<Uint16> Function(Uint32, IntPtr),
+        Pointer<Uint16> Function(int, int)>("LocalAlloc")(0x40, 64);
+    const name = "STATIC";
+    for (var i = 0; i < name.length; i++) {
+      text[i] = name.codeUnitAt(i);
+    }
+    var hwnd = user32.lookupFunction<
+        IntPtr Function(Uint32, Pointer<Uint16>, Pointer<Uint16>, Uint32, Int32,
+            Int32, Int32, Int32, IntPtr, IntPtr, IntPtr, IntPtr),
+        int Function(int, Pointer<Uint16>, Pointer<Uint16>, int, int, int, int,
+            int, int, int, int, int)>("CreateWindowExW")(
+        0, text, text, 0, 0, 0, 0, 0, -3, 0, 0, 0);
+    expect(hwnd, isNot(0));
+    addTearDown(() => user32.lookupFunction<Int32 Function(IntPtr),
+        int Function(int)>("DestroyWindow")(hwnd));
+    var window = Win32WindowShow.of(hwnd);
+    expect(window.minimized, isFalse);
+    expect(window.snapped, isFalse);
+    window
+      ..minimize()
+      ..restore()
+      ..allowForeground();
+    expect(window.foregroundPid, greaterThanOrEqualTo(0));
+    // 测试的进程没有 Flutter 的窗口
+    expect(Win32WindowShow.open(), isNull);
+  });
+
+  test("主窗口最小化没有：有变化时再量一次，只在变了的时候说", () {
+    bool? now = false;
+    var got = <bool>[];
+    var watcher = MainMinimizeWatcher(got.add, minimized: () => now)..start();
+    addTearDown(watcher.stop);
+    watcher.onWindowBlur();
+    expect(got, isEmpty);
+    now = true;
+    watcher.onWindowMinimize();
+    // 又来了别的事件：没变
+    watcher
+      ..onWindowBlur()
+      ..didChangeAppLifecycleState(AppLifecycleState.hidden);
+    expect(got, [true]);
+    // 量不到：不算变
+    now = null;
+    watcher.onWindowFocus();
+    expect(got, [true]);
+    // 最大化的窗口还原时来的是最大化
+    now = false;
+    watcher.onWindowMaximize();
+    expect(got, [true, false]);
+    watcher.onWindowRestore();
+    expect(got, [true, false]);
+    // 全屏时最小化没有窗口事件，看 App 的前后台
+    now = true;
+    watcher.didChangeAppLifecycleState(AppLifecycleState.hidden);
+    now = false;
+    watcher.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    expect(got, [true, false, true, false]);
+  });
+
   test("电脑睡醒、主窗口卡了一会儿：没回应不算不在了，接着等、改动再交一次", () async {
     // 假的主窗口：第一次等指令、第一次交改动都不回应，之后正常
     var fake = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -999,6 +1221,99 @@ void main() {
       expect(MultiWindow.mainPlacement!.rect, moved);
       expect(open()!.mainPlacement!.rect, moved);
       expect(open()!.mainPlacement!.maximized, isFalse);
+    });
+
+    group("主窗口最小化", () {
+      late WindowHost h;
+      late MainWindowLink link;
+      late List<bool> got;
+
+      Future<void> open() async {
+        MultiWindowPrefs.reset();
+        addTearDown(MultiWindowPrefs.reset);
+        h = host(WindowSetRecorder(
+          mainRoom: () => MultiWindow.mainRoom,
+          mainLayout: MultiWindow.mainLayoutNow,
+          saveDelay: Duration.zero,
+        ));
+        await h.restore(WindowSet(
+          [
+            const WindowEntry(
+                slot: 1, room: room1, bounds: Rect.fromLTWH(10, 10, 800, 450)),
+          ],
+          time: DateTime(2026, 11, 23),
+        ));
+        var launch = SecondaryLaunch.parse(processes.single.args)!;
+        link = MainWindowLink(port: launch.port, token: launch.token);
+        addTearDown(link.dispose);
+        got = [];
+        unawaited(link.watch(onClose: () {}, onMinimize: got.add));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+
+      Future<void> settle() => Future<void>.delayed(
+          WindowHost.refocusDelay + const Duration(milliseconds: 150));
+
+      test("开着的副窗口跟着最小化、还原；副窗口拿到了焦点就放回主窗口", () async {
+        await open();
+        var main = _FakeShow();
+        h.mainMinimized(true, window: () => main);
+        await _until(() => got.length == 1);
+        expect(main.calls, isEmpty);
+        // 还原：先让副窗口可以拿焦点，再告诉它们
+        main.foregroundPid = 4242;
+        h.mainMinimized(false, window: () => main);
+        await _until(() => got.length == 2);
+        expect(got, [true, false]);
+        expect(main.calls, ["allow"]);
+        await settle();
+        expect(main.calls, ["allow", "focus"]);
+
+        // 这时用户已经换到别的程序：不抢
+        h.mainMinimized(true, window: () => main);
+        main.foregroundPid = 777;
+        h.mainMinimized(false, window: () => main);
+        await settle();
+        expect(main.calls, ["allow", "focus", "allow"]);
+        // 又最小化了：也不动
+        h.mainMinimized(true, window: () => main);
+        main.foregroundPid = 4242;
+        h.mainMinimized(false, window: () => main);
+        main.minimized = true;
+        await settle();
+        expect(main.calls.where((e) => e == "focus"), hasLength(1));
+      });
+
+      test("关掉这一项：不跟着；最小化着时关掉的，还原还是一起", () async {
+        await open();
+        expect(MultiWindowPrefs.minimizeTogether.value, isTrue);
+        await MultiWindowPrefs.setMinimizeTogether(false);
+        expect(storage.values[MultiWindowPrefs.kMinimizeTogether], isFalse);
+        h.mainMinimized(true);
+        h.mainMinimized(false);
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        expect(got, isEmpty);
+
+        await MultiWindowPrefs.setMinimizeTogether(true);
+        h.mainMinimized(true);
+        await _until(() => got.length == 1);
+        await MultiWindowPrefs.setMinimizeTogether(false);
+        h.mainMinimized(false);
+        await _until(() => got.length == 2);
+        expect(got, [true, false]);
+      });
+
+      test("没有副窗口：什么都不做", () async {
+        await open();
+        processes.single.exit();
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        var main = _FakeShow();
+        h
+          ..mainMinimized(true, window: () => main)
+          ..mainMinimized(false, window: () => main);
+        await settle();
+        expect(main.calls, isEmpty);
+      });
     });
 
     test("量主窗口量到一半时又放回了一次：量到的是放回之前的，不用", () async {
