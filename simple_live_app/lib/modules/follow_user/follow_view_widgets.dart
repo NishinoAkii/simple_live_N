@@ -13,6 +13,7 @@ import 'package:simple_live_app/models/db/follow_user.dart';
 import 'package:simple_live_app/modules/follow_user/follow_view.dart';
 import 'package:simple_live_app/widgets/live_room_card.dart';
 import 'package:simple_live_app/widgets/net_image.dart';
+import 'package:simple_live_app/widgets/keep_typing.dart';
 import 'package:simple_live_app/widgets/site_logo.dart';
 import 'package:simple_live_core/simple_live_core.dart' show LiveRoomItem;
 
@@ -338,6 +339,9 @@ class _FollowSearchFieldState extends State<FollowSearchField> {
         controller: _text,
         autofocus: true,
         textInputAction: TextInputAction.search,
+        // 按回车光标留在输入框里；手机上点别处收起键盘
+        onEditingComplete: keepTyping(_text),
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         onChanged: widget.onChanged,
         decoration: InputDecoration(
           hintText: "搜索名字或拼音首字母".t,

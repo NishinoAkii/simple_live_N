@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:simple_live_core/src/danmaku/twitch_danmaku.dart';
 import 'package:simple_live_core/src/model/live_message.dart';
 import 'package:simple_live_core/src/common/core_text.dart';
@@ -29,11 +31,20 @@ class TwitchGiftParser {
     }
     var tier = twitchTierText(tags["msg-param-sub-plan"]);
     var prime = tags["msg-param-sub-plan"] == "Prime";
+    var each = twitchSubPrice(tags["msg-param-sub-plan"]);
+    int months(String key) => max(1, int.tryParse(tags[key] ?? "") ?? 1);
+    // 一次预付几个月：multimonth-duration 是预付的月数，只在第一个月（tenure 为 0）付；
+    // 预付期里后面几个月分享的续订没有新付钱
+    int prepaid() =>
+        (int.tryParse(tags["msg-param-multimonth-tenure"] ?? "") ?? 0) > 0
+        ? 0
+        : months("msg-param-multimonth-duration");
     LiveGiftMessage gift({
       required String action,
       String? comboId,
       int count = 1,
       String? priceText,
+      int paidMonths = 1,
     }) => LiveGiftMessage(
       comboId: comboId,
       userName: twitchUserName(tags, line.nick),
@@ -43,16 +54,24 @@ class TwitchGiftParser {
       // Prime 订阅不用观众另外花钱，不飞过视频
       paid: !prime,
       priceText: priceText ?? tier,
+      estimate: twitchSubEstimate(each, count * paidMonths),
       time: _time(tags),
       userId: liveUserId(tags["user-id"]),
     );
 
     switch (msgId) {
+      // cumulative-months 是累计的月数，不是这次付的
       case "sub":
-        return gift(action: "开通");
+        return gift(action: "开通", paidMonths: prepaid());
       case "resub":
-        var months = int.tryParse(tags["msg-param-cumulative-months"] ?? "");
-        return gift(action: "续订", priceText: _withMonths(tier, months));
+        var cumulative = int.tryParse(
+          tags["msg-param-cumulative-months"] ?? "",
+        );
+        return gift(
+          action: "续订",
+          priceText: _withMonths(tier, cumulative),
+          paidMonths: prepaid(),
+        );
       case "subgift":
       case "anonsubgift":
         var id = tags["msg-param-community-gift-id"] ?? "";
@@ -61,8 +80,12 @@ class TwitchGiftParser {
           if (_mystery.containsKey(tags["msg-param-origin-id"] ?? "")) {
             return null;
           }
-          var months = int.tryParse(tags["msg-param-gift-months"] ?? "");
-          return gift(action: "赠送", priceText: _withMonths(tier, months));
+          var giftMonths = int.tryParse(tags["msg-param-gift-months"] ?? "");
+          return gift(
+            action: "赠送",
+            priceText: _withMonths(tier, giftMonths),
+            paidMonths: months("msg-param-gift-months"),
+          );
         }
         if (_mystery.containsKey(id)) {
           return null;
@@ -95,6 +118,7 @@ class TwitchGiftParser {
           action: "续订",
           giftName: "订阅",
           priceText: tier,
+          estimate: twitchSubEstimate(each, 1),
           time: _time(tags),
           userId: liveUserId(tags["user-id"]),
         );
@@ -155,6 +179,23 @@ class TwitchGiftParser {
         return "Prime";
     }
     return null;
+  }
+
+  /// 订阅一个月的标价（美元，美国网页价，2024-07 起），Prime 和不认得的为 null。
+  /// 各地区有本地价，手机上买的更贵，只用来排本场礼物榜
+  static double? twitchSubPrice(String? plan) => switch (plan) {
+    "1000" => 5.99,
+    "2000" => 9.99,
+    "3000" => 24.99,
+    _ => null,
+  };
+
+  /// [months] 个月（份数乘月数）的估算价值，如“$17.97”；不知道单价时为 null
+  static String? twitchSubEstimate(double? each, int months) {
+    if (each == null || months <= 0) {
+      return null;
+    }
+    return "\$${(each * months).toStringAsFixed(2)}";
   }
 
   /// 显示名称（没有时用登录名），匿名送礼显示“匿名”

@@ -60,6 +60,7 @@ export 'src/common/hls_fix_relay.dart' show HlsFixRelay, rewriteHlsPlaylist;
 export 'src/common/hls_segment_relay.dart' show HlsSegmentRelay;
 export 'src/model/live_message.dart';
 export 'src/danmaku/bilibili_danmaku.dart';
+export 'src/danmaku/bilibili_history.dart';
 export 'src/danmaku/douyu_danmaku.dart';
 export 'src/danmaku/douyu_emotes.dart';
 export 'src/danmaku/huya_danmaku.dart';

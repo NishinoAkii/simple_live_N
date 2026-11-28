@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.27.6 (12706)
+
+### New
+
+- When you enter a Bilibili room, the chat shows the recent messages that the platform keeps.
+- The gift ranking of the current stream takes more factors into account, so the order is more accurate.
+- After a search, the cursor stays in the box so you can keep typing (search page, follows page and chat search in a room). On phones, tapping outside the box hides the keyboard.
+
 ## 1.27.5 (12705)
 
 ### New

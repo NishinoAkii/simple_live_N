@@ -91,9 +91,12 @@ void main() {
     );
     expect(gift.icon?.url, contains('sponsorships_gift_purchase_announcement'));
     expect(gift.comboId, isNull);
+    // 送的会员没有价格：每份按 4.99 美元估
+    expect(gift.estimate, r'$24.95');
     var anonymous = giftOf(gifts[4]);
     expect(anonymous.userName, '匿名');
     expect(anonymous.count, 20);
+    expect(anonymous.estimate, r'$99.80');
     expect(anonymous.face, '');
     expect(anonymous.icon, isNull);
   });

@@ -75,8 +75,13 @@ class KickGiftParser {
       action: "赠送",
       giftName: "订阅",
       count: total,
+      estimate: kickSubEstimate(total),
     );
   }
+
+  /// [count] 份一个月订阅的价值：Kick 的订阅全球统一每月 5 美元，如“$25”
+  static String? kickSubEstimate(int count) =>
+      count > 0 ? "\$${5 * count}" : null;
 
   /// App\Events\SubscriptionEvent（{username, months}）→ 礼物
   static LiveGiftMessage? subscription(Map data) {
@@ -90,6 +95,8 @@ class KickGiftParser {
       action: months > 1 ? "续订" : "开通",
       giftName: "订阅",
       priceText: months > 1 ? "{months} 个月".tf({"months": months}) : null,
+      // months 是累计的月数，这次付的是一个月
+      estimate: kickSubEstimate(1),
     );
   }
 

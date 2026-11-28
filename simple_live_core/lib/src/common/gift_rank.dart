@@ -24,12 +24,16 @@ enum LiveGiftUnit {
 
   /// Kick 的 Kicks
   kicks,
+
+  /// 美元：Twitch、Kick、YouTube 的订阅按标价估的（[LiveGiftMessage.estimate]）
+  usd,
 }
 
 /// 哔哩哔哩上舰的价格后面带着时长（“¥414 · 季”），只看前面的金额
 final RegExp _yuan = RegExp(r'^[¥￥]\s*([\d.,]+)(?:\s*·.*)?$');
 final RegExp _bits = RegExp(r'^([\d,]+)\s*Bits$');
 final RegExp _kicks = RegExp(r'^([\d,]+)\s*Kicks$');
+final RegExp _usd = RegExp(r'^\$\s*([\d.,]+)$');
 
 /// 抖音的价格是“{p} 钻”，会跟着界面语言翻译：按当前语言的写法认
 RegExp? _diamondPattern() {
@@ -64,11 +68,28 @@ double? _number(String? text) =>
       value(_kicks, LiveGiftUnit.kicks);
 }
 
+/// 订阅、贵族这类没有价格的估算价值（[LiveGiftMessage.estimate]，“$5.99”“¥76”）；
+/// 有价格（[liveGiftValue] 不为 null）、没有估算或免费的返回 null
+({double amount, LiveGiftUnit unit})? liveGiftEstimate(LiveGiftMessage gift) {
+  var text = gift.estimate?.trim() ?? "";
+  if (!gift.paid || text.isEmpty || liveGiftValue(gift) != null) {
+    return null;
+  }
+  for (var (re, unit) in [(_yuan, LiveGiftUnit.yuan), (_usd, LiveGiftUnit.usd)]) {
+    var amount = _number(re.firstMatch(text)?.group(1));
+    if (amount != null && amount > 0) {
+      return (amount: amount, unit: unit);
+    }
+  }
+  return null;
+}
+
 /// 换算成大致的人民币，只用来排名次（Bits、Kicks 按 1 个 = 1 美分，不管汇率）
 double _rankValue(LiveGiftUnit unit, double amount) => switch (unit) {
   LiveGiftUnit.yuan => amount,
   LiveGiftUnit.diamond => amount / 10,
   LiveGiftUnit.bits || LiveGiftUnit.kicks => amount / 100,
+  LiveGiftUnit.usd => amount,
 };
 
 String _money(double value) {
@@ -76,6 +97,14 @@ String _money(double value) {
   return rounded == rounded.truncateToDouble()
       ? rounded.toInt().toString()
       : rounded.toStringAsFixed(1);
+}
+
+/// 美元：整数不带小数，其余两位
+String _dollars(double value) {
+  var cents = (value * 100).round();
+  return cents % 100 == 0
+      ? "${cents ~/ 100}"
+      : (cents / 100).toStringAsFixed(2);
 }
 
 class _Sender {
@@ -97,6 +126,7 @@ class _Sender {
         "{p} 钻".tf({"p": v.round()}),
       if (amounts[LiveGiftUnit.bits] case var v?) "${v.round()} Bits",
       if (amounts[LiveGiftUnit.kicks] case var v?) "${v.round()} Kicks",
+      if (amounts[LiveGiftUnit.usd] case var v?) "\$${_dollars(v)}",
     ];
     return parts.isEmpty ? null : parts.join(" · ");
   }
@@ -104,7 +134,8 @@ class _Sender {
 
 /// 本场礼物榜：按送礼人把付费礼物的价值加起来排。同一次连击只能传最新的那一条
 /// （App 的 GiftBook 已经合好了）。价值一样时比礼物个数，再比谁先送。
-/// 订阅、会员这类没有价格的也算上，价值按 0，排在有价值的后面
+/// 订阅、会员这类没有价格的也算上：有按标价估的（[LiveGiftMessage.estimate]）按估的算，
+/// 没有的价值按 0，排在有价值的后面
 List<LiveRankItem> rankGiftSenders(Iterable<LiveGiftMessage> gifts) {
   var senders = <String, _Sender>{};
   for (var gift in gifts) {
@@ -118,7 +149,8 @@ List<LiveRankItem> rankGiftSenders(Iterable<LiveGiftMessage> gifts) {
       sender.face = gift.face;
     }
     sender.count += gift.count > 0 ? gift.count : 1;
-    var value = liveGiftValue(gift);
+    // 订阅、贵族没有价格时按标价估的也算上
+    var value = liveGiftValue(gift) ?? liveGiftEstimate(gift);
     if (value != null) {
       sender.amounts.update(
         value.unit,

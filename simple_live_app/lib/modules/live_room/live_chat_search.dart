@@ -9,6 +9,7 @@ import 'package:simple_live_app/modules/live_room/chat_log.dart';
 import 'package:simple_live_app/modules/live_room/danmaku_export_dialog.dart';
 import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
 import 'package:simple_live_app/modules/live_room/user_card/live_user_card.dart';
+import 'package:simple_live_app/widgets/keep_typing.dart';
 import 'package:simple_live_app/widgets/compact_buttons.dart';
 import 'package:simple_live_app/widgets/emote_text.dart';
 import 'package:simple_live_app/widgets/tail_list_view.dart';
@@ -218,57 +219,65 @@ class LiveChatSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       var byUser = controller.chatSearchByUser.value;
-      // 一行：输入框、内容/用户、搜索（按钮看起来小，点击范围 40 像素）
-      return Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller.chatSearchInputController,
-              // 侧栏里的输入框可能随页签切换重建，只在展开时聚焦
-              focusNode: inSheet ? null : controller.chatSearchFocusNode,
-              autofocus: inSheet,
-              textInputAction: TextInputAction.search,
-              style: const TextStyle(fontSize: 14),
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: byUser ? "搜索用户名".t : "搜索弹幕内容".t,
-                border: const OutlineInputBorder(),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                suffixIconConstraints:
-                    const BoxConstraints.tightFor(width: 36, height: 36),
-                suffixIcon: inSheet
-                    ? IconButton(
-                        tooltip: "清空".t,
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.clear, size: 16),
-                        onPressed: controller.chatSearchInputController.clear,
-                      )
-                    : IconButton(
-                        tooltip: "关闭搜索".t,
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.close, size: 16),
-                        onPressed: controller.closeChatSearch,
-                      ),
+      // 一行：输入框、内容/用户、搜索（按钮看起来小，点击范围 40 像素）。
+      // 两个按钮算在输入框的点击范围里，电脑上点它们光标不离开输入框
+      return TextFieldTapRegion(
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller.chatSearchInputController,
+                // 侧栏里的输入框可能随页签切换重建，只在展开时聚焦
+                focusNode: inSheet ? null : controller.chatSearchFocusNode,
+                autofocus: inSheet,
+                textInputAction: TextInputAction.search,
+                // 搜完光标留在输入框里；手机上点别处收起键盘
+                onEditingComplete:
+                    keepTyping(controller.chatSearchInputController),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
+                style: const TextStyle(fontSize: 14),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: byUser ? "搜索用户名".t : "搜索弹幕内容".t,
+                  border: const OutlineInputBorder(),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                  suffixIconConstraints:
+                      const BoxConstraints.tightFor(width: 36, height: 36),
+                  suffixIcon: inSheet
+                      ? IconButton(
+                          tooltip: "清空".t,
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.clear, size: 16),
+                          onPressed: controller.chatSearchInputController.clear,
+                        )
+                      : IconButton(
+                          tooltip: "关闭搜索".t,
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.close, size: 16),
+                          onPressed: controller.closeChatSearch,
+                        ),
+                ),
+                onSubmitted: (_) => submit(context),
               ),
-              onSubmitted: (_) => submit(context),
             ),
-          ),
-          const SizedBox(width: 6),
-          SmallToggle(
-            label: byUser ? "用户".t : "内容".t,
-            selected: true,
-            onTap: () => controller.chatSearchByUser.value = !byUser,
-          ),
-          IconButton(
-            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-            padding: EdgeInsets.zero,
-            iconSize: 20,
-            tooltip: "搜索".t,
-            icon: const Icon(Icons.search),
-            onPressed: () => submit(context),
-          ),
-        ],
+            const SizedBox(width: 6),
+            SmallToggle(
+              label: byUser ? "用户".t : "内容".t,
+              selected: true,
+              onTap: () => controller.chatSearchByUser.value = !byUser,
+            ),
+            IconButton(
+              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+              padding: EdgeInsets.zero,
+              iconSize: 20,
+              tooltip: "搜索".t,
+              icon: const Icon(Icons.search),
+              onPressed: () => submit(context),
+            ),
+          ],
+        ),
       );
     });
   }

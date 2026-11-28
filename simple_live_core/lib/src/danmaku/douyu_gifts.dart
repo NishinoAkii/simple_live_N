@@ -306,9 +306,31 @@ LiveGiftMessage? parseDouyuNoble(Map msg, String roomId, {DateTime? now}) {
         ? null
         : LiveEmote(text: level ?? "贵族", url: icon, width: 1, height: 1),
     paid: true,
+    estimate: douyuNobleEstimate(nl, renew: type == "rnewbc"),
     time: now,
     userId: liveUserId(msg["uid"]),
   );
+}
+
+/// 贵族的价格（元），开通和续费：斗鱼没有公布，用网上流传的价格
+/// （2024 年前后的说法），只用来排本场礼物榜
+const Map<String, (int, int)> kDouyuNoblePrices = {
+  "7": (76, 50), // 游侠
+  "1": (500, 300), // 骑士
+  "2": (1500, 1000), // 子爵
+  "3": (5000, 3000), // 伯爵
+  "4": (15000, 10000), // 公爵
+  "5": (60000, 50000), // 国王
+  "6": (120000, 100000), // 皇帝
+};
+
+/// 开通或续费贵族 [nl] 的估算价值，如“¥500”；不认得的等级为 null
+String? douyuNobleEstimate(String? nl, {required bool renew}) {
+  var price = kDouyuNoblePrices[nl];
+  if (price == null) {
+    return null;
+  }
+  return "¥${renew ? price.$2 : price.$1}";
 }
 
 /// 开通钻粉（dfobc）、续费钻粉（dfrbc）→ 礼物页标出“开通/续费 钻粉”。

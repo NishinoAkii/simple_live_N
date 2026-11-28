@@ -206,6 +206,43 @@ void main() {
     expect(chats.every((e) => e.data == null), isTrue);
   });
 
+  test('subscriptions carry an estimate: tier price x paid months', () {
+    expect(gifts[0].estimate, r'$5.99');
+    // Prime 不用另外花钱
+    expect(gifts[1].estimate, isNull);
+    // 续订：累计月数不是这次付的
+    expect(gifts[2].estimate, r'$5.99');
+    // 一次送 5 份、2 份
+    expect(gifts[3].estimate, r'$29.95');
+    expect(gifts[4].estimate, '\$${(5.99 * gifts[4].count).toStringAsFixed(2)}');
+    // 总数不知道时按收到的份数
+    expect(gifts[5].estimate, r'$9.99');
+    expect(gifts[6].estimate, r'$19.98');
+    // 送 3 个月的 Tier 3
+    expect(gifts[7].estimate, r'$74.97');
+    // 升级没写档位
+    expect(gifts[8].estimate, isNull);
+    // 一次预付 6 个月
+    var prepaid = TwitchGiftParser().userNotice(TwitchIrcLine.parse(
+      '@display-name=Six;login=six;msg-id=sub;msg-param-sub-plan=2000;'
+      'msg-param-multimonth-duration=6;room-id=1;user-id=9;tmi-sent-ts=1 '
+      ':tmi.twitch.tv USERNOTICE #room',
+    ))!;
+    expect(prepaid.estimate, r'$59.94');
+    // 预付期里第 3 个月分享的续订：没有新付钱
+    var shared = TwitchGiftParser().userNotice(TwitchIrcLine.parse(
+      '@display-name=Six;login=six;msg-id=resub;msg-param-sub-plan=2000;'
+      'msg-param-cumulative-months=3;msg-param-multimonth-duration=6;'
+      'msg-param-multimonth-tenure=2;room-id=1;user-id=9;tmi-sent-ts=2 '
+      ':tmi.twitch.tv USERNOTICE #room',
+    ))!;
+    expect(shared.estimate, isNull);
+    expect(shared.priceText, 'Tier 2 · 3 个月');
+    expect(TwitchGiftParser.twitchSubPrice('Prime'), isNull);
+    expect(TwitchGiftParser.twitchSubEstimate(null, 3), isNull);
+    expect(TwitchGiftParser.twitchSubEstimate(5.99, 0), isNull);
+  });
+
   test('bits icon tiers and tier names', () {
     String tier(int bits) =>
         TwitchGiftParser.bitsIcon(bits).url.split('/').reversed.skip(1).first;

@@ -1,0 +1,694 @@
+{
+ "code": 0,
+ "message": "",
+ "msg": "",
+ "data": {
+  "admin": [
+   {
+    "text": "下播啦~ 感谢大家的陪伴~ 下次见哦~",
+    "dm_type": 0,
+    "uid": 10004,
+    "nickname": "viewer_4",
+    "uname_color": "",
+    "timeline": "2024-08-18 00:07:36",
+    "isadmin": 1,
+    "vip": 0,
+    "svip": 0,
+    "medal": [
+     21,
+     "牌子2",
+     "主播2",
+     20002,
+     1725515,
+     "",
+     0,
+     12632256,
+     12632256,
+     12632256,
+     0,
+     0,
+     30002
+    ],
+    "title": [
+     "",
+     ""
+    ],
+    "user_level": [
+     11,
+     0,
+     6406234,
+     ">50000"
+    ],
+    "rank": 10000,
+    "teamid": 0,
+    "rnd": "1723910862",
+    "user_title": "",
+    "guard_level": 0,
+    "bubble": 0,
+    "bubble_color": "",
+    "lpl": 0,
+    "yeah_space_url": "",
+    "jump_to_url": "",
+    "check_info": {
+     "ts": 1723910856,
+     "ct": "9BD05026"
+    },
+    "voice_dm_info": {
+     "voice_url": "",
+     "file_format": "",
+     "text": "",
+     "file_duration": 0,
+     "file_id": ""
+    },
+    "emoticon": {
+     "id": 0,
+     "emoticon_unique": "",
+     "text": "",
+     "perm": 0,
+     "url": "",
+     "in_player_area": 0,
+     "bulge_display": 0,
+     "is_dynamic": 0,
+     "height": 0,
+     "width": 0
+    },
+    "emots": null,
+    "id_str": "2ee6101973eeb69931eb86ac7e66c0ca17",
+    "wealth_level": 23,
+    "bubble_id_v2": 0,
+    "reply": {
+     "show_reply": true,
+     "reply_mid": 0,
+     "reply_uname": "",
+     "reply_uname_color": "",
+     "reply_is_mystery": false
+    },
+    "group_medal": null,
+    "user": {
+     "uid": 10004,
+     "base": {
+      "name": "viewer_4",
+      "face": "https://example.invalid/face/anon.jpg",
+      "name_color": 0,
+      "is_mystery": false,
+      "risk_ctrl_info": null,
+      "origin_info": {
+       "name": "viewer_4",
+       "face": "https://example.invalid/face/anon.jpg"
+      },
+      "official_info": {
+       "role": 0,
+       "title": "",
+       "desc": "",
+       "type": -1
+      },
+      "name_color_str": ""
+     },
+     "medal": {
+      "name": "牌子2",
+      "level": 21,
+      "color_start": 12632256,
+      "color_end": 12632256,
+      "color_border": 12632256,
+      "color": 1725515,
+      "id": 1231122,
+      "typ": 0,
+      "is_light": 0,
+      "ruid": 30002,
+      "guard_level": 0,
+      "score": 50001573,
+      "guard_icon": "",
+      "honor_icon": "",
+      "v2_medal_color_start": "#919298CC",
+      "v2_medal_color_end": "#919298CC",
+      "v2_medal_color_border": "#919298CC",
+      "v2_medal_color_text": "#FFFFFFFF",
+      "v2_medal_color_level": "#6C6C7299",
+      "user_receive_count": 0
+     },
+     "wealth": null,
+     "title": {
+      "old_title_css_id": "",
+      "title_css_id": ""
+     },
+     "guard": null,
+     "uhead_frame": null,
+     "guard_leader": {
+      "is_guard_leader": false
+     }
+    }
+   }
+  ],
+  "room": [
+   {
+    "text": "好帅",
+    "dm_type": 0,
+    "uid": 10002,
+    "nickname": "viewer_2",
+    "uname_color": "",
+    "timeline": "2024-08-16 22:33:28",
+    "isadmin": 0,
+    "vip": 0,
+    "svip": 0,
+    "medal": [],
+    "title": [
+     "",
+     ""
+    ],
+    "user_level": [
+     0,
+     0,
+     9868950,
+     ">50000"
+    ],
+    "rank": 10000,
+    "teamid": 0,
+    "rnd": "1723811729",
+    "user_title": "",
+    "guard_level": 0,
+    "bubble": 0,
+    "bubble_color": "",
+    "lpl": 0,
+    "yeah_space_url": "",
+    "jump_to_url": "",
+    "check_info": {
+     "ts": 1723818808,
+     "ct": "1B75FB"
+    },
+    "voice_dm_info": {
+     "voice_url": "",
+     "file_format": "",
+     "text": "",
+     "file_duration": 0,
+     "file_id": ""
+    },
+    "emoticon": {
+     "id": 0,
+     "emoticon_unique": "",
+     "text": "",
+     "perm": 0,
+     "url": "",
+     "in_player_area": 0,
+     "bulge_display": 0,
+     "is_dynamic": 0,
+     "height": 0,
+     "width": 0
+    },
+    "emots": null,
+    "id_str": "088336a59eb277942ee353dd6666bf6347",
+    "wealth_level": 0,
+    "bubble_id_v2": 0,
+    "reply": {
+     "show_reply": true,
+     "reply_mid": 0,
+     "reply_uname": "",
+     "reply_uname_color": "",
+     "reply_is_mystery": false
+    },
+    "group_medal": null,
+    "user": {
+     "uid": 10002,
+     "base": {
+      "name": "viewer_2",
+      "face": "https://example.invalid/face/anon.jpg",
+      "name_color": 0,
+      "is_mystery": false,
+      "risk_ctrl_info": null,
+      "origin_info": {
+       "name": "viewer_2",
+       "face": "https://example.invalid/face/anon.jpg"
+      },
+      "official_info": {
+       "role": 0,
+       "title": "",
+       "desc": "",
+       "type": -1
+      },
+      "name_color_str": ""
+     },
+     "medal": null,
+     "wealth": null,
+     "title": {
+      "old_title_css_id": "",
+      "title_css_id": ""
+     },
+     "guard": null,
+     "uhead_frame": null,
+     "guard_leader": {
+      "is_guard_leader": false
+     }
+    }
+   },
+   {
+    "text": "赚麻了 哈哈",
+    "dm_type": 0,
+    "uid": 10003,
+    "nickname": "viewer_3",
+    "uname_color": "",
+    "timeline": "2024-08-17 01:00:49",
+    "isadmin": 0,
+    "vip": 0,
+    "svip": 0,
+    "medal": [],
+    "title": [
+     "",
+     ""
+    ],
+    "user_level": [
+     0,
+     0,
+     9868950,
+     ">50000"
+    ],
+    "rank": 10000,
+    "teamid": 0,
+    "rnd": "1723379161",
+    "user_title": "",
+    "guard_level": 0,
+    "bubble": 0,
+    "bubble_color": "",
+    "lpl": 0,
+    "yeah_space_url": "",
+    "jump_to_url": "",
+    "check_info": {
+     "ts": 1723827649,
+     "ct": "3917D4D7"
+    },
+    "voice_dm_info": {
+     "voice_url": "",
+     "file_format": "",
+     "text": "",
+     "file_duration": 0,
+     "file_id": ""
+    },
+    "emoticon": {
+     "id": 0,
+     "emoticon_unique": "",
+     "text": "",
+     "perm": 0,
+     "url": "",
+     "in_player_area": 0,
+     "bulge_display": 0,
+     "is_dynamic": 0,
+     "height": 0,
+     "width": 0
+    },
+    "emots": null,
+    "id_str": "03f3261e144366383c49c6b5d166bf8563",
+    "wealth_level": 7,
+    "bubble_id_v2": 0,
+    "reply": {
+     "show_reply": true,
+     "reply_mid": 0,
+     "reply_uname": "",
+     "reply_uname_color": "",
+     "reply_is_mystery": false
+    },
+    "group_medal": null,
+    "user": {
+     "uid": 10003,
+     "base": {
+      "name": "viewer_3",
+      "face": "https://example.invalid/face/anon.jpg",
+      "name_color": 0,
+      "is_mystery": false,
+      "risk_ctrl_info": null,
+      "origin_info": {
+       "name": "viewer_3",
+       "face": "https://example.invalid/face/anon.jpg"
+      },
+      "official_info": {
+       "role": 0,
+       "title": "",
+       "desc": "",
+       "type": -1
+      },
+      "name_color_str": ""
+     },
+     "medal": null,
+     "wealth": null,
+     "title": {
+      "old_title_css_id": "",
+      "title_css_id": ""
+     },
+     "guard": null,
+     "uhead_frame": null,
+     "guard_leader": {
+      "is_guard_leader": false
+     }
+    }
+   },
+   {
+    "text": "下播啦~ 感谢大家的陪伴~ 下次见哦~",
+    "dm_type": 0,
+    "uid": 10004,
+    "nickname": "viewer_4",
+    "uname_color": "",
+    "timeline": "2024-08-18 00:07:36",
+    "isadmin": 0,
+    "vip": 0,
+    "svip": 0,
+    "medal": [
+     21,
+     "牌子2",
+     "主播2",
+     20002,
+     1725515,
+     "",
+     0,
+     12632256,
+     12632256,
+     12632256,
+     0,
+     0,
+     30002
+    ],
+    "title": [
+     "",
+     ""
+    ],
+    "user_level": [
+     11,
+     0,
+     6406234,
+     ">50000"
+    ],
+    "rank": 10000,
+    "teamid": 0,
+    "rnd": "1723910862",
+    "user_title": "",
+    "guard_level": 0,
+    "bubble": 0,
+    "bubble_color": "",
+    "lpl": 0,
+    "yeah_space_url": "",
+    "jump_to_url": "",
+    "check_info": {
+     "ts": 1723910856,
+     "ct": "9BD05026"
+    },
+    "voice_dm_info": {
+     "voice_url": "",
+     "file_format": "",
+     "text": "",
+     "file_duration": 0,
+     "file_id": ""
+    },
+    "emoticon": {
+     "id": 0,
+     "emoticon_unique": "",
+     "text": "",
+     "perm": 0,
+     "url": "",
+     "in_player_area": 0,
+     "bulge_display": 0,
+     "is_dynamic": 0,
+     "height": 0,
+     "width": 0
+    },
+    "emots": null,
+    "id_str": "2ee6101973eeb69931eb86ac7e66c0ca17",
+    "wealth_level": 23,
+    "bubble_id_v2": 0,
+    "reply": {
+     "show_reply": true,
+     "reply_mid": 0,
+     "reply_uname": "",
+     "reply_uname_color": "",
+     "reply_is_mystery": false
+    },
+    "group_medal": null,
+    "user": {
+     "uid": 10004,
+     "base": {
+      "name": "viewer_4",
+      "face": "https://example.invalid/face/anon.jpg",
+      "name_color": 0,
+      "is_mystery": false,
+      "risk_ctrl_info": null,
+      "origin_info": {
+       "name": "viewer_4",
+       "face": "https://example.invalid/face/anon.jpg"
+      },
+      "official_info": {
+       "role": 0,
+       "title": "",
+       "desc": "",
+       "type": -1
+      },
+      "name_color_str": ""
+     },
+     "medal": {
+      "name": "牌子2",
+      "level": 21,
+      "color_start": 12632256,
+      "color_end": 12632256,
+      "color_border": 12632256,
+      "color": 1725515,
+      "id": 1231122,
+      "typ": 0,
+      "is_light": 0,
+      "ruid": 30002,
+      "guard_level": 0,
+      "score": 50001573,
+      "guard_icon": "",
+      "honor_icon": "",
+      "v2_medal_color_start": "#919298CC",
+      "v2_medal_color_end": "#919298CC",
+      "v2_medal_color_border": "#919298CC",
+      "v2_medal_color_text": "#FFFFFFFF",
+      "v2_medal_color_level": "#6C6C7299",
+      "user_receive_count": 0
+     },
+     "wealth": null,
+     "title": {
+      "old_title_css_id": "",
+      "title_css_id": ""
+     },
+     "guard": null,
+     "uhead_frame": null,
+     "guard_leader": {
+      "is_guard_leader": false
+     }
+    }
+   },
+   {
+    "text": "哈哈",
+    "dm_type": 1,
+    "uid": 10003,
+    "nickname": "viewer_3",
+    "uname_color": "",
+    "timeline": "2024-08-17 01:00:49",
+    "isadmin": 0,
+    "vip": 0,
+    "svip": 0,
+    "medal": [],
+    "title": [
+     "",
+     ""
+    ],
+    "user_level": [
+     0,
+     0,
+     9868950,
+     ">50000"
+    ],
+    "rank": 10000,
+    "teamid": 0,
+    "rnd": "1723379161",
+    "user_title": "",
+    "guard_level": 0,
+    "bubble": 0,
+    "bubble_color": "",
+    "lpl": 0,
+    "yeah_space_url": "",
+    "jump_to_url": "",
+    "check_info": {
+     "ts": 1723910916,
+     "ct": "X"
+    },
+    "voice_dm_info": {
+     "voice_url": "",
+     "file_format": "",
+     "text": "",
+     "file_duration": 0,
+     "file_id": ""
+    },
+    "emoticon": {
+     "bulge_display": 1,
+     "emoticon_unique": "room_21452505_191",
+     "height": 162,
+     "in_player_area": 1,
+     "is_dynamic": 1,
+     "url": "http://i0.hdslb.com/bfs/live/f1f2cb500de4bd3a5992f85ae2be574dd65a605d.png",
+     "width": 162,
+     "id": 191,
+     "text": "哈哈",
+     "perm": 1
+    },
+    "emots": null,
+    "id_str": "sticker0001",
+    "wealth_level": 7,
+    "bubble_id_v2": 0,
+    "reply": {
+     "show_reply": true,
+     "reply_mid": 0,
+     "reply_uname": "",
+     "reply_uname_color": "",
+     "reply_is_mystery": false
+    },
+    "group_medal": null,
+    "user": {
+     "uid": 10003,
+     "base": {
+      "name": "viewer_3",
+      "face": "https://example.invalid/face/anon.jpg",
+      "name_color": 0,
+      "is_mystery": false,
+      "risk_ctrl_info": null,
+      "origin_info": {
+       "name": "viewer_3",
+       "face": "https://example.invalid/face/anon.jpg"
+      },
+      "official_info": {
+       "role": 0,
+       "title": "",
+       "desc": "",
+       "type": -1
+      },
+      "name_color_str": ""
+     },
+     "medal": null,
+     "wealth": null,
+     "title": {
+      "old_title_css_id": "",
+      "title_css_id": ""
+     },
+     "guard": null,
+     "uhead_frame": null,
+     "guard_leader": {
+      "is_guard_leader": false
+     }
+    }
+   },
+   {
+    "text": "你好[花][妙]",
+    "dm_type": 0,
+    "uid": 10002,
+    "nickname": "viewer_2",
+    "uname_color": "",
+    "timeline": "2024-08-16 22:33:28",
+    "isadmin": 0,
+    "vip": 0,
+    "svip": 0,
+    "medal": [],
+    "title": [
+     "",
+     ""
+    ],
+    "user_level": [
+     0,
+     0,
+     9868950,
+     ">50000"
+    ],
+    "rank": 10000,
+    "teamid": 0,
+    "rnd": "1723811729",
+    "user_title": "",
+    "guard_level": 0,
+    "bubble": 0,
+    "bubble_color": "",
+    "lpl": 0,
+    "yeah_space_url": "",
+    "jump_to_url": "",
+    "check_info": {
+     "ts": 1723910886,
+     "ct": "Y"
+    },
+    "voice_dm_info": {
+     "voice_url": "",
+     "file_format": "",
+     "text": "",
+     "file_duration": 0,
+     "file_id": ""
+    },
+    "emoticon": {
+     "id": 0,
+     "emoticon_unique": "",
+     "text": "",
+     "perm": 0,
+     "url": "",
+     "in_player_area": 0,
+     "bulge_display": 0,
+     "is_dynamic": 0,
+     "height": 0,
+     "width": 0
+    },
+    "emots": {
+     "[妙]": {
+      "emoticon_id": 210,
+      "emoji": "[妙]",
+      "descript": "[妙]",
+      "url": "http://i0.hdslb.com/bfs/live/08f735d950a0fba267dda140673c9ab2edf6410d.png",
+      "width": 20,
+      "height": 20,
+      "emoticon_unique": "emoji_210"
+     },
+     "[花]": {
+      "emoticon_id": 209,
+      "emoji": "[花]",
+      "descript": "[花]",
+      "url": "http://i0.hdslb.com/bfs/live/7dd2ef03e13998575e4d8a803c6e12909f94e72b.png",
+      "width": 20,
+      "height": 20,
+      "emoticon_unique": "emoji_209"
+     }
+    },
+    "id_str": "emots0001",
+    "wealth_level": 0,
+    "bubble_id_v2": 0,
+    "reply": {
+     "show_reply": true,
+     "reply_mid": 0,
+     "reply_uname": "",
+     "reply_uname_color": "",
+     "reply_is_mystery": false
+    },
+    "group_medal": null,
+    "user": {
+     "uid": 10002,
+     "base": {
+      "name": "viewer_2",
+      "face": "https://example.invalid/face/anon.jpg",
+      "name_color": 0,
+      "is_mystery": false,
+      "risk_ctrl_info": null,
+      "origin_info": {
+       "name": "viewer_2",
+       "face": "https://example.invalid/face/anon.jpg"
+      },
+      "official_info": {
+       "role": 0,
+       "title": "",
+       "desc": "",
+       "type": -1
+      },
+      "name_color_str": ""
+     },
+     "medal": null,
+     "wealth": null,
+     "title": {
+      "old_title_css_id": "",
+      "title_css_id": ""
+     },
+     "guard": null,
+     "uhead_frame": null,
+     "guard_leader": {
+      "is_guard_leader": false
+     }
+    }
+   }
+  ]
+ }
+}

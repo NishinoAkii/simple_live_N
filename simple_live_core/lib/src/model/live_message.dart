@@ -773,6 +773,10 @@ class LiveGiftMessage {
   /// 价值，带单位，如“¥5”“520 钻”“100 Bits”；不知道时为空
   final String? priceText;
 
+  /// 订阅、贵族这类消息里没有价格时按标价估的价值，如“$5.99”“¥76”；
+  /// 只用来排本场礼物榜，不显示在礼物行里
+  final String? estimate;
+
   /// 送礼时间：平台给出时用平台的，否则为收到的时间
   final DateTime time;
 
@@ -792,6 +796,7 @@ class LiveGiftMessage {
     this.count = 1,
     this.paid = true,
     this.priceText,
+    this.estimate,
     DateTime? time,
     this.comboEnd = false,
     this.userId,
@@ -813,6 +818,7 @@ class LiveGiftMessage {
       count: count,
       paid: paid,
       priceText: priceText,
+      estimate: estimate,
       time: time,
       comboEnd: comboEnd,
       userId: value,

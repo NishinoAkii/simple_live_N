@@ -198,6 +198,15 @@ void main() {
       );
       expect(parseDouyuNoble({...msg, 'drid': '1'}, '63136'), isNull);
       expect(parseDouyuNoble({...msg, 'nl': '99'}, '63136')!.giftName, '贵族');
+      // 价格按网上流传的估：开通、续费不一样，不认得的等级不估
+      expect(g.estimate, '¥5000');
+      expect(
+        parseDouyuNoble({...msg, 'type': 'rnewbc'}, '63136')!.estimate,
+        '¥3000',
+      );
+      expect(parseDouyuNoble({...msg, 'nl': '7'}, '63136')!.estimate, '¥76');
+      expect(parseDouyuNoble({...msg, 'nl': '99'}, '63136')!.estimate, isNull);
+      expect(g.priceText, isNull);
     });
   });
 

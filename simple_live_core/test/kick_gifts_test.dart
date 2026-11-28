@@ -54,6 +54,11 @@ void main() {
   test('subscriptions: months as price text', () {
     expect(gifts[0].priceText, isNull);
     expect(gifts[1].priceText, '3 个月');
+    // 累计 3 个月也是这次付一个月：每月 5 美元
+    expect(gifts[0].estimate, r'$5');
+    expect(gifts[1].estimate, r'$5');
+    expect(gifts[2].estimate, r'$15');
+    expect(gifts[3].estimate, r'$1250');
   });
 
   test('gifted subscriptions: total once, later chunks skipped', () {

@@ -11,6 +11,7 @@ import 'package:simple_live_core/src/common/core_log.dart';
 import 'package:simple_live_core/src/common/http_client.dart';
 import 'package:simple_live_core/src/common/room_area.dart';
 import 'package:simple_live_core/src/common/room_notice.dart';
+import 'package:simple_live_core/src/danmaku/bilibili_history.dart';
 import 'package:simple_live_core/src/common/search_parser.dart';
 import 'package:simple_live_core/src/danmaku/bilibili_danmaku.dart';
 import 'package:simple_live_core/src/danmaku/bilibili_room_stats.dart';
@@ -361,6 +362,17 @@ class BiliBiliSite
       CoreLog.error(e);
       return null;
     }
+  }
+
+  /// 进直播间时的最近聊天（[parseBiliChatHistory]）。[roomId] 是长房号，
+  /// 不用 WBI 签名，没登录也能读（名字可能打了码）
+  Future<List<LiveMessage>> getChatHistory(int roomId) async {
+    var result = await HttpClient.instance.getJson(
+      "https://api.live.bilibili.com/xlive/web-room/v1/dM/gethistory",
+      queryParameters: {"roomid": roomId, "room_type": 0},
+      header: await getHeader(),
+    );
+    return parseBiliChatHistory(result);
   }
 
   @override

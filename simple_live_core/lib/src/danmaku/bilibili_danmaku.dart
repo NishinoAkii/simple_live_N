@@ -119,10 +119,57 @@ class BiliBiliDanmaku implements LiveDanmaku {
 
   WebScoketUtils? webScoketUtils;
   late BiliBiliDanmakuArgs danmakuArgs;
+
+  /// 进直播间时读最近聊天（测试里换掉），默认用 [site] 的 [BiliBiliSite.getChatHistory]
+  Future<List<LiveMessage>> Function(BiliBiliDanmakuArgs args)? historyLoader;
+
+  /// 读最近聊天最多等多久，过了就不等，先连弹幕
+  Duration historyTimeout = const Duration(seconds: 3);
+
+  /// [start]、[stop] 一次加一：读最近聊天时离开了直播间，就不再连弹幕
+  int _session = 0;
+
+  /// 已经显示过最近聊天的直播间：刷新（同一个连接再 [start]）时不再显示，免得聊天区出现两遍
+  int _historyRoom = 0;
+
+  /// 进直播间时把平台记着的最近聊天标成历史消息交给 [onMessage]（只进聊天区，不上视频弹幕）。
+  /// [session] 是哪一次 [start] 读的：读完时已经刷新或离开了，这次的不显示
+  Future<void> loadHistory(BiliBiliDanmakuArgs args, {int? session}) async {
+    var site = this.site;
+    var load =
+        historyLoader ??
+        (site == null
+            ? null
+            : (BiliBiliDanmakuArgs a) => site.getChatHistory(a.roomId));
+    if (load == null || args.roomId <= 0 || args.roomId == _historyRoom) {
+      return;
+    }
+    List<LiveMessage> list;
+    try {
+      list = await load(args).timeout(historyTimeout);
+    } catch (e) {
+      CoreLog.error(e);
+      return;
+    }
+    if (session != null && session != _session) {
+      return;
+    }
+    _historyRoom = args.roomId;
+    for (var message in list) {
+      onMessage?.call(message.history ? message : message.asHistory());
+    }
+  }
+
   @override
   Future start(dynamic args) async {
     danmakuArgs = args as BiliBiliDanmakuArgs;
+    var session = ++_session;
     linkMic.reset(roomId: "${args.roomId}");
+    // 先读完最近的聊天再连弹幕，新消息排在它们后面
+    await loadHistory(args, session: session);
+    if (session != _session) {
+      return;
+    }
     webScoketUtils = WebScoketUtils(
       url: "wss://${args.serverHost}/sub",
       heartBeatTime: heartbeatTime,
@@ -214,6 +261,7 @@ class BiliBiliDanmaku implements LiveDanmaku {
 
   @override
   Future stop() async {
+    _session++;
     onMessage = null;
     onClose = null;
     _watch?.close();

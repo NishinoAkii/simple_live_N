@@ -469,6 +469,7 @@ YouTubeChatItem? _parseGiftPurchase(Map renderer) {
           ? null
           : LiveEmote(text: "会员", url: image, width: 1, height: 1),
       count: _numberIn(header["primaryText"]) ?? 1,
+      estimate: ytGiftMembershipEstimate(_numberIn(header["primaryText"]) ?? 1),
       time: _timestamp(renderer),
       userId: _authorId(header),
     ),
@@ -533,6 +534,11 @@ YouTubeChatItem? _parseGiftMessage(Map model) {
   name = name.replaceAll(RegExp(r'^[「“"\s]+|[」”"\s]+$'), "");
   return (name.isEmpty ? text.trim() : name, count < 1 ? 1 : count);
 }
+
+/// 赠送 [count] 份会员的估算价值：送的会员按主播不超过 5 美元的最高一档定价，
+/// 消息里没有价格，按每份 4.99 美元估，如“$24.95”
+String? ytGiftMembershipEstimate(int count) =>
+    count > 0 ? "\$${(4.99 * count).toStringAsFixed(2)}" : null;
 
 /// 文字（runs）里的第一个整数：优先取单独一段的数字（“Gifted ”“5”“ xxx memberships”），
 /// 频道名里的数字不算；没有时为 null

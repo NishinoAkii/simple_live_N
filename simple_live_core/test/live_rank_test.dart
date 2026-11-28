@@ -19,6 +19,7 @@ LiveGiftMessage gift(
   int count = 1,
   bool paid = true,
   String face = "",
+  String? estimate,
 }) => LiveGiftMessage(
   userName: user,
   userId: id,
@@ -26,6 +27,7 @@ LiveGiftMessage gift(
   count: count,
   paid: paid,
   priceText: price,
+  estimate: estimate,
   face: face,
 );
 
@@ -364,6 +366,28 @@ void main() {
         liveGiftValue(gift("x", price: "50 Kicks"))!.unit,
         LiveGiftUnit.kicks,
       );
+    });
+
+    test("订阅、贵族按标价估的也算上；有价格时用价格", () {
+      var ranks = rankGiftSenders([
+        gift("甲", price: "Tier 1", estimate: r"$5.99"),
+        gift("乙", price: "100 Bits"),
+        gift("甲", price: "Tier 1", estimate: r"$5.99"),
+        gift("丙", price: "¥30", estimate: r"$99"),
+        gift("丁", estimate: "¥76"),
+        gift("戊", paid: false, estimate: r"$5.99"),
+      ]);
+      // 免费的（戊）不进榜
+      expect(ranks.map((e) => e.userName), ["丁", "丙", "甲", "乙"]);
+      // 不显示金额，只按估的价值排
+      expect(ranks.map((e) => e.scoreText), everyElement(isNull));
+      expect(liveGiftEstimate(gift("x", estimate: r"$5")), (
+        amount: 5.0,
+        unit: LiveGiftUnit.usd,
+      ));
+      expect(liveGiftEstimate(gift("x", price: "¥1", estimate: r"$5")), isNull);
+      expect(liveGiftEstimate(gift("x", estimate: "免费")), isNull);
+      expect(liveGiftEstimate(gift("x")), isNull);
     });
 
     test("钻按当前界面语言的写法认", () {

@@ -5,6 +5,7 @@ import 'package:simple_live_app/modules/search/search_controller.dart';
 import 'package:simple_live_app/modules/search/search_list_controller.dart';
 import 'package:simple_live_app/modules/search/search_list_view.dart';
 import 'package:simple_live_app/modules/search/widgets/search_suggest_panel.dart';
+import 'package:simple_live_app/widgets/keep_typing.dart';
 import 'package:simple_live_app/widgets/site_logo.dart';
 import 'package:simple_live_app/i18n/i18n.dart';
 
@@ -21,6 +22,9 @@ class SearchPage extends GetView<AppSearchController> {
           focusNode: controller.focusNode,
           autofocus: true,
           onTap: () => controller.panelOpen.value = true,
+          // 搜完光标留在输入框里；手机上点结果、页签这些别处时收起键盘
+          onEditingComplete: keepTyping(controller.searchController),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           decoration: InputDecoration(
             hintText: "主播、房间号或链接".t,
             border: OutlineInputBorder(
@@ -116,7 +120,12 @@ class SearchPage extends GetView<AppSearchController> {
           // 输入时的联想、最近搜索
           Obx(
             () => controller.panelOpen.value
-                ? Positioned.fill(child: SearchSuggestPanel(controller))
+                // 联想面板算在输入框的点击范围里：点最近搜索、联想词时光标不离开输入框
+                ? Positioned.fill(
+                    child: TextFieldTapRegion(
+                      child: SearchSuggestPanel(controller),
+                    ),
+                  )
                 : const SizedBox(),
           ),
         ],
